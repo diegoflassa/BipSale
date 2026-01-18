@@ -20,7 +20,7 @@ fun SaleDetailScreen(
     onBack: () -> Unit,
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
-    val items by viewModel.getItemsForSale(saleId).collectAsState(initial = emptyList())
+    val items by viewModel.getSaleItems(saleId).collectAsState(initial = emptyList())
     // For simplicity, we assume we fetch the sale header from a list or repo
     // In a real app, we'd have a state for the specific sale
     

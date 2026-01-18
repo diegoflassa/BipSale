@@ -1,10 +1,10 @@
 package dev.diegoflassa.bipsale.feature.products
 
-import dev.diegoflassa.bipsale.core.data.model.ProductEntity
+import dev.diegoflassa.bipsale.core.domain.model.Product
 
 class ProductContract {
     data class State(
-        val products: List<ProductEntity> = emptyList(),
+        val products: List<Product> = emptyList(),
         val selectedProductCodes: Set<String> = emptySet(),
         val isLoading: Boolean = false,
         val error: String? = null
@@ -13,7 +13,7 @@ class ProductContract {
     sealed interface Intent {
         data object LoadProducts : Intent
         data class SaveProduct(val code: String, val name: String, val price: Double) : Intent
-        data class DeleteProduct(val product: ProductEntity) : Intent
+        data class DeleteProduct(val product: Product) : Intent
         data class ToggleProductSelection(val code: String) : Intent
         data object ClearSelection : Intent
     }

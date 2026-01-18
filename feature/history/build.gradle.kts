@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:navigation"))
     implementation(project(":core:utils"))
+    implementation(project(":core:domain"))
 
     // Compose
     implementation(platform(libs.ax.compose.bom))

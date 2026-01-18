@@ -1,4 +1,4 @@
-package dev.diegoflassa.bipsale.ui.theme
+package dev.diegoflassa.bipsale.core.ui.theme
 
 import androidx.compose.ui.graphics.Color
 

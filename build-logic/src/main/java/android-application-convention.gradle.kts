@@ -1,18 +1,18 @@
 import dev.diegoflassa.buildLogic.Configuracoes
 import java.io.FileInputStream
-import java.util.Properties
-import java.io.File // Ensure File is imported
-import java.time.LocalDateTime // Changed from LocalDate to LocalDateTime
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.Properties
 
 // Get the names of the tasks Gradle was requested to run
 val requestedTaskNames = gradle.startParameter.taskNames
 
 // Determine if an assembleDebug or assembleRelease task is among them
 val isAssembleTask = requestedTaskNames.any { taskName ->
-    // Check if the task name contains "assembleDebug" or "assembleRelease"
     taskName.contains("assembleDebug", ignoreCase = true) ||
-            taskName.contains("assembleRelease", ignoreCase = true)
+            taskName.contains("assembleRelease", ignoreCase = true) ||
+            taskName.contains("bundleDebug", ignoreCase = true) ||
+            taskName.contains("bundleRelease", ignoreCase = true)
 }
 
 // Call the initialization method from Configuracoes.

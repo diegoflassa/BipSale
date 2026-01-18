@@ -12,7 +12,7 @@ dependencies {
     implementation(libs.apache.poi.ooxml)
     
     // Internal
-    implementation(project(":core:data"))
+    implementation(project(":core:domain"))
 
     // Hilt
     implementation(libs.com.google.dagger.hilt.android)

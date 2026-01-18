@@ -3,10 +3,10 @@ package dev.diegoflassa.bipsale.feature.sales
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.diegoflassa.bipsale.core.data.model.SaleEntity
-import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
-import dev.diegoflassa.bipsale.core.data.repository.ProductRepository
-import dev.diegoflassa.bipsale.core.data.repository.SaleRepository
+import dev.diegoflassa.bipsale.core.domain.model.Sale
+import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
+import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -44,12 +44,14 @@ class SalesViewModel @Inject constructor(
         try {
             val uri = android.net.Uri.parse(qrData)
             val code = uri.getQueryParameter("code") ?: return
-            val price = uri.getQueryParameter("price")?.toDoubleOrNull() ?: 0.0
+            // If price is in QR, use it, otherwise rely on Product DB
+            val priceFromQr = uri.getQueryParameter("price")?.toDoubleOrNull()
             
             viewModelScope.launch {
                 val product = productRepository.getProductByCode(code)
-                val productName = product?.productName ?: "Produto Desconhecido"
-                addItem(code, productName, price)
+                val productName = product?.name ?: "Produto Desconhecido"
+                val finalPrice = priceFromQr ?: product?.price ?: 0.0
+                addItem(code, productName, finalPrice)
             }
         } catch (e: Exception) {
             viewModelScope.launch { _effect.send(SalesContract.Effect.ShowError("QR Code inválido")) }
@@ -57,8 +59,8 @@ class SalesViewModel @Inject constructor(
     }
 
     private fun addItem(code: String, name: String, price: Double) {
-        val newItem = SaleItemEntity(
-            saleId = "",
+        val newItem = SaleItem(
+            saleId = "", // Will be assigned on finalize
             productCode = code,
             productName = name,
             unitPrice = price,
@@ -70,7 +72,7 @@ class SalesViewModel @Inject constructor(
         }
     }
 
-    private fun removeItem(item: SaleItemEntity) {
+    private fun removeItem(item: SaleItem) {
         _uiState.update { state ->
             val updatedItems = state.items - item
             state.copy(items = updatedItems).recalculate()
@@ -90,7 +92,7 @@ class SalesViewModel @Inject constructor(
     private fun finalizeSale() {
         val state = _uiState.value
         val saleId = UUID.randomUUID().toString()
-        val sale = SaleEntity(
+        val sale = Sale(
             id = saleId,
             customerName = if (state.isAnonymous) "Anônimo" else state.customerName,
             customerCpf = if (state.isAnonymous) "-" else state.customerCpf,
@@ -98,12 +100,12 @@ class SalesViewModel @Inject constructor(
             discountPercentage = state.discountPercentage,
             finalAmount = state.finalAmount,
             paymentMethod = "PIX",
-            date = System.currentTimeMillis()
+            date = System.currentTimeMillis(),
+            items = state.items.map { it.copy(saleId = saleId) }
         )
-        val itemsWithSaleId = state.items.map { it.copy(saleId = saleId) }
 
         viewModelScope.launch {
-            saleRepository.insertFullSale(sale, itemsWithSaleId)
+            saleRepository.insertFullSale(sale)
             _uiState.update { it.copy(isSaleFinished = true) }
             _effect.send(SalesContract.Effect.NavigateBack)
         }

@@ -80,12 +80,12 @@ fun ExportScreen(
                     try {
                         val file = File(context.getExternalFilesDir(null), "vendas_bipsale_${System.currentTimeMillis()}.xlsx")
                         FileOutputStream(file).use { outputStream ->
-                            exporter.exportSalesToExcel(outputStream, uiState.salesWithItems)
+                            exporter.exportSalesToExcel(outputStream, uiState.sales)
                         }
                         viewModel.onIntent(HistoryContract.Intent.RefreshSales) // Ensure data is loaded
                         
                         // Show success message
-                        if (uiState.salesWithItems.isEmpty()) {
+                        if (uiState.sales.isEmpty()) {
                              // trigger a load if needed
                         }
                     } catch (e: Exception) {

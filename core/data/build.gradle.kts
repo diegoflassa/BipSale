@@ -24,4 +24,6 @@ dependencies {
 
     // Common
     implementation(libs.ax.core.ktx)
+    implementation(project(":core:domain"))
+    implementation(libs.com.jakewharton.timber)
 }

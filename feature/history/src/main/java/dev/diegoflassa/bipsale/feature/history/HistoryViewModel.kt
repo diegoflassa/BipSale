@@ -3,8 +3,7 @@ package dev.diegoflassa.bipsale.feature.history
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
-import dev.diegoflassa.bipsale.core.data.repository.SaleRepository
+import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -38,13 +37,9 @@ class HistoryViewModel @Inject constructor(
     private fun refreshSales() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
+            // getAllSales now returns domain Sales which include items if mapped correctly by repo
             saleRepository.getAllSales().collect { list ->
                 _uiState.update { it.copy(sales = list, isLoading = false) }
-            }
-        }
-        viewModelScope.launch {
-            saleRepository.getAllSalesWithItems().collect { list ->
-                _uiState.update { it.copy(salesWithItems = list) }
             }
         }
     }
@@ -82,7 +77,9 @@ class HistoryViewModel @Inject constructor(
         _uiState.update { it.copy(selectedSaleIds = emptySet()) }
     }
 
-    fun getItemsForSale(saleId: String): Flow<List<SaleItemEntity>> {
-        return saleRepository.getItemsForSale(saleId)
+    fun getSaleItems(saleId: String): Flow<List<dev.diegoflassa.bipsale.core.domain.model.SaleItem>> {
+        return uiState.map { state ->
+            state.sales.find { it.id == saleId }?.items ?: emptyList()
+        }
     }
 }

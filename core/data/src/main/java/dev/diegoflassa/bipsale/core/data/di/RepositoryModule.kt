@@ -4,10 +4,10 @@ import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
-import dev.diegoflassa.bipsale.core.data.repository.ProductRepository
 import dev.diegoflassa.bipsale.core.data.repository.ProductRepositoryImpl
-import dev.diegoflassa.bipsale.core.data.repository.SaleRepository
 import dev.diegoflassa.bipsale.core.data.repository.SaleRepositoryImpl
+import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
+import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
 import javax.inject.Singleton
 
 @Module

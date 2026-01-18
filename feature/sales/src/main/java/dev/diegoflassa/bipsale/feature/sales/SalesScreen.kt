@@ -16,11 +16,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
+import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.qrcode.QrScannerView
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalGetImage::class)
@@ -42,8 +44,6 @@ fun SalesScreen(
     ) { isGranted ->
         if (isGranted) {
             showScanner = true
-        } else {
-            // In a real app, show a proper message
         }
     }
 
@@ -57,74 +57,86 @@ fun SalesScreen(
         }
     }
 
-    Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            TopAppBar(
-                title = { Text("Venda - ${if (uiState.isAnonymous) "Anônimo" else uiState.customerName}") },
-                actions = {
-                    IconButton(onClick = {
-                        val permissionCheck = ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.CAMERA
-                        )
-                        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-                            showScanner = true
+    BipSaleTheme {
+        Scaffold(
+            contentWindowInsets = WindowInsets.safeDrawing, // Use safeDrawing for proper edge-to-edge
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+            topBar = {
+                TopAppBar(
+                    title = {
+                        val title = if (uiState.isAnonymous) {
+                            stringResource(R.string.sale_title_anonymous)
                         } else {
-                            permissionLauncher.launch(Manifest.permission.CAMERA)
+                            stringResource(R.string.sale_title_format, uiState.customerName)
                         }
-                    }) {
-                        Icon(Icons.Default.QrCodeScanner, contentDescription = "Escanear QR")
+                        Text(title)
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            val permissionCheck = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.CAMERA
+                            )
+                            if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+                                showScanner = true
+                            } else {
+                                permissionLauncher.launch(Manifest.permission.CAMERA)
+                            }
+                        }) {
+                            Icon(Icons.Default.QrCodeScanner, contentDescription = stringResource(R.string.scan_qr_description))
+                        }
                     }
-                }
-            )
-        },
-        bottomBar = {
-            SaleBottomBar(
-                total = uiState.totalAmount,
-                final = uiState.finalAmount,
-                discount = uiState.discountPercentage,
-                onDiscountChange = { viewModel.onIntent(SalesContract.Intent.UpdateDiscount(it)) },
-                onFinalize = { viewModel.onIntent(SalesContract.Intent.FinalizeSale) }
-            )
-        }
-    ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            if (uiState.items.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Nenhum item adicionado", style = MaterialTheme.typography.bodyLarge)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(uiState.items) { item ->
-                        SaleItemRow(item = item, onDelete = { viewModel.onIntent(SalesContract.Intent.RemoveItem(item)) })
+                )
+            },
+            bottomBar = {
+                SaleBottomBar(
+                    total = uiState.totalAmount,
+                    final = uiState.finalAmount,
+                    discount = uiState.discountPercentage,
+                    onDiscountChange = { viewModel.onIntent(SalesContract.Intent.UpdateDiscount(it)) },
+                    onFinalize = { viewModel.onIntent(SalesContract.Intent.FinalizeSale) }
+                )
+            }
+        ) { padding ->
+            Column(modifier = Modifier.padding(padding)) {
+                if (uiState.items.isEmpty()) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.empty_items_message), style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(uiState.items) { item ->
+                            SaleItemRow(item = item, onDelete = { viewModel.onIntent(SalesContract.Intent.RemoveItem(item)) })
+                        }
                     }
                 }
             }
-        }
-    }
 
-    if (showScanner) {
-        Dialog(onDismissRequest = { showScanner = false }) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                QrScannerView(onQrCodeScanned = { qr ->
-                    viewModel.onIntent(SalesContract.Intent.AddProductByQr(qr))
-                    showScanner = false
-                })
+            if (showScanner) {
+                Dialog(onDismissRequest = { showScanner = false }) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .safeDrawingPadding(), // Avoid system bars in full screen dialog
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        QrScannerView(onQrCodeScanned = { qr ->
+                            viewModel.onIntent(SalesContract.Intent.AddProductByQr(qr))
+                            showScanner = false
+                        })
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun SaleItemRow(item: SaleItemEntity, onDelete: () -> Unit) {
+fun SaleItemRow(item: SaleItem, onDelete: () -> Unit) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxWidth(),
@@ -133,10 +145,10 @@ fun SaleItemRow(item: SaleItemEntity, onDelete: () -> Unit) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.productName, style = MaterialTheme.typography.titleSmall)
-                Text("R$ ${String.format("%.2f", item.unitPrice)}", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.currency_format, item.unitPrice), style = MaterialTheme.typography.bodyMedium)
             }
             IconButton(onClick = onDelete) {
-                Icon(Icons.Default.Delete, contentDescription = "Remover")
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.remove_item_description))
             }
         }
     }
@@ -151,25 +163,27 @@ fun SaleBottomBar(
     onFinalize: () -> Unit
 ) {
     Surface(tonalElevation = 8.dp) {
-        Column(modifier = Modifier.padding(16.dp).fillMaxWidth()) {
+        Column(modifier = Modifier
+            .navigationBarsPadding() // Handled by Edge-to-Edge
+            .padding(16.dp)
+            .fillMaxWidth()) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Subtotal:", style = MaterialTheme.typography.bodyMedium)
-                Text("R$ ${String.format("%.2f", total)}", style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.subtotal_label), style = MaterialTheme.typography.bodyMedium)
+                Text(stringResource(R.string.currency_format, total), style = MaterialTheme.typography.bodyMedium)
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Text("Desconto PIX (%):", style = MaterialTheme.typography.bodyMedium)
-                // Simplified discount input
+                Text(stringResource(R.string.discount_label), style = MaterialTheme.typography.bodyMedium)
                 TextButton(onClick = { /* Could show a dialog to change discount */ }) {
                     Text("${discount.toInt()}%")
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total:", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
-                Text("R$ ${String.format("%.2f", final)}", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.total_label), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.currency_format, final), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
             }
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = onFinalize, modifier = Modifier.fillMaxWidth()) {
-                Text("Finalizar Venda")
+                Text(stringResource(R.string.finalize_sale_button))
             }
         }
     }

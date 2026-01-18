@@ -3,8 +3,8 @@ package dev.diegoflassa.bipsale.feature.products
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dev.diegoflassa.bipsale.core.data.model.ProductEntity
-import dev.diegoflassa.bipsale.core.data.repository.ProductRepository
+import dev.diegoflassa.bipsale.core.domain.model.Product
+import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
 import dev.diegoflassa.bipsale.feature.qrcode.QrGenerator
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
@@ -48,19 +48,18 @@ class ProductViewModel @Inject constructor(
     private fun saveProduct(code: String, name: String, price: Double) {
         viewModelScope.launch {
             val qrData = "bipsale://product?code=$code&price=$price"
-            val product = ProductEntity(
-                productCode = code,
-                productName = name,
+            val product = Product(
+                code = code,
+                name = name,
                 price = price,
-                qrCodeData = qrData,
-                lastUpdated = System.currentTimeMillis()
+                qrCode = qrData
             )
             productRepository.insertProduct(product)
             _effect.send(ProductContract.Effect.NavigationBack)
         }
     }
 
-    private fun deleteProduct(product: ProductEntity) {
+    private fun deleteProduct(product: Product) {
         viewModelScope.launch {
             productRepository.deleteProduct(product)
             _effect.send(ProductContract.Effect.ShowSnackbar("Produto removido"))
@@ -82,7 +81,7 @@ class ProductViewModel @Inject constructor(
         _uiState.update { it.copy(selectedProductCodes = emptySet()) }
     }
 
-    suspend fun getProductByCode(code: String): ProductEntity? {
+    suspend fun getProductByCode(code: String): Product? {
         return productRepository.getProductByCode(code)
     }
 }

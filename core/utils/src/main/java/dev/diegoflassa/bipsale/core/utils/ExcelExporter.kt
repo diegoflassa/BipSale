@@ -2,9 +2,7 @@ package dev.diegoflassa.bipsale.core.utils
 
 import android.content.Context
 import android.os.Environment
-import dev.diegoflassa.bipsale.core.data.model.SaleEntity
-import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
-import dev.diegoflassa.bipsale.core.data.model.SaleWithItems
+import dev.diegoflassa.bipsale.core.domain.model.Sale
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -21,7 +19,7 @@ class ExcelExporter @Inject constructor() {
 
     fun exportSalesToExcel(
         outputStream: OutputStream,
-        sales: List<SaleWithItems>
+        sales: List<Sale>
     ) {
         val workbook = XSSFWorkbook()
         val sheet = workbook.createSheet("Vendas")
@@ -34,12 +32,11 @@ class ExcelExporter @Inject constructor() {
         }
 
         var rowNum = 1
-        sales.forEach { saleWithItems ->
-            val sale = saleWithItems.sale
-            saleWithItems.items.forEach { item ->
+        sales.forEach { sale ->
+            sale.items.forEach { item ->
                 val row = sheet.createRow(rowNum++)
-                row.createCell(0).setCellValue(sale.customerName ?: "Anônimo")
-                row.createCell(1).setCellValue(sale.customerCpf ?: "-")
+                row.createCell(0).setCellValue(sale.customerName)
+                row.createCell(1).setCellValue(sale.customerCpf)
                 row.createCell(2).setCellValue(item.productCode)
                 row.createCell(3).setCellValue(item.productName)
                 row.createCell(4).setCellValue(item.unitPrice)

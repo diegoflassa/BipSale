@@ -44,7 +44,8 @@ fun AddEditProductScreen(
         if (isEdit) {
             val product = viewModel.getProductByCode(productCode!!)
             product?.let {
-                name = it.productName
+                // Refactored to use Domain Model properties
+                name = it.name // was productName
                 price = it.price.toString()
             }
         }

@@ -19,7 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.print.PrintHelper
-import dev.diegoflassa.bipsale.core.data.model.ProductEntity
+import dev.diegoflassa.bipsale.core.domain.model.Product
 import dev.diegoflassa.bipsale.feature.qrcode.QrGenerator
 import androidx.compose.material.icons.filled.Print
 import androidx.compose.material.icons.filled.Close
@@ -71,7 +71,7 @@ fun ProductListScreen(
                     if (uiState.selectedProductCodes.isNotEmpty()) {
                         val context = LocalContext.current
                         IconButton(onClick = {
-                            val selectedProducts = uiState.products.filter { it.productCode in uiState.selectedProductCodes }
+                            val selectedProducts = uiState.products.filter { it.code in uiState.selectedProductCodes }
                             if (selectedProducts.isNotEmpty()) {
                                 printBatchQrCodes(context, selectedProducts)
                             }
@@ -98,16 +98,16 @@ fun ProductListScreen(
             items(uiState.products) { product ->
                 ProductItem(
                     product = product,
-                    isSelected = uiState.selectedProductCodes.contains(product.productCode),
+                    isSelected = uiState.selectedProductCodes.contains(product.code),
                     onClick = { 
                         if (uiState.selectedProductCodes.isNotEmpty()) {
-                            viewModel.onIntent(ProductContract.Intent.ToggleProductSelection(product.productCode))
+                            viewModel.onIntent(ProductContract.Intent.ToggleProductSelection(product.code))
                         } else {
-                            onEditProduct(product.productCode)
+                            onEditProduct(product.code)
                         }
                     },
                     onLongClick = {
-                        viewModel.onIntent(ProductContract.Intent.ToggleProductSelection(product.productCode))
+                        viewModel.onIntent(ProductContract.Intent.ToggleProductSelection(product.code))
                     },
                     onDelete = { viewModel.onIntent(ProductContract.Intent.DeleteProduct(product)) }
                 )
@@ -119,7 +119,7 @@ fun ProductListScreen(
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun ProductItem(
-    product: ProductEntity,
+    product: Product,
     isSelected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
@@ -146,8 +146,8 @@ fun ProductItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = product.productName, style = MaterialTheme.typography.titleMedium)
-                Text(text = "Código: ${product.productCode}", style = MaterialTheme.typography.bodySmall)
+                Text(text = product.name, style = MaterialTheme.typography.titleMedium)
+                Text(text = "Código: ${product.code}", style = MaterialTheme.typography.bodySmall)
                 Text(
                     text = "R$ ${String.format("%.2f", product.price)}",
                     style = MaterialTheme.typography.bodyLarge,
@@ -165,10 +165,10 @@ fun ProductItem(
     }
 }
 
-private fun printBatchQrCodes(context: android.content.Context, products: List<ProductEntity>) {
+private fun printBatchQrCodes(context: android.content.Context, products: List<Product>) {
     val qrGenerator = QrGenerator()
     val bitmaps = products.mapNotNull { product ->
-        qrGenerator.generateQrCode(product.qrCodeData ?: product.productCode, 300, 300)?.let { qr ->
+        qrGenerator.generateQrCode(product.qrCode ?: product.code, 300, 300)?.let { qr ->
             // Create a bitmap with text and QR
             val combined = Bitmap.createBitmap(400, 450, Bitmap.Config.ARGB_8888)
             val canvas = Canvas(combined)
@@ -179,7 +179,7 @@ private fun printBatchQrCodes(context: android.content.Context, products: List<P
                 textAlign = Paint.Align.CENTER
             }
             canvas.drawBitmap(qr, 50f, 20f, null)
-            canvas.drawText(product.productName, 200f, 350f, paint)
+            canvas.drawText(product.name, 200f, 350f, paint)
             canvas.drawText("R$ ${String.format("%.2f", product.price)}", 200f, 390f, paint)
             combined
         }

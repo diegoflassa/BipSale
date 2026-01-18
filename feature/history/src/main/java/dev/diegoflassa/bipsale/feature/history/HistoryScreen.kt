@@ -35,7 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import dev.diegoflassa.bipsale.core.data.model.SaleEntity
+import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.utils.ExcelExporter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -71,11 +71,11 @@ fun HistoryScreen(
                     if (uiState.selectedSaleIds.isNotEmpty()) {
                         val exporter = remember { ExcelExporter() }
                         IconButton(onClick = {
-                            val selectedSalesWithItems = uiState.salesWithItems.filter { it.sale.id in uiState.selectedSaleIds }
-                            if (selectedSalesWithItems.isNotEmpty()) {
+                            val selectedSales = uiState.sales.filter { it.id in uiState.selectedSaleIds }
+                            if (selectedSales.isNotEmpty()) {
                                 val file = java.io.File(context.getExternalFilesDir(null), "vendas_selecionadas_${System.currentTimeMillis()}.xlsx")
                                 java.io.FileOutputStream(file).use { outputStream ->
-                                    exporter.exportSalesToExcel(outputStream, selectedSalesWithItems)
+                                    exporter.exportSalesToExcel(outputStream, selectedSales)
                                 }
                                 viewModel.onIntent(HistoryContract.Intent.ClearSelection)
                             }
@@ -129,7 +129,7 @@ fun HistoryScreen(
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun SaleHistoryItem(
-    sale: SaleEntity,
+    sale: Sale,
     isSelected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit
@@ -151,14 +151,14 @@ fun SaleHistoryItem(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(sale.customerName ?: "Anônimo", style = MaterialTheme.typography.titleMedium)
+                Text(sale.customerName.ifEmpty { "Anônimo" }, style = MaterialTheme.typography.titleMedium)
                 if (isSelected) {
                     Checkbox(checked = true, onCheckedChange = { onClick() })
                 } else {
                     Text(dateFormat.format(Date(sale.date)), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            Text("CPF: ${sale.customerCpf ?: "-"}", style = MaterialTheme.typography.bodySmall)
+            Text("CPF: ${sale.customerCpf.ifEmpty { "-" }}", style = MaterialTheme.typography.bodySmall)
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Total:", style = MaterialTheme.typography.bodyMedium)

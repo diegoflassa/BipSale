@@ -1,5 +1,4 @@
 import io.gitlab.arturbosch.detekt.Detekt
-import org.gradle.kotlin.dsl.project
 import java.util.Properties
 
 val firebaseAppDistributionProps = Properties()
@@ -42,7 +41,7 @@ firebaseAppDistributionDefault {
 
     val googleAppCredentials = System.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     val ciProjectPropertyCredentialsFile =
-        project.properties["bipsale.ci.serviceCredentialsFile"]?.toString()
+        project.properties["comiqueta.ci.serviceCredentialsFile"]?.toString()
 
     if (googleAppCredentials != null && googleAppCredentials.isNotBlank()) {
         serviceCredentialsFile = googleAppCredentials
@@ -52,6 +51,7 @@ firebaseAppDistributionDefault {
 
     releaseNotes = "Debug test version from Gradle."
 }
+
 
 kotlin {
     jvmToolchain(JavaVersion.VERSION_21.toString().toInt())
@@ -72,7 +72,6 @@ tasks.withType<Detekt>().configureEach {
         md.required.set(true)
     }
 }
-
 dependencies {
     //Modules
     implementation(project(":feature:sales"))
@@ -87,6 +86,7 @@ dependencies {
     implementation(project(":core:ui"))
     implementation(project(":core:utils"))
     implementation(project(":core:navigation"))
+    implementation(project(":core:domain"))
 
     // Common
     implementation(libs.ax.core.ktx)

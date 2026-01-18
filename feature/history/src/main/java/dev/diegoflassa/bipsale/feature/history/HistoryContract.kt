@@ -1,12 +1,10 @@
 package dev.diegoflassa.bipsale.feature.history
 
-import dev.diegoflassa.bipsale.core.data.model.SaleEntity
-import dev.diegoflassa.bipsale.core.data.model.SaleWithItems
+import dev.diegoflassa.bipsale.core.domain.model.Sale
 
 class HistoryContract {
     data class State(
-        val sales: List<SaleEntity> = emptyList(),
-        val salesWithItems: List<SaleWithItems> = emptyList(),
+        val sales: List<Sale> = emptyList(),
         val selectedSaleIds: Set<String> = emptySet(),
         val searchQuery: String = "",
         val isLoading: Boolean = false
