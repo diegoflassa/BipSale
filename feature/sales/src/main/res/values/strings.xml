@@ -1,14 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="sale_title_anonymous">Venda - Anônimo</string>
-    <string name="sale_title_format">Venda - %1$s</string>
-    <string name="scan_qr_description">Escanear QR</string>
+    <string name="sale_title_anonymous">Venda Anônima</string>
+    <string name="sale_title_format">Venda para %s</string>
+    <string name="scan_qr_description">Escanear QR Code</string>
+    <string name="empty_items_message">Nenhum item adicionado</string>
+    <string name="remove_item_description">Remover item</string>
+    <string name="currency_format">R$ %.2f</string>
     <string name="subtotal_label">Subtotal:</string>
-    <string name="discount_label">Desconto PIX (%):</string>
+    <string name="discount_label">Desconto:</string>
     <string name="total_label">Total:</string>
     <string name="finalize_sale_button">Finalizar Venda</string>
-    <string name="empty_items_message">Nenhum item adicionado</string>
-    <string name="remove_item_description">Remover</string>
-    <string name="currency_format">R$ %.2f</string>
+    
+    <!-- New keys from VM -->
     <string name="unknown_product">Produto Desconhecido</string>
     <string name="invalid_qr_code">QR Code inválido</string>
+    <string name="anonymous_customer">Anônimo</string>
 </resources>

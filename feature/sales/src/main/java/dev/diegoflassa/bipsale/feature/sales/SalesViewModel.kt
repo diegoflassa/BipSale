@@ -16,7 +16,8 @@ import javax.inject.Inject
 @HiltViewModel
 class SalesViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val saleRepository: SaleRepository
+    private val saleRepository: SaleRepository,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: android.content.Context
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SalesContract.State())
@@ -49,12 +50,16 @@ class SalesViewModel @Inject constructor(
             
             viewModelScope.launch {
                 val product = productRepository.getProductByCode(code)
-                val productName = product?.name ?: "Produto Desconhecido"
+                val productName = product?.name ?: context.getString(R.string.unknown_product)
                 val finalPrice = priceFromQr ?: product?.price ?: 0.0
                 addItem(code, productName, finalPrice)
             }
         } catch (e: Exception) {
-            viewModelScope.launch { _effect.send(SalesContract.Effect.ShowError("QR Code inválido")) }
+            viewModelScope.launch { 
+                _effect.send(SalesContract.Effect.ShowError(
+                    dev.diegoflassa.bipsale.core.ui.util.UiText.StringResource(R.string.invalid_qr_code)
+                )) 
+            }
         }
     }
 
@@ -94,7 +99,7 @@ class SalesViewModel @Inject constructor(
         val saleId = UUID.randomUUID().toString()
         val sale = Sale(
             id = saleId,
-            customerName = if (state.isAnonymous) "Anônimo" else state.customerName,
+            customerName = if (state.isAnonymous) context.getString(R.string.anonymous_customer) else state.customerName,
             customerCpf = if (state.isAnonymous) "-" else state.customerCpf,
             totalAmount = state.totalAmount,
             discountPercentage = state.discountPercentage,

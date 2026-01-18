@@ -25,6 +25,6 @@ class SalesContract {
 
     sealed interface Effect {
         data object NavigateBack : Effect
-        data class ShowError(val message: String) : Effect
+        data class ShowError(val message: dev.diegoflassa.bipsale.core.ui.util.UiText) : Effect
     }
 }

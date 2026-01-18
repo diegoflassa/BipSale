@@ -52,7 +52,7 @@ fun SalesScreen(
         viewModel.effect.collect { effect ->
             when (effect) {
                 is SalesContract.Effect.NavigateBack -> onFinish()
-                is SalesContract.Effect.ShowError -> snackbarHostState.showSnackbar(effect.message)
+                is SalesContract.Effect.ShowError -> snackbarHostState.showSnackbar(effect.message.asString(context))
             }
         }
     }

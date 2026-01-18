@@ -21,6 +21,7 @@ trigger: always_on
 - **Components**: All Composables must be wrapped in `BipSaleTheme` (from `core:ui`).
 - **Previews**: `@Preview` must use `PreviewParameterProvider` or mock data. No real connections.
 - **Image Loading**: Use `Coil` via `AsyncImage`.
+- **Text Handling**: Use `UiText` (from `core:ui`) to pass string resources or dynamic strings from ViewModel to UI (e.g., for logic-dependent strings or One-Off events). Avoid resolving Strings in ViewModel using Context when possible.
 
 ## Dependency Injection (Hilt)
 - **Repositories**: Install in `SingletonComponent`. Use `@Binds` for interface implementation.
@@ -43,4 +44,3 @@ trigger: always_on
 ## Build & Gradle
 - **Version Catalog**: Use `libs.versions.toml` for all dependencies.
 - **Plugins**: Use Convention Plugins (in `build-logic`) to share build configuration.
-- **Java Compatibility**: Target `JavaVersion.VERSION_21` for `sourceCompatibility` and `targetCompatibility` in all modules.
