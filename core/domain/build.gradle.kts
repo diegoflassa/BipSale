@@ -9,6 +9,6 @@ java {
 }
 
 dependencies {
-    implementation("javax.inject:javax.inject:1") // For @Inject if needed, though usually standard in domain for usecase
+    implementation("javax.inject:javax.inject:1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
 }

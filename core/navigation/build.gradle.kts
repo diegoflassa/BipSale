@@ -1,6 +1,9 @@
 plugins {
     id("android-library-convention")
-    alias(libs.plugins.kotlin.serialization)
+    id("com.android.library")
+    // alias(libs.plugins.com.google.devtools.ksp)
+    alias(libs.plugins.compose.compiler)
+    // alias(libs.plugins.hilt.android.gradle.plugin)
 }
 
 android {

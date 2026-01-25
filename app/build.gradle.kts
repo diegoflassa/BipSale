@@ -52,9 +52,10 @@ firebaseAppDistributionDefault {
     releaseNotes = "Debug test version from Gradle."
 }
 
-
-kotlin {
-    jvmToolchain(JavaVersion.VERSION_21.toString().toInt())
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(JavaVersion.VERSION_21.toString().toInt()))
+    }
 }
 
 detekt {
@@ -154,9 +155,6 @@ dependencies {
     kspTest(libs.com.google.dagger.hilt.android.compiler)
     androidTestImplementation(libs.com.google.dagger.hilt.android.testing)
     kspAndroidTest(libs.com.google.dagger.hilt.android.compiler)
-
-    //Metadata. TODO: Remover quanto atualizar hilt
-    ksp(libs.org.jetbrains.kotlin.metadata.jvm)
 
     //OkHttp
     implementation(platform(libs.com.squareup.okhttp3.bom))

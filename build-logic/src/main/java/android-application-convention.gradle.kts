@@ -1,8 +1,10 @@
 import dev.diegoflassa.buildLogic.Configuracoes
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import java.io.FileInputStream
+import java.util.Properties
+import java.io.File
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Properties
 
 // Get the names of the tasks Gradle was requested to run
 val requestedTaskNames = gradle.startParameter.taskNames
@@ -15,14 +17,15 @@ val isAssembleTask = requestedTaskNames.any { taskName ->
             taskName.contains("bundleRelease", ignoreCase = true)
 }
 
-// Call the initialization method from Configuracoes.
-Configuracoes.incrementBuildCount(rootProject.rootDir, isAssembleTask)
-
 plugins {
+    //alias(libs.plugins.com.android.application)
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
+    //alias(libs.plugins.com.google.devtools.ksp)
     id("com.google.devtools.ksp")
 }
+
+// Call the initialization method from Configuracoes.
+Configuracoes.incrementBuildCount(rootProject.rootDir, isAssembleTask)
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
@@ -32,7 +35,8 @@ if (keystorePropertiesFile.exists()) {
     println("WARNING: keystore.properties not found. Release builds may fail to sign.")
 }
 
-android {
+// Configure the main Android Application extension
+configure<com.android.build.api.dsl.ApplicationExtension> {
     namespace = Configuracoes.APPLICATION_ID
     compileSdk = Configuracoes.COMPILE_SDK
     buildToolsVersion = Configuracoes.BUILD_TOOLS_VERSION
@@ -87,12 +91,10 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true
     }
 
-    ksp {
-        arg("featureFlags", "STRONG_SKIPPING_MODE=ON")
-    }
+    // ksp block is NOT part of ApplicationExtension. It must be top-level.
+    // Moving ksp block out of here.
 
     packaging {
         resources {
@@ -104,8 +106,19 @@ android {
             excludes += "META-INF/ASL2.0"
         }
     }
-    applicationVariants.all {
-        val variant = this
+}
+
+// KSP configuration must be done via its own extension
+configure<com.google.devtools.ksp.gradle.KspExtension> {
+    arg("featureFlags", "STRONG_SKIPPING_MODE=ON")
+}
+
+// Configure application variants using AndroidComponentsExtension to avoid deprecation warnings
+configure<ApplicationAndroidComponentsExtension> {
+    onVariants { variant ->
+        val variantName = variant.name
+        // Use the global version name as variant.versionName access varies in new API
+        val variantVersionName = Configuracoes.VERSION_NAME
 
         // Determine date-time suffix if in CI
         val dateTimeSuffix = if (System.getenv("CI") == "true") {
@@ -116,49 +129,92 @@ android {
             "" // No suffix if not in CI
         }
 
-        variant.outputs.all {
-            val output = this
-            val baseName = Configuracoes.buildAppName(
-                variant.name,
-                Configuracoes.VERSION_NAME
-            )
-            val apkName = "$baseName$dateTimeSuffix.apk"
-            println("Set APK file name to: $apkName")
-            val outputImpl = output as? com.android.build.gradle.internal.api.BaseVariantOutputImpl
-            outputImpl?.outputFileName = apkName
-        }
+        // Renaming APKs
+        val capitalizedVariantName = variantName.replaceFirstChar { it.uppercaseChar() }
+        val assembleTaskName = "assemble$capitalizedVariantName"
 
-        val capitalizedVariantName = variant.name.replaceFirstChar { it.uppercaseChar() }
-        val bundleTaskName = "bundle${capitalizedVariantName}"
-        tasks.matching { it.name == bundleTaskName }.configureEach {
-            doLast {
-                val outputBundleDir =
-                    file("${project.layout.buildDirectory.get().asFile}/outputs/bundle/${variant.name}")
+        try {
+            tasks.named(assembleTaskName) {
+                doLast {
+                    val rootDir = rootProject.layout.buildDirectory.get().asFile
+                    val outputApkDir = file("$rootDir/outputs/apk/$variantName")
 
-                val generatedAab =
-                    outputBundleDir.listFiles { _, name -> name.endsWith(".aab") }
+                    val generatedApk = outputApkDir.listFiles { _, name -> name.endsWith(".apk") }
                         ?.firstOrNull()
 
-                if (generatedAab != null && generatedAab.exists()) {
-                    val baseName = Configuracoes.buildAppName(
-                        variant.name,
-                        Configuracoes.VERSION_NAME
-                    )
-                    val newAabName = "$baseName$dateTimeSuffix.aab"
+                    if (generatedApk != null && generatedApk.exists()) {
+                        val baseName = Configuracoes.buildAppName(variantName, variantVersionName)
+                        val newApkName = "$baseName$dateTimeSuffix.apk"
+                        val renamedFile = File(generatedApk.parentFile, newApkName)
 
-                    val renamedFile = File(generatedAab.parentFile, newAabName)
-
-                    println("Renaming AAB file for variant ${variant.name} to: ${renamedFile.name}")
-                    val success = generatedAab.renameTo(renamedFile)
-                    if (success) {
-                        println("Set AAB file name to: $newAabName")
+                        println("Renaming APK file for variant $variantName to: ${renamedFile.name}")
+                        val success = generatedApk.renameTo(renamedFile)
+                        if (success) {
+                            println("Set APK file name to: $newApkName")
+                        } else {
+                            logger.warn("Could not rename APK file for variant $variantName.")
+                        }
                     } else {
-                        logger.warn("⚠️ Could not rename AAB file for variant ${variant.name}. From: ${generatedAab.absolutePath} To: ${renamedFile.absolutePath}")
+                        // Fallback path
+                        val legacyDir = file("$rootDir/apk/$variantName")
+                        if (legacyDir.exists()) {
+                            val generatedApkLegacy = legacyDir.listFiles { _, name -> name.endsWith(".apk") }?.firstOrNull()
+                            if (generatedApkLegacy != null && generatedApkLegacy.exists()) {
+                                val baseName = Configuracoes.buildAppName(variantName, variantVersionName)
+                                val newApkName = "$baseName$dateTimeSuffix.apk"
+                                val renamedFile = File(generatedApkLegacy.parentFile, newApkName)
+                                generatedApkLegacy.renameTo(renamedFile)
+                                println("Set APK file name to: $newApkName (Legacy Dir)")
+                            }
+                        }
                     }
-                } else {
-                    logger.warn("⚠️ No AAB file found in expected directory for variant ${variant.name}. Looked in: ${outputBundleDir.absolutePath}")
                 }
             }
+        } catch (e: Exception) {
+            println("Task $assembleTaskName not found or configuring failed: ${e.message}")
+        }
+
+        // Renaming AABs
+        val bundleTaskName = "bundle$capitalizedVariantName"
+        try {
+            tasks.named(bundleTaskName) {
+                doLast {
+                    val rootDir = rootProject.layout.buildDirectory.get().asFile
+                    val outputBundleDir = file("$rootDir/outputs/bundle/$variantName")
+
+                    val generatedAab = outputBundleDir.listFiles { _, name -> name.endsWith(".aab") }
+                        ?.firstOrNull()
+
+                    if (generatedAab != null && generatedAab.exists()) {
+                        val baseName = Configuracoes.buildAppName(variantName, variantVersionName)
+                        val newAabName = "$baseName$dateTimeSuffix.aab"
+                        val renamedFile = File(generatedAab.parentFile, newAabName)
+
+                        println("Renaming AAB file for variant $variantName to: ${renamedFile.name}")
+                        val success = generatedAab.renameTo(renamedFile)
+                        if (success) {
+                            println("Set AAB file name to: $newAabName")
+                        } else {
+                            logger.warn("Could not rename AAB file for variant $variantName.")
+                        }
+                    } else {
+                        // Fallback path
+                        val legacyBundleDir = file("$rootDir/apk/$variantName")
+                        if (legacyBundleDir.exists()) {
+                            val generatedAabLegacy = legacyBundleDir.listFiles { _, name -> name.endsWith(".aab") }?.firstOrNull()
+                            if (generatedAabLegacy != null && generatedAabLegacy.exists()) {
+                                val baseName = Configuracoes.buildAppName(variantName, variantVersionName)
+                                val newAabName = "$baseName$dateTimeSuffix.aab"
+                                val renamedFile = File(generatedAabLegacy.parentFile, newAabName)
+                                generatedAabLegacy.renameTo(renamedFile)
+                                println("Set AAB file name to: $newAabName (Legacy Dir)")
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("Task $bundleTaskName not found or configuring failed: ${e.message}")
         }
     }
 }
