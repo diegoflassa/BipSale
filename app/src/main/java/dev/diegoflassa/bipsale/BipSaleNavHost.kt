@@ -1,6 +1,5 @@
 package dev.diegoflassa.bipsale
 
-import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -16,7 +15,6 @@ import dev.diegoflassa.bipsale.feature.sales.SalesScreen
 import dev.diegoflassa.bipsale.ui.dashboard.DashboardScreen
 import dev.diegoflassa.bipsale.ui.export.ExportScreen
 
-@OptIn(ExperimentalGetImage::class)
 @Composable
 fun BipSaleNavHost() {
     val navController = rememberNavController()
