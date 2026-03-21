@@ -78,11 +78,7 @@ dependencies {
     implementation(project(":feature:sales"))
     implementation(project(":feature:products"))
     implementation(project(":feature:history"))
-    implementation(project(":feature:qrcode"))
-
-    // CameraX
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.lifecycle)
+    implementation(project(":core:qrcode"))
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
     implementation(project(":core:utils"))

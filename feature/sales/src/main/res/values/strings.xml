@@ -8,11 +8,18 @@
     <string name="currency_format">R$ %.2f</string>
     <string name="subtotal_label">Subtotal:</string>
     <string name="discount_label">Desconto:</string>
+    <string name="payment_method_label">Forma de Pagamento:</string>
     <string name="total_label">Total:</string>
     <string name="finalize_sale_button">Finalizar Venda</string>
     
-    <!-- New keys from VM -->
     <string name="unknown_product">Produto Desconhecido</string>
     <string name="invalid_qr_code">QR Code inválido</string>
     <string name="anonymous_customer">Anônimo</string>
+    <string name="error_finalizing_sale">Erro ao finalizar venda. Tente novamente.</string>
+    <string name="payment_method_pix">PIX</string>
+    <string name="payment_method_cash">Dinheiro</string>
+    <string name="payment_method_credit">Crédito</string>
+    <string name="payment_method_debit">Débito</string>
+    <string name="discount_dialog_title">Definir Desconto</string>
+    <string name="discount_dialog_hint">Porcentagem (0-100)</string>
 </resources>

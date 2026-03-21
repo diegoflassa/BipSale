@@ -8,14 +8,14 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.print.PrintHelper
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
-import dev.diegoflassa.bipsale.feature.qrcode.QrGenerator
+import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -24,10 +24,10 @@ fun AddEditProductScreen(
     onBack: () -> Unit,
     viewModel: ProductViewModel = hiltViewModel()
 ) {
+    val uiState by viewModel.uiState.collectAsState()
     var code by remember { mutableStateOf(productCode ?: "") }
     var name by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
-    var qrBitmap by remember { mutableStateOf<android.graphics.Bitmap?>(null) }
     val context = LocalContext.current
 
     val isEdit = productCode != null
@@ -42,12 +42,14 @@ fun AddEditProductScreen(
 
     LaunchedEffect(productCode) {
         if (isEdit) {
-            val product = viewModel.getProductByCode(productCode!!)
-            product?.let {
-                // Refactored to use Domain Model properties
-                name = it.name // was productName
-                price = it.price.toString()
-            }
+            viewModel.onIntent(ProductContract.Intent.LoadProduct(productCode!!))
+        }
+    }
+
+    LaunchedEffect(uiState.editProduct) {
+        uiState.editProduct?.let {
+            name = it.name
+            price = it.price.toString()
         }
     }
 

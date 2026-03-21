@@ -7,7 +7,7 @@ data class Sale(
     val totalAmount: Double,
     val discountPercentage: Double,
     val finalAmount: Double,
-    val paymentMethod: String,
+    val paymentMethod: PaymentMethod,
     val date: Long,
     val items: List<SaleItem> = emptyList()
 )

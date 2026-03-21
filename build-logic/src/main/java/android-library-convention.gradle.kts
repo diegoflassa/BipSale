@@ -8,7 +8,7 @@ plugins {
     //alias(libs.plugins.kotlin.parcelize)
     // id("org.jetbrains.kotlin.parcelize")
     //alias(libs.plugins.com.google.devtools.ksp)
-    // id("com.google.devtools.ksp")
+    id("com.google.devtools.ksp")
 }
 
 // Access the Android Library extension using the new API interface

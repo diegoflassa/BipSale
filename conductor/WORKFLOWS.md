@@ -1,13 +1,15 @@
-# Business Workflows
+# Workflows: BipSale
 
-Este documento descreve os fluxos operacionais básicos do aplicativo.
-
-## 🛒 Fluxo de Venda (Checkout)
-1.  **Seleção**: O usuário escolhe produtos através da `feature:products`.
-2.  **Carrinho**: Os itens são processados na `feature:sales`.
-3.  **Identificação**: Entrada opcional de CPF do cliente (preparado para Fiscal).
-4.  **Persistência**: Ao finalizar, a venda é salva via `SaleRepositoryImpl` no Room.
-5.  **Exibição**: O status da venda é refletido instantaneamente no `history`.
-
-## 🔄 Fluxo de Dados de Produto
-- Os produtos são carregados do banco local e expostos como `Flow` para garantir reatividade total na UI quando o inventário mudar.
+## Build
+```bash
+./gradlew assembleDebug          # Debug APK
+./gradlew assembleRelease        # Signed APK
+./gradlew bundleRelease          # Signed AAB
+./gradlew test                   # All unit tests
+./gradlew :feature:sales:test    # Module tests
+./gradlew connectedAndroidTest   # Instrumented tests
+./gradlew detekt                 # Static analysis
+./gradlew ktlintCheck            # Format check
+./gradlew ktlintFormat           # Auto-format
+./gradlew koverHtmlReport        # Code coverage
+```

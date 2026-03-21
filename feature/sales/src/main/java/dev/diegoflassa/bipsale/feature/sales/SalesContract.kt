@@ -1,6 +1,8 @@
 package dev.diegoflassa.bipsale.feature.sales
 
+import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.ui.util.UiText
 
 class SalesContract {
     data class State(
@@ -11,6 +13,7 @@ class SalesContract {
         val discountPercentage: Double = 0.0,
         val totalAmount: Double = 0.0,
         val finalAmount: Double = 0.0,
+        val paymentMethod: PaymentMethod = PaymentMethod.PIX,
         val isSaleFinished: Boolean = false
     )
 
@@ -20,11 +23,12 @@ class SalesContract {
         data class AddManualItem(val code: String, val name: String, val price: Double) : Intent
         data class RemoveItem(val item: SaleItem) : Intent
         data class UpdateDiscount(val percentage: Double) : Intent
+        data class SelectPaymentMethod(val method: PaymentMethod) : Intent
         data object FinalizeSale : Intent
     }
 
     sealed interface Effect {
         data object NavigateBack : Effect
-        data class ShowError(val message: dev.diegoflassa.bipsale.core.ui.util.UiText) : Effect
+        data class ShowError(val message: UiText) : Effect
     }
 }

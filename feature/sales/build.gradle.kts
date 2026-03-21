@@ -11,18 +11,12 @@ android {
 }
 
 dependencies {
-
     implementation(project(":core:domain"))
     implementation(project(":core:ui"))
+    implementation(project(":core:qrcode"))
     implementation(project(":core:navigation"))
     implementation(project(":core:utils"))
-    implementation(project(":feature:qrcode"))
-
-    // CameraX
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
+    implementation(project(":core:qrcode"))
 
     // Compose
     implementation(platform(libs.ax.compose.bom))
@@ -32,8 +26,12 @@ dependencies {
     implementation(libs.ax.compose.material.icons.extended)
     implementation(libs.ax.lifecycle.viewmodel.compose)
 
+    // CameraX
+    implementation(libs.androidx.camera.core)
+
     // Hilt
     implementation(libs.com.google.dagger.hilt.android)
+    implementation(libs.androidx.camera.core)
     ksp(libs.com.google.dagger.hilt.android.compiler)
     implementation(libs.ax.hilt.navigation.compose)
 

@@ -8,22 +8,21 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface SaleDao {
-    @Query("SELECT * FROM sales ORDER BY date DESC")
-    fun getAllSales(): Flow<List<SaleEntity>>
-
-    @Query("SELECT * FROM sales WHERE id = :saleId")
-    suspend fun getSaleById(saleId: String): SaleEntity?
-
     @Transaction
     @Query("SELECT * FROM sales ORDER BY date DESC")
     fun getAllSalesWithItems(): Flow<List<SaleWithItems>>
 
     @Transaction
     @Query("SELECT * FROM sales WHERE id = :saleId")
-    fun getSaleWithItemsById(saleId: String): Flow<SaleWithItems?>
+    suspend fun getFullSaleById(saleId: String): SaleWithItems?
 
-    @Query("SELECT * FROM sale_items WHERE saleId = :saleId")
-    fun getItemsForSale(saleId: String): Flow<List<SaleItemEntity>>
+    @Transaction
+    @Query("SELECT * FROM sales WHERE customerName LIKE '%' || :query || '%' OR customerCpf LIKE '%' || :query || '%' ORDER BY date DESC")
+    fun searchSalesWithItems(query: String): Flow<List<SaleWithItems>>
+
+    @Transaction
+    @Query("SELECT * FROM sales WHERE date BETWEEN :startDate AND :endDate ORDER BY date DESC")
+    fun getSalesByDateRangeWithItems(startDate: Long, endDate: Long): Flow<List<SaleWithItems>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSale(sale: SaleEntity)
@@ -36,10 +35,4 @@ interface SaleDao {
         insertSale(sale)
         insertSaleItems(items)
     }
-
-    @Query("SELECT * FROM sales WHERE customerName LIKE '%' || :query || '%' OR customerCpf LIKE '%' || :query || '%'")
-    fun searchSales(query: String): Flow<List<SaleEntity>>
-
-    @Query("SELECT * FROM sales WHERE date BETWEEN :startDate AND :endDate")
-    fun getSalesByDateRange(startDate: Long, endDate: Long): Flow<List<SaleEntity>>
 }

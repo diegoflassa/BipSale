@@ -13,9 +13,10 @@ android {
 dependencies {
     implementation(project(":core:data"))
     implementation(project(":core:ui"))
+    implementation(project(":core:qrcode"))
     implementation(project(":core:navigation"))
     implementation(project(":core:domain"))
-    implementation(project(":feature:qrcode"))
+    implementation(project(":core:qrcode"))
 
     // Compose
     implementation(platform(libs.ax.compose.bom))

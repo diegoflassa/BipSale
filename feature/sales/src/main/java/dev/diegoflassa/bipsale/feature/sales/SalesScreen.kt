@@ -5,14 +5,48 @@ import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ExperimentalGetImage
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.QrCodeScanner
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,11 +55,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.qrcode.QrScannerView
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
-import dev.diegoflassa.bipsale.feature.qrcode.QrScannerView
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalGetImage::class)
+@androidx.annotation.OptIn(ExperimentalGetImage::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SalesScreen(
     customerName: String,
@@ -47,8 +83,11 @@ fun SalesScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(customerName, customerCpf, isAnonymous) {
         viewModel.onIntent(SalesContract.Intent.UpdateCustomerInfo(customerName, customerCpf, isAnonymous))
+    }
+
+    LaunchedEffect(viewModel) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is SalesContract.Effect.NavigateBack -> onFinish()
@@ -94,7 +133,9 @@ fun SalesScreen(
                     final = uiState.finalAmount,
                     discount = uiState.discountPercentage,
                     onDiscountChange = { viewModel.onIntent(SalesContract.Intent.UpdateDiscount(it)) },
-                    onFinalize = { viewModel.onIntent(SalesContract.Intent.FinalizeSale) }
+                    onFinalize = { viewModel.onIntent(SalesContract.Intent.FinalizeSale) },
+                    paymentMethod = uiState.paymentMethod,
+                    onPaymentMethodChange = { viewModel.onIntent(SalesContract.Intent.SelectPaymentMethod(it)) }
                 )
             }
         ) { padding ->
@@ -160,7 +201,9 @@ fun SaleBottomBar(
     final: Double,
     discount: Double,
     onDiscountChange: (Double) -> Unit,
-    onFinalize: () -> Unit
+    onFinalize: () -> Unit,
+    paymentMethod: PaymentMethod = PaymentMethod.PIX,
+    onPaymentMethodChange: (PaymentMethod) -> Unit = {}
 ) {
     Surface(tonalElevation = 8.dp) {
         Column(modifier = Modifier
@@ -177,6 +220,13 @@ fun SaleBottomBar(
                     Text("${discount.toInt()}%")
                 }
             }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.payment_method_label), style = MaterialTheme.typography.bodyMedium)
+                PaymentMethodDropdown(
+                    selectedMethod = paymentMethod,
+                    onMethodSelected = onPaymentMethodChange
+                )
+            }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(stringResource(R.string.total_label), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
                 Text(stringResource(R.string.currency_format, final), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
@@ -184,6 +234,31 @@ fun SaleBottomBar(
             Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = onFinalize, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.finalize_sale_button))
+            }
+        }
+    }
+}
+
+@Composable
+fun PaymentMethodDropdown(
+    selectedMethod: PaymentMethod,
+    onMethodSelected: (PaymentMethod) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        OutlinedButton(onClick = { expanded = true }) {
+            Text(selectedMethod.serializedName)
+        }
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            PaymentMethod.entries.forEach { method ->
+                DropdownMenuItem(
+                    text = { Text(method.serializedName) },
+                    onClick = {
+                        onMethodSelected(method)
+                        expanded = false
+                    }
+                )
             }
         }
     }

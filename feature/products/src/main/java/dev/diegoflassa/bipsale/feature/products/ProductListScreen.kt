@@ -1,12 +1,18 @@
 package dev.diegoflassa.bipsale.feature.products
 
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.filled.Print
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -20,13 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.print.PrintHelper
 import dev.diegoflassa.bipsale.core.domain.model.Product
-import dev.diegoflassa.bipsale.feature.qrcode.QrGenerator
-import androidx.compose.material.icons.filled.Print
-import androidx.compose.material.icons.filled.Close
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,12 +37,15 @@ fun ProductListScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.effect.collect { effect ->
             when (effect) {
                 is ProductContract.Effect.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(effect.message)
+                    snackbarHostState.showSnackbar(
+                        message = effect.message.asString(context)
+                    )
                 }
                 else -> {}
             }
@@ -69,7 +72,6 @@ fun ProductListScreen(
                 },
                 actions = {
                     if (uiState.selectedProductCodes.isNotEmpty()) {
-                        val context = LocalContext.current
                         IconButton(onClick = {
                             val selectedProducts = uiState.products.filter { it.code in uiState.selectedProductCodes }
                             if (selectedProducts.isNotEmpty()) {
@@ -189,8 +191,8 @@ private fun printBatchQrCodes(context: android.content.Context, products: List<P
 
     // Create a final vertical bitmap containing all
     val spacing = 20
-    val totalHeight = bitmaps.sumOf { it.height } + (bitmaps.size + 1) * spacing
-    val maxWidth = bitmaps.maxOf { it.width }
+    val totalHeight = bitmaps.sumOf { it.getHeight() } + (bitmaps.size + 1) * spacing
+    val maxWidth = bitmaps.maxOf { it.getWidth() }
     
     val finalBitmap = Bitmap.createBitmap(maxWidth, totalHeight, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(finalBitmap)
@@ -198,8 +200,8 @@ private fun printBatchQrCodes(context: android.content.Context, products: List<P
     
     var currentY = spacing.toFloat()
     for (bitmap in bitmaps) {
-        canvas.drawBitmap(bitmap, (maxWidth - bitmap.width) / 2f, currentY, null)
-        currentY += bitmap.height + spacing
+        canvas.drawBitmap(bitmap, (maxWidth - bitmap.getWidth()) / 2f, currentY, null)
+        currentY += bitmap.getHeight() + spacing
     }
 
     val printHelper = PrintHelper(context)

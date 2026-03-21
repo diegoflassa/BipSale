@@ -3,25 +3,22 @@ package dev.diegoflassa.bipsale.core.data.mapper
 import dev.diegoflassa.bipsale.core.data.model.SaleEntity
 import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
 import dev.diegoflassa.bipsale.core.data.model.SaleWithItems
+import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
 
-fun SaleEntity.toDomain(items: List<SaleItemEntity>): Sale {
+fun SaleWithItems.toDomain(): Sale {
     return Sale(
-        id = id,
-        customerName = customerName ?: "",
-        customerCpf = customerCpf ?: "",
-        totalAmount = totalAmount,
-        discountPercentage = discountPercentage,
-        finalAmount = finalAmount,
-        paymentMethod = paymentMethod,
-        date = date,
+        id = sale.id,
+        customerName = sale.customerName ?: "",
+        customerCpf = sale.customerCpf ?: "",
+        totalAmount = sale.totalAmount,
+        discountPercentage = sale.discountPercentage,
+        finalAmount = sale.finalAmount,
+        paymentMethod = PaymentMethod.fromString(sale.paymentMethod),
+        date = sale.date,
         items = items.map { it.toDomain() }
     )
-}
-
-fun SaleWithItems.toDomain(): Sale {
-    return sale.toDomain(items)
 }
 
 fun SaleItemEntity.toDomain(): SaleItem {
@@ -42,7 +39,7 @@ fun Sale.toEntity(): SaleEntity {
         totalAmount = totalAmount,
         discountPercentage = discountPercentage,
         finalAmount = finalAmount,
-        paymentMethod = paymentMethod,
+        paymentMethod = paymentMethod.serializedName,
         date = date
     )
 }

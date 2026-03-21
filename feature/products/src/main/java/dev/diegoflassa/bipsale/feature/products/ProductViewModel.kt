@@ -5,7 +5,8 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.diegoflassa.bipsale.core.domain.model.Product
 import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
-import dev.diegoflassa.bipsale.feature.qrcode.QrGenerator
+import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductUseCase
+import dev.diegoflassa.bipsale.core.ui.util.UiText
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -14,7 +15,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProductViewModel @Inject constructor(
     private val productRepository: ProductRepository,
-    private val qrGenerator: QrGenerator
+    private val saveProductUseCase: SaveProductUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductContract.State())
@@ -30,6 +31,7 @@ class ProductViewModel @Inject constructor(
     fun onIntent(intent: ProductContract.Intent) {
         when (intent) {
             is ProductContract.Intent.LoadProducts -> loadProducts()
+            is ProductContract.Intent.LoadProduct -> loadProduct(intent.code)
             is ProductContract.Intent.SaveProduct -> saveProduct(intent.code, intent.name, intent.price)
             is ProductContract.Intent.DeleteProduct -> deleteProduct(intent.product)
             is ProductContract.Intent.ToggleProductSelection -> toggleSelection(intent.code)
@@ -45,24 +47,25 @@ class ProductViewModel @Inject constructor(
         }
     }
 
+    private fun loadProduct(code: String) {
+        viewModelScope.launch {
+            val product = productRepository.getProductByCode(code)
+            _uiState.update { it.copy(editProduct = product) }
+        }
+    }
+
     private fun saveProduct(code: String, name: String, price: Double) {
         viewModelScope.launch {
-            val qrData = "bipsale://product?code=$code&price=$price"
-            val product = Product(
-                code = code,
-                name = name,
-                price = price,
-                qrCode = qrData
-            )
-            productRepository.insertProduct(product)
-            _effect.send(ProductContract.Effect.NavigationBack)
+            saveProductUseCase(code, name, price)
+                .onSuccess { _effect.send(ProductContract.Effect.NavigationBack) }
+                .onFailure { _effect.send(ProductContract.Effect.ShowSnackbar(UiText.DynamicString(it.message ?: ""))) }
         }
     }
 
     private fun deleteProduct(product: Product) {
         viewModelScope.launch {
             productRepository.deleteProduct(product)
-            _effect.send(ProductContract.Effect.ShowSnackbar("Produto removido"))
+            _effect.send(ProductContract.Effect.ShowSnackbar(UiText.StringResource(R.string.product_deleted)))
         }
     }
 
@@ -79,9 +82,5 @@ class ProductViewModel @Inject constructor(
 
     private fun clearSelection() {
         _uiState.update { it.copy(selectedProductCodes = emptySet()) }
-    }
-
-    suspend fun getProductByCode(code: String): Product? {
-        return productRepository.getProductByCode(code)
     }
 }
