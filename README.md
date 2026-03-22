@@ -1,42 +1,268 @@
-# BipSale - Sistema de Vendas por QR Code
+# BipSale — Sistema de Vendas por QR Code
 
-BipSale é um aplicativo Android modularizado projetado para facilitar vendas rápidas através da leitura de preços por QR Code.
+BipSale é um aplicativo Android modularizado projetado para facilitar vendas rápidas através da leitura de preços por QR Code. Oferece suporte completo a operações offline com sincronização automática e exportação de dados em Excel.
 
-## 🚀 Começando
+## ✨ Funcionalidades
 
-Para compilar o projeto, abra no Android Studio (Ladybug ou superior) e execute a sincronização do Gradle.
+- **Leitura de QR Code** — Scan rápido de preços via câmera com CameraX
+- **Adição Manual de Produtos** — Interface simplificada para cadastro rápido
+- **Desconto PIX Configurável** — Aplicar descontos dinâmicos por operação de venda
+- **Histórico de Transações** — Rastreabilidade completa com busca e filtros
+- **Exportação para Excel** — Relatórios em `.xlsx` via Apache POI
+- **Funcionamento 100% Offline** — Operação completa sem conexão, com sincronização posterior
+- **Geração de QR Code** — Criar e imprimir QR codes para produtos
+
+## 🛠️ Tech Stack
+
+- **Kotlin** 2.3.20 — Linguagem moderna e segura para Android
+- **Jetpack Compose** (2026.03.00) — UI declarativa com Material 3
+- **Kotlin Coroutines** 1.10.2 — Operações assíncronas estruturadas
+- **Hilt** 2.59.2 — Injeção de dependência
+- **Room** 2.8.4 — Persistência local com SQLite
+- **Navigation Compose 3** 1.0.1 — Navegação type-safe
+- **CameraX** 1.5.3 — Acesso à câmera e leitura de QR code
+- **Apache POI** 5.5.1 — Exportação para Excel (.xlsx)
+- **ZXing** 3.5.4 — Geração e leitura de QR code
+- **Retrofit 3.0.0** — Cliente HTTP (quando necessário)
+- **Coil** 2.7.0 — Carregamento de imagens
+- **Timber** 5.0.1 — Logging estruturado
+
+**Ferramentas de Build:**
+- Gradle 9.1.0
+- Java 21 toolchain
+- KSP 2.3.3 para processamento de anotações
+- Android Gradle Plugin 9.1.0
 
 ## 🏗️ Arquitetura
 
-O projeto utiliza **Clean Architecture** com **MVVM** e uma estrutura modularizada por feature:
+BipSale utiliza **Clean Architecture** com padrão **MVVM** em estrutura modularizada por feature:
 
-- `:app`: Ponto de entrada e dashboard.
-- `:feature:sales`: Fluxo completo de vendas.
-- `:feature:products`: Gerenciamento de produtos e geração de QR.
-- `:feature:history`: Histórico de transações e busca.
-- `:feature:qrcode`: Scanner via CameraX e geração via ZXing.
-- `:core:data`: Persistência local com Room.
-- `:core:navigation`: Navegação centralizada (Navigation Compose 3).
-- `:core:ui`: Temas e componentes compartilhados.
+**Estrutura de Módulos:**
 
-## 📱 Features
+```
+:app                          — Ponto de entrada e dashboard
+├─ :feature:sales             — Fluxo completo de vendas
+├─ :feature:products          — Gerenciamento de produtos e QR
+├─ :feature:history           — Histórico de transações
+├─ :feature:qrcode            — Scanner e geração de QR code
+└─ :core
+   ├─ :core:data              — Persistência com Room
+   ├─ :core:navigation        — Navegação centralizada (Nav3)
+   ├─ :core:ui                — Temas e componentes compartilhados
+   ├─ :core:domain            — Modelos de negócio
+   └─ :core:di                — Configuração de injeção de dependência
+```
 
-- Scan de QR Code para adição rápida de produtos.
-- Adição manual de produtos.
-- Desconto PIX configurável por venda.
-- Exportação de histórico para Excel (.xlsx).
-- Funcionamento 100% offline.
+**Padrão de Estado (MVI/MVVM):**
+- `XxxUIState` — Estado imutável
+- `XxxIntent` — Ações do usuário (sealed class)
+- `XxxEffect` — Efeitos colaterais únicos (via Channel)
+- `XxxViewModel : ViewModel` — Implementação com Hilt
 
-## 🛠️ Tecnologias
+## 🚀 Começando
 
-- **Kotlin** 2.3.0
-- **Jetpack Compose** (Material 3)
-- **Hilt** para DI
-- **Room** para persistência
-- **CameraX** para leitura de QR
-- **Apache POI** para exportação Excel
-- **Navigation Compose 3.x**
+### Pré-requisitos
+
+- **Android Studio** Ladybug ou superior
+- **Java 21** (obrigatório para toolchain)
+- **Gradle 9.1.0** (incluído via wrapper)
+- **Android SDK** API 24+ (mínimo) / API 34+ (recomendado)
+
+### Instruções de Build
+
+1. **Clone e abra o projeto:**
+   ```bash
+   git clone <repository-url>
+   cd BipSale
+   ```
+
+2. **Sincronize o Gradle:**
+   Abra o projeto no Android Studio e deixe o Gradle sincronizar automaticamente.
+
+3. **Build Debug APK:**
+   ```bash
+   ./gradlew assembleDebug
+   ```
+   Saída: `app/build/outputs/apk/debug/app-debug.apk`
+
+4. **Build Release APK:**
+   ```bash
+   ./gradlew assembleRelease
+   ```
+   _Nota: Requer configuração de assinatura em `local.properties` ou argumentos de build._
+
+### Executar em Dispositivo/Emulador
+
+- **Via Android Studio:** Run > Run 'app'
+- **Via Gradle:**
+  ```bash
+  ./gradlew installDebug
+  ```
+
+## 🧪 Testes
+
+### Executar Todos os Testes
+```bash
+./gradlew test
+```
+
+### Testes por Módulo
+```bash
+./gradlew :feature:sales:test
+./gradlew :core:data:test
+```
+
+### Teste Específico
+```bash
+./gradlew :feature:sales:test --tests "...SalesViewModelTest"
+```
+
+### Qualidade de Código
+
+**Análise Estática (Detekt):**
+```bash
+./gradlew detekt
+```
+
+**Lint Analysis:**
+```bash
+./gradlew lint
+```
+
+**Code Coverage (Kover):**
+```bash
+./gradlew koverHtmlReport
+```
+Relatório: `build/reports/kover/html/index.html`
+
+## 📚 Fluxos de Negócio
+
+### Fluxo de Venda
+1. Usuário inicia venda na tela de vendas
+2. Escaneia QR code do produto (CameraX) ou adiciona manualmente
+3. Sistema busca preço e dados do produto em cache local
+4. Usuário pode adicionar quantidade, desconto PIX configurável
+5. Venda é persistida no banco local (Room)
+6. Comprovante pode ser gerado/impresso
+
+### Gerenciamento de Produtos
+1. Cadastro manual ou importação via sincronização
+2. Cada produto tem QR code único (gerado via ZXing)
+3. Metadados: preço, descrição, categoria
+4. Suporte a múltiplas variações por produto
+
+### Exportação de Dados
+1. Seleção de período de transações no histórico
+2. Geração de relatório em Excel (Apache POI)
+3. Colunas: Data, Produto, Quantidade, Preço, Desconto, Total
+4. Arquivo salvo em storage externo para compartilhamento
+
+## 🛠️ Desenvolvimento
+
+### Estrutura de Código
+
+**Domain Layer (Puro Kotlin):**
+- Modelos de negócio (entidades, value objects)
+- Use cases (lógica de negócio)
+- Interfaces de repositório
+- **Zero dependências Android**
+
+**Data Layer:**
+- Room entities e DAOs
+- Implementação de repositórios
+- Mapeamento de dados (Domain ↔ Data)
+
+**UI Layer (Compose):**
+- Screens por feature
+- ViewModels com MVI/MVVM
+- Componentes reutilizáveis em `:core:ui`
+
+### Padrões Obrigatórios
+
+- **Strings:** Sempre em `res/strings.xml` — suporte a PT, EN, ES
+- **Cores/Temas:** Usar `BipSaleTheme` tokens — nunca hardcoded
+- **Logging:** `Timber.d()`, `Timber.e()` com tags descritivas
+- **IO:** `DocumentFile` + `runCatching` para storage externo
+- **Use Cases:** Interface + implementação separadas
+- **Navegação:** Nav3 com `@Serializable` em `core/navigation/Screen.kt`
+
+### Padrões de Teste
+
+- **Unit Tests:** Lógica pura, mocks de repositórios
+- **Integration Tests:** Room database com `RoomDatabase.Builder(inMemoryDatabaseBuilder)`
+- **UI Tests:** Compose Test API para interações de UI
+
+## 📋 Dependências Principais
+
+| Dependência | Versão | Propósito |
+|------------|--------|----------|
+| Jetpack Compose | 2026.03.00 | UI |
+| Hilt | 2.59.2 | DI |
+| Room | 2.8.4 | Banco Local |
+| CameraX | 1.5.3 | Scanner QR |
+| Apache POI | 5.5.1 | Excel |
+| ZXing | 3.5.4 | QR Code Gen |
+| Retrofit | 3.0.0 | HTTP Client |
+
+Para versões detalhadas, ver `gradle/libs.versions.toml`.
+
+## 🔧 Troubleshooting
+
+**Câmera não funciona:**
+- Verifique permissões em `AndroidManifest.xml`
+- `android.permission.CAMERA` é obrigatório
+- Em runtime, solicite permissão com PermissionLauncher
+
+**QR Code não é lido:**
+- Certifique-se que o código não está danificado
+- Teste com app de câmera nativa primeiro
+- Aumente iluminação ambiente
+
+**Exportação Excel falha:**
+- Verifique permissão `WRITE_EXTERNAL_STORAGE`
+- Garanta espaço livre no dispositivo
+- Logs via Timber para diagnosticar
+
+**Sync offline não funciona:**
+- Verifique conectividade (Airplane Mode desligado)
+- Limpe cache do app: Configurações > Apps > BipSale > Armazenamento > Limpar Cache
+- Reinicie o aplicativo
+
+## 📱 Requisitos de Permissões
+
+```xml
+<!-- Obrigatórias -->
+<uses-permission android:name="android.permission.CAMERA" />
+<uses-permission android:name="android.permission.INTERNET" />
+
+<!-- Storage (Android 12+) -->
+<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+<!-- Hardware -->
+<uses-feature android:name="android.hardware.camera" android:required="false" />
+```
+
+## 📦 Distribuição
+
+### Firebase App Distribution (Debug)
+```bash
+powershell -File ./appDistributionUploadDebug.ps1
+```
+
+### Firebase App Distribution (Release)
+```bash
+powershell -File ./appDistributionUploadRelease.ps1
+```
 
 ## 📄 Licença
 
 Este projeto está sob a licença MIT.
+
+## 👨‍💻 Contribuindo
+
+Siga os padrões de código acima e ensure que todos os testes passam (`./gradlew test`) antes de submeter mudanças.
+
+## 📞 Suporte
+
+Para questões ou relatório de bugs, abra uma issue no repositório.
