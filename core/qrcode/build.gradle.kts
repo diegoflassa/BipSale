@@ -25,6 +25,7 @@ dependencies {
     implementation(platform(libs.ax.compose.bom))
     implementation(libs.ax.compose.ui)
     implementation(libs.ax.compose.material3)
+    implementation(libs.ax.lifecycle.viewmodel.compose)
 
     // Hilt
     implementation(libs.com.google.dagger.hilt.android)
