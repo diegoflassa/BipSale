@@ -1,7 +1,14 @@
 {
   "permissions": {
     "allow": [
-      "Bash(./gradlew clean *)"
+      "Bash(./gradlew clean *)",
+      "Bash(./gradlew :core:qrcode:dependencies --configuration debugCompileClasspath)",
+      "Bash(./gradlew :core:qrcode:dependencyInsight --dependency com.google.guava:listenablefuture --configuration debugCompileClasspath)",
+      "Bash(./gradlew :core:qrcode:dependencyInsight --dependency com.google.guava:guava --configuration debugRuntimeClasspath)",
+      "Bash(./gradlew :core:qrcode:compileDebugKotlin)",
+      "Bash(./gradlew :core:qrcode:dependencyInsight --dependency com.google.guava:guava --configuration debugCompileClasspath)",
+      "Bash(wmic OS get TotalVisibleMemorySize,Name,Version /format:value)",
+      "Bash(git add *)"
     ]
   }
 }

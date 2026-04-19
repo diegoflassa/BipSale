@@ -20,6 +20,7 @@ dependencies {
 
     // ZXing
     implementation(libs.zxing.core)
+    implementation(libs.guava)
 
     // Compose
     implementation(platform(libs.ax.compose.bom))

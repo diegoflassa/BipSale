@@ -154,7 +154,8 @@ io-coil-kt-coil-compose = "2.7.0"
 androidx-camera = "1.6.0"
 
 # QR Code
-zxing-core-version = "3.5.4"
+zxing-core = "3.5.4"
+guava = "33.6.0-android"
 
 # Guava
 apache-poi = "5.5.1"
@@ -354,7 +355,8 @@ androidx-camera-view = { module = "androidx.camera:camera-view", version.ref = "
 androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "androidx-camera" }
 
 # QR Code
-zxing-core = { module = "com.google.zxing:core", version.ref = "zxing-core-version" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing-core" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
 
 # Excel Export
 apache-poi-ooxml = { module = "org.apache.poi:poi-ooxml", version.ref = "apache-poi" }
