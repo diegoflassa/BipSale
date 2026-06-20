@@ -41,11 +41,11 @@ firebaseAppDistributionDefault {
 
     val googleAppCredentials = System.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     val ciProjectPropertyCredentialsFile =
-        project.properties["comiqueta.ci.serviceCredentialsFile"]?.toString()
+        project.properties["bipsale.ci.serviceCredentialsFile"]?.toString()
 
     if (googleAppCredentials != null && googleAppCredentials.isNotBlank()) {
         serviceCredentialsFile = googleAppCredentials
-    } else if (ciProjectPropertyCredentialsFile != null && ciProjectPropertyCredentialsFile.isNotBlank()) {
+    } else if (!ciProjectPropertyCredentialsFile.isNullOrBlank()) {
         serviceCredentialsFile = ciProjectPropertyCredentialsFile
     }
 
