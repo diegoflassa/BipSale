@@ -89,7 +89,7 @@ fun ExportScreen(
                              // trigger a load if needed
                         }
                     } catch (e: Exception) {
-                        Timber.e(e, "Error exporting sales")
+                        Timber.e(e, "[BipSale][Export] Error exporting sales")
                     }
                 },
                 modifier = Modifier.fillMaxWidth()

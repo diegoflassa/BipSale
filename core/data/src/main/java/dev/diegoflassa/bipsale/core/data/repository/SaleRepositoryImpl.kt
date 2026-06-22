@@ -21,7 +21,7 @@ class SaleRepositoryImpl @Inject constructor(
 
     override suspend fun getSaleById(saleId: String): Sale? =
         runCatching { saleDao.getFullSaleById(saleId)?.toDomain() }
-            .onFailure { Timber.e(it, "Error fetching sale by id: $saleId") }
+            .onFailure { Timber.e(it, "[BipSale][Sale] Error fetching sale by id: $saleId") }
             .getOrNull()
 
     override suspend fun insertFullSale(sale: Sale) {

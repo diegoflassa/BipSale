@@ -26,7 +26,7 @@ class ProductRepositoryImpl @Inject constructor(
         return try {
             productDao.getProductByCode(code)?.toDomain()
         } catch (e: Exception) {
-            Timber.e(e, "Error fetching product by code: $code")
+            Timber.e(e, "[BipSale][Product] Error fetching product by code: $code")
             null
         }
     }
@@ -35,7 +35,7 @@ class ProductRepositoryImpl @Inject constructor(
         try {
             productDao.insertProduct(product.toEntity())
         } catch (e: Exception) {
-            Timber.e(e, "Error inserting product: ${product.code}")
+            Timber.e(e, "[BipSale][Product] Error inserting product: ${product.code}")
             throw e
         }
     }
@@ -44,7 +44,7 @@ class ProductRepositoryImpl @Inject constructor(
         try {
             productDao.updateProduct(product.toEntity())
         } catch (e: Exception) {
-            Timber.e(e, "Error updating product: ${product.code}")
+            Timber.e(e, "[BipSale][Product] Error updating product: ${product.code}")
             throw e
         }
     }
@@ -53,7 +53,7 @@ class ProductRepositoryImpl @Inject constructor(
         try {
             productDao.deleteProduct(product.toEntity())
         } catch (e: Exception) {
-            Timber.e(e, "Error deleting product: ${product.code}")
+            Timber.e(e, "[BipSale][Product] Error deleting product: ${product.code}")
             throw e
         }
     }
