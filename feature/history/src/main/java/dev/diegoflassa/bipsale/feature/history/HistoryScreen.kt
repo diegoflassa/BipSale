@@ -1,5 +1,6 @@
 package dev.diegoflassa.bipsale.feature.history
 
+import android.content.res.Configuration
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -33,9 +34,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
+import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.core.utils.ExcelExporter
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -167,3 +171,64 @@ fun SaleHistoryItem(
         }
     }
 }
+
+// region Previews
+
+private val previewSaleNamed = Sale(
+    id = "1",
+    customerName = "Maria Aparecida Souza",
+    customerCpf = "123.456.789-00",
+    totalAmount = 89.90,
+    discountPercentage = 0.0,
+    finalAmount = 89.90,
+    paymentMethod = PaymentMethod.PIX,
+    date = 1752000000000L,
+)
+
+private val previewSaleAnonymous = Sale(
+    id = "2",
+    customerName = "",
+    customerCpf = "",
+    totalAmount = 45.00,
+    discountPercentage = 10.0,
+    finalAmount = 40.50,
+    paymentMethod = PaymentMethod.CASH,
+    date = 1752003600000L,
+)
+
+@Preview(name = "SaleHistoryItem · Nomeado · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "SaleHistoryItem · Nomeado · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun SaleHistoryItemNamedPreview() {
+    BipSaleTheme {
+        SaleHistoryItem(sale = previewSaleNamed, isSelected = false, onClick = {}, onLongClick = {})
+    }
+}
+
+@Preview(name = "SaleHistoryItem · Nomeado · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SaleHistoryItemNamedDarkPreview() {
+    BipSaleTheme {
+        SaleHistoryItem(sale = previewSaleNamed, isSelected = false, onClick = {}, onLongClick = {})
+    }
+}
+
+@Preview(name = "SaleHistoryItem · Anônimo · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "SaleHistoryItem · Anônimo · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun SaleHistoryItemAnonymousPreview() {
+    BipSaleTheme {
+        SaleHistoryItem(sale = previewSaleAnonymous, isSelected = false, onClick = {}, onLongClick = {})
+    }
+}
+
+@Preview(name = "SaleHistoryItem · Selecionado · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "SaleHistoryItem · Selecionado · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun SaleHistoryItemSelectedPreview() {
+    BipSaleTheme {
+        SaleHistoryItem(sale = previewSaleNamed, isSelected = true, onClick = {}, onLongClick = {})
+    }
+}
+
+// endregion

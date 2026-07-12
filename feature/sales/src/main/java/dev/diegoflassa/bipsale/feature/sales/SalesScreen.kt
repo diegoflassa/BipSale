@@ -2,6 +2,7 @@ package dev.diegoflassa.bipsale.feature.sales
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ExperimentalGetImage
@@ -51,6 +52,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
@@ -263,3 +265,74 @@ fun PaymentMethodDropdown(
         }
     }
 }
+
+// region Previews
+
+private val previewSaleItem = SaleItem(
+    saleId = "1",
+    productCode = "7891000100103",
+    productName = "Café Premium 200ml",
+    unitPrice = 12.50,
+    quantity = 2,
+)
+
+@Preview(name = "SaleItemRow · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "SaleItemRow · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun SaleItemRowPreview() {
+    BipSaleTheme {
+        SaleItemRow(item = previewSaleItem, onDelete = {})
+    }
+}
+
+@Preview(name = "SaleItemRow · Default · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SaleItemRowDarkPreview() {
+    BipSaleTheme {
+        SaleItemRow(item = previewSaleItem, onDelete = {})
+    }
+}
+
+@Preview(name = "SaleBottomBar · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "SaleBottomBar · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun SaleBottomBarPreview() {
+    BipSaleTheme {
+        SaleBottomBar(
+            total = 89.90,
+            final = 80.91,
+            discount = 10.0,
+            onDiscountChange = {},
+            onFinalize = {},
+            paymentMethod = PaymentMethod.PIX,
+            onPaymentMethodChange = {},
+        )
+    }
+}
+
+@Preview(name = "SaleBottomBar · Default · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun SaleBottomBarDarkPreview() {
+    BipSaleTheme {
+        SaleBottomBar(
+            total = 89.90,
+            final = 80.91,
+            discount = 10.0,
+            onDiscountChange = {},
+            onFinalize = {},
+            paymentMethod = PaymentMethod.PIX,
+            onPaymentMethodChange = {},
+        )
+    }
+}
+
+@Preview(name = "PaymentMethodDropdown · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "PaymentMethodDropdown · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun PaymentMethodDropdownPreview() {
+    BipSaleTheme {
+        PaymentMethodDropdown(selectedMethod = PaymentMethod.CREDIT_CARD, onMethodSelected = {})
+    }
+}
+
+// endregion

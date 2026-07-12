@@ -1,5 +1,6 @@
 package dev.diegoflassa.bipsale.feature.products
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
@@ -22,11 +23,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.print.PrintHelper
 import dev.diegoflassa.bipsale.core.domain.model.Product
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
+import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -166,6 +169,59 @@ fun ProductItem(
         }
     }
 }
+
+// region Previews
+
+private val previewProductInStock = Product(
+    code = "7891000100103",
+    name = "Café Premium 200ml",
+    price = 12.50,
+    qrCode = null,
+)
+
+private val previewProductLongName = Product(
+    code = "7891000100202",
+    name = "Padaria e Confeitaria Gourmet do Centro - Combo Especial",
+    price = 45.90,
+    qrCode = null,
+)
+
+@Preview(name = "ProductItem · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "ProductItem · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun ProductItemDefaultPreview() {
+    BipSaleTheme {
+        ProductItem(product = previewProductInStock, isSelected = false, onClick = {}, onLongClick = {}, onDelete = {})
+    }
+}
+
+@Preview(name = "ProductItem · Default · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun ProductItemDefaultDarkPreview() {
+    BipSaleTheme {
+        ProductItem(product = previewProductInStock, isSelected = false, onClick = {}, onLongClick = {}, onDelete = {})
+    }
+}
+
+@Preview(name = "ProductItem · Selecionado · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "ProductItem · Selecionado · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun ProductItemSelectedPreview() {
+    BipSaleTheme {
+        ProductItem(product = previewProductInStock, isSelected = true, onClick = {}, onLongClick = {}, onDelete = {})
+    }
+}
+
+@Preview(name = "ProductItem · Nome Longo · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "ProductItem · Nome Longo · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Composable
+private fun ProductItemLongNamePreview() {
+    BipSaleTheme {
+        ProductItem(product = previewProductLongName, isSelected = false, onClick = {}, onLongClick = {}, onDelete = {})
+    }
+}
+
+// endregion
 
 private fun printBatchQrCodes(context: android.content.Context, products: List<Product>) {
     val qrGenerator = QrGenerator()

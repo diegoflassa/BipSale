@@ -115,6 +115,7 @@ A `META_PLANNING_*.md` file is a **consolidation prompt**: it collects planning 
 - **Async:** `suspend`, main-safe. Errors: `Result<T>` / sealed result via `runCatching`. No bare try/catch.
 - **Immutability:** `val` / `data class`.
 - **Logging:** Timber only. No `android.util.Log`.
+- **Build:** convention plugins in `build-logic/` (app/lib); SSOT config in `build-logic/Configuracoes.kt`; versioning via `version.properties` (`0.0.2-alpha-build_N`). Static analysis: detekt + ktlint.
 
 ### Log Filter Management
 
@@ -128,4 +129,3 @@ When introducing a new log filter to the codebase, you MUST use the format `[FIL
 1. **Update SOT:** Add the filter to the "DO NOT TOUCH / Protected" list in the relevant knowledge index.
 2. **Update Rules:** Update this `CORE_RULES.md` if it lists protected filters.
 3. **Synchronize:** Update all call sites and test assertions in the same turn.
-- **Build:** convention plugins in `build-logic/` (app/lib); SSOT config in `build-logic/Configuracoes.kt`; versioning via `version.properties` (`0.0.2-alpha-build_N`). Static analysis: detekt + ktlint.
