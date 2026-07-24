@@ -3,6 +3,8 @@
 #Common
 gradle = "9.2.1"
 kotlin = "2.4.0"
+javax-inject = "1"
+org-jetbrains-kotlinx-coroutines-core = "1.11.0"
 
 #Project build.gradle
 hilt-android-gradle-plugin = "2.60.1"
@@ -188,6 +190,8 @@ firebase-perf-plugin-library = { module = "com.google.firebase:perf-plugin", ver
 firebase-appdistribution-gradle-library = { module = "com.google.firebase:firebase-appdistribution-gradle", version.ref = "firebase-appdistribution-gradle" }
 
 #Common
+javax-inject = { module = "javax.inject:javax.inject", version.ref = "javax-inject" }
+org-jetbrains-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version.ref = "org-jetbrains-kotlinx-coroutines-core" }
 ax-core-ktx = { module = "androidx.core:core-ktx", version.ref = "core-ktx" }
 com-google-android-material = { module = "com.google.android.material:material", version.ref = "material" }
 ui-text-google-fonts = { module = "androidx.compose.ui:ui-text-google-fonts", version.ref = "ui-text-google-fonts" }

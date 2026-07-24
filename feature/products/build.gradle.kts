@@ -16,11 +16,11 @@ dependencies {
     implementation(project(":core:qrcode"))
     implementation(project(":core:navigation"))
     implementation(project(":core:domain"))
-    implementation(project(":core:qrcode"))
 
     // Compose
     implementation(platform(libs.ax.compose.bom))
     implementation(libs.ax.compose.ui)
+    implementation(libs.ax.compose.ui.tooling.preview)
     implementation(libs.ax.compose.material3)
     implementation(libs.ax.compose.material.icons.core)
     implementation(libs.ax.compose.material.icons.extended)

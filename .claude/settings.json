@@ -5,9 +5,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "$idx = Get-Content 'conductor/ki/KI_INDEX.md' -Raw; $out = [ordered]@{hookSpecificOutput=[ordered]@{hookEventName='SessionStart';additionalContext=\"[conductor/ki/KI_INDEX.md]`n$idx\"}} | ConvertTo-Json -Compress; Write-Output $out",
+            "command": "$idx = Get-Content 'conductor/knowledge/INDEX.md' -Raw; $out = [ordered]@{hookSpecificOutput=[ordered]@{hookEventName='SessionStart';additionalContext=\"[conductor/knowledge/INDEX.md]`n$idx\"}} | ConvertTo-Json -Compress; Write-Output $out",
             "shell": "powershell",
-            "statusMessage": "Loading conductor/ki/KI_INDEX.md..."
+            "statusMessage": "Loading conductor/knowledge/INDEX.md..."
           }
         ]
       }
