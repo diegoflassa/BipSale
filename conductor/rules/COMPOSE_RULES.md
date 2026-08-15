@@ -18,8 +18,9 @@
 - Primitive state APIs are mandatory: `mutableIntStateOf` / `mutableFloatStateOf` / `mutableLongStateOf` / `mutableDoubleStateOf`. Never `mutableStateOf(0)`.
 - Hoist state. A `@Composable` that takes a `XxxUiState` and `(Event) -> Unit` callbacks is the correct shape. See `INSTRUMENTED_TEST_STANDARD.md` § Two-layer composition.
 - `collectAsStateWithLifecycle()` always. Never `collectAsState()`.
-- `rememberSaveable` for any state that must survive config changes / process death.
+- `rememberSaveable` **per field, never for a whole `XxxUiState` object** — and only for state the user would otherwise have to re-enter by hand. Save what the user paid for with their own time and what is still true after the process died: typed text (`customerName`, `customerCpf`, a manual item's name and price), the id of the entity being edited, navigation arguments. **Never save** transient or externally-owned state — loading/submitting flags, dialog visibility, `isSaleFinished`, camera-permission or scanner-connected booleans, or an operation's result. Those describe what the dead process was *doing*, so restoring them shows a spinner nothing will dismiss, or a "sale finished" flag whose real subject died with the process. Anything not explicitly saved must re-derive to its default. Recovering an interrupted sale is a persistence concern, not a saved-state one — see [`architecture.md` § Persistence](architecture.md).
 - `derivedStateOf { ... }` for any computed value whose inputs change less often than the reads.
+- **State derivation belongs in the ViewModel.** Mapping, filtering, sorting, grouping, currency formatting, and any `if` / `when` chain that turns domain data into what the screen renders is computed in the ViewModel and arrives as a ready field on `XxxUiState` — cart totals and discounts included. Wrapping it in `remember { }` fixes the recomposition cost but leaves it in the wrong layer: the arithmetic that decides what a customer pays is then reachable only through an instrumented test when it is plain unit-test material. `XxxScreenContent` reads its state and decides how to *look*, nothing more. (§12 already requires this for list data; it holds for every derived field.)
 
 ## 3. Recomposition
 
@@ -90,6 +91,7 @@
 - Custom controls expose role: `Modifier.semantics { role = Role.Button }`.
 - Test tags (`Modifier.testTag(...)`) are NOT a substitute for `contentDescription`. Both are needed; one for tests, one for users.
 - Minimum touch target: 48dp × 48dp. Wrap small icons with `Modifier.minimumInteractiveComponentSize()` or explicit padding.
+- **A clickable icon is an `IconButton`.** Never `Icon` + `Modifier.clickable` for an icon-only action: that makes the touch target the icon's own bounds — typically 24dp, half the minimum above — with no ripple and no `Role.Button` semantics, while `IconButton` gives all three for free. This is a point-of-sale app: the operator taps at speed with a customer waiting, often one-handed while holding a product, and the ripple is the only confirmation that a remove-item or clear-cart tap registered at all. Applies to every icon-only affordance: remove-from-cart ×, back arrow, clear-field, scan trigger, row overflow. When the click really belongs to a larger row or card surface, put it on that surface and leave the icon decorative with `contentDescription = null` — never both.
 
 ## 12. Lists, Paging, Large Data
 
@@ -119,6 +121,8 @@
 - `runBlocking` in composition.
 - Mutating state during composition (setting a `MutableState` from a child without an event handler).
 - `Box` for a layout that is really a `Column` / `Row` with alignment.
+- A clickable `Box` / `Row` / `Column` hand-built to replace a Material 3 component that would have worked — see [CORE_RULES §9](CORE_RULES.md).
+- `Icon` + `Modifier.clickable` for an icon-only action — use `IconButton` (§11).
 - Nested `LazyColumn` inside `LazyColumn` — use a single lazy list with `item { }` + `items { }`.
 - Hardcoded `Color(0x...)`, hardcoded user-facing strings, hardcoded `contentDescription`.
 
