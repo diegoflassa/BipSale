@@ -451,4 +451,116 @@ private fun ProductListContentSelectionPreview() {
     }
 }
 
+@Preview(
+    name = "ProductListMessage · Vazio · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListMessage · Vazio · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductListMessageEmptyPreview() {
+    BipSaleTheme {
+        ProductListMessage(text = stringResource(R.string.products_empty_state))
+    }
+}
+
+@Preview(
+    name = "ProductListMessage · Erro · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListMessage · Erro · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductListMessageErrorPreview() {
+    BipSaleTheme {
+        ProductListMessage(text = stringResource(R.string.products_generic_error))
+    }
+}
+
+@Preview(
+    name = "ProductListTopBar · Padrao · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListTopBar · Padrao · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductListTopBarDefaultPreview() {
+    BipSaleTheme {
+        ProductListTopBar(
+            state = ProductContract.State(isLoading = false, products = previewProducts),
+            hasSelection = false,
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(
+    name = "ProductListTopBar · Selecao · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListTopBar · Selecao · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductListTopBarSelectionPreview() {
+    BipSaleTheme {
+        ProductListTopBar(
+            state = ProductContract.State(
+                isLoading = false,
+                products = previewProducts,
+                selectedProductCodes = setOf("CT-A-RoS")
+            ),
+            hasSelection = true,
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(
+    name = "ProductRows · Padrao · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductRows · Padrao · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductRowsDefaultPreview() {
+    BipSaleTheme {
+        ProductRows(
+            state = ProductContract.State(isLoading = false, products = previewProducts),
+            hasSelection = false,
+            onEditProduct = {},
+            onIntent = {}
+        )
+    }
+}
+
 // endregion

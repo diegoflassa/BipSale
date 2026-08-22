@@ -6,6 +6,7 @@ import android.content.res.Configuration
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.ExperimentalGetImage
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -219,7 +220,7 @@ fun SaleBottomBar(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.discount_label), style = MaterialTheme.typography.bodyMedium)
                 TextButton(onClick = { /* Could show a dialog to change discount */ }) {
-                    Text("${discount.toInt()}%")
+                    Text(stringResource(R.string.discount_percentage, discount.toInt()))
                 }
             }
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
@@ -250,12 +251,12 @@ fun PaymentMethodDropdown(
 
     Box {
         OutlinedButton(onClick = { expanded = true }) {
-            Text(selectedMethod.serializedName)
+            Text(stringResource(selectedMethod.labelRes()))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             PaymentMethod.entries.forEach { method ->
                 DropdownMenuItem(
-                    text = { Text(method.serializedName) },
+                    text = { Text(stringResource(method.labelRes())) },
                     onClick = {
                         onMethodSelected(method)
                         expanded = false
@@ -336,3 +337,12 @@ private fun PaymentMethodDropdownPreview() {
 }
 
 // endregion
+
+/** The wire name (`CREDIT_CARD`) is a storage detail; the operator sees the translated label. */
+@StringRes
+private fun PaymentMethod.labelRes(): Int = when (this) {
+    PaymentMethod.PIX -> R.string.payment_method_pix
+    PaymentMethod.CASH -> R.string.payment_method_cash
+    PaymentMethod.CREDIT_CARD -> R.string.payment_method_credit
+    PaymentMethod.DEBIT_CARD -> R.string.payment_method_debit
+}

@@ -38,6 +38,12 @@ data class QrLabelSheetLayout(
         const val TARGET_CELL_HEIGHT_PT = 142f
         const val DEFAULT_MARGIN_PT = 28f
 
+        /** The grid the print dialog defaults to, and what the on-screen preview mirrors. */
+        fun a4(): QrLabelSheetLayout = forPage(A4_WIDTH_PT, A4_HEIGHT_PT)
+
+        /** Points to millimetres, for telling the operator the physical size of a label. */
+        fun pointsToMillimetres(points: Float): Float = points / POINTS_PER_INCH * MM_PER_INCH
+
         /**
          * Fits as many whole cells as the page allows, then grows the cells to consume the
          * leftover strip so the sheet stays edge-to-edge on any paper size.
@@ -61,6 +67,9 @@ data class QrLabelSheetLayout(
                 marginPt = marginPt
             )
         }
+
+        private const val POINTS_PER_INCH = 72f
+        private const val MM_PER_INCH = 25.4f
 
         private fun ceilDiv(value: Int, divisor: Int): Int = (value + divisor - 1) / divisor
     }

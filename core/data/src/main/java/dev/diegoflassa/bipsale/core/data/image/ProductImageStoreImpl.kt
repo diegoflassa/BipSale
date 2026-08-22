@@ -58,6 +58,37 @@ class ProductImageStoreImpl @Inject constructor(
 
     override fun resolvePath(fileName: String): String = File(imagesDir, fileName).absolutePath
 
+    override suspend fun listFileNames(): List<String> = withContext(Dispatchers.IO) {
+        imagesDir.listFiles()?.filter { it.isFile }?.map { it.name }.orEmpty()
+    }
+
+    override suspend fun readBytes(fileName: String): ByteArray? = withContext(Dispatchers.IO) {
+        val file = File(imagesDir, fileName)
+        if (!file.exists()) {
+            Timber.w("[BipSale][Product][IMAGE] Missing file while reading name=%s", fileName)
+            return@withContext null
+        }
+        file.readBytes()
+    }
+
+    override suspend fun writeBytes(fileName: String, bytes: ByteArray) {
+        withContext(Dispatchers.IO) {
+            // Names come out of an archive, so a crafted entry could otherwise escape the folder.
+            val safeName = File(fileName).name
+            File(imagesDir, safeName).writeBytes(bytes)
+            Timber.d(
+                "[BipSale][Product][IMAGE] Restored image name=%s bytes=%d", safeName, bytes.size
+            )
+        }
+    }
+
+    override suspend fun deleteAll() {
+        withContext(Dispatchers.IO) {
+            val removed = imagesDir.listFiles()?.count { it.delete() } ?: 0
+            Timber.d("[BipSale][Product][IMAGE] Cleared image store, removed=%d", removed)
+        }
+    }
+
     /**
      * Samples the source down while decoding so a 12 MP photo never reaches the heap at full size.
      */

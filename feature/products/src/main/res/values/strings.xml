@@ -12,7 +12,10 @@
     <string name="products_save">Salvar</string>
     <string name="products_qr_code_label">QR Code do Produto:</string>
     <string name="products_qr_label_preview">Prévia da etiqueta QR Code</string>
-    <string name="products_print_preview_hint">A etiqueta será impressa neste formato, com margem tracejada para recorte</string>
+    <string name="products_print_preview_hint">Toque na etiqueta para vê-la no tamanho real de impressão</string>
+    <string name="products_label_real_size_title">Tamanho real da etiqueta</string>
+    <string name="products_label_real_size_caption">%1$s × %2$s mm — como sairá impressa, com margem tracejada para recorte</string>
+    <string name="products_close">Fechar</string>
     <string name="products_print_qr_code">Imprimir QR Code</string>
     <string name="products_back">Voltar</string>
     <string name="products_manage_title">Gerenciar Produtos</string>

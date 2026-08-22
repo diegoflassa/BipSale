@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.ui.backup -->
+<resources>
+    <string name="backup_title">Copia de seguridad y restauración</string>
+    <string name="backup_back">Volver</string>
+    <string name="backup_explainer">La copia de seguridad guarda todos los productos, ventas, artículos de venta e imágenes en un único archivo .zip. Guárdala en Google Drive, en el almacenamiento del dispositivo, o compártela.</string>
+    <string name="backup_create">Crear copia de seguridad</string>
+    <string name="backup_share">Compartir copia de seguridad</string>
+    <string name="backup_restore">Restaurar copia de seguridad</string>
+    <string name="backup_share_chooser">Compartir copia de seguridad</string>
+    <string name="backup_created">Copia creada: %1$d productos, %2$d ventas, %3$d imágenes</string>
+    <string name="backup_restored">Copia restaurada: %1$d productos, %2$d ventas, %3$d imágenes</string>
+    <string name="backup_create_failed">No se pudo crear la copia de seguridad</string>
+    <string name="backup_share_failed">No se pudo compartir la copia de seguridad</string>
+    <string name="backup_restore_failed">No se pudo restaurar la copia de seguridad</string>
+    <string name="backup_restore_confirm_title">¿Restaurar la copia de seguridad?</string>
+    <string name="backup_restore_confirm_message">Todos los productos, ventas e imágenes actuales se borrarán y se sustituirán por el contenido de este archivo. Esta acción no se puede deshacer.</string>
+    <string name="backup_invalid_archive">Archivo no válido, o no es una copia de BipSale</string>
+    <string name="backup_metadata_heading">El archivo contiene:</string>
+    <string name="backup_metadata_products">%1$d productos</string>
+    <string name="backup_metadata_sales">%1$d ventas (%2$d artículos)</string>
+    <string name="backup_metadata_images">%1$d imágenes</string>
+    <string name="backup_metadata_created_at">Creado el %1$s</string>
+    <string name="backup_metadata_app_version">Con BipSale %1$s</string>
+    <string name="backup_metadata_replacing">Se sustituirá ahora: %1$d productos y %2$d ventas</string>
+    <string name="backup_restore_confirm_accept">Borrar y restaurar</string>
+    <string name="backup_restore_confirm_cancel">Cancelar</string>
+    <string name="backup_summary_title">Última operación</string>
+    <string name="backup_summary_counts">%1$d productos · %2$d ventas · %3$d artículos · %4$d imágenes</string>
+    <string name="backup_summary_created_at">Archivo del %1$s</string>
+    <string name="dashboard_backup_title">Copia de seguridad</string>
+    <string name="dashboard_backup_description">Guarda o restaura tus datos</string>
+</resources>

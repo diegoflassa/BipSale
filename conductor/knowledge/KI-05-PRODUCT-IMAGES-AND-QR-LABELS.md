@@ -48,12 +48,17 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 ### Printing
 
 13. **Print through `PrintDocumentAdapter` + `PdfDocument`, never a single composed bitmap.** A full-page ARGB_8888 bitmap at print resolution is ~33 MB, so allocating one per page and concatenating them exhausts the heap past a single page. A printed bitmap is also always *one* page, so that route squashes an entire batch onto a single sheet at unscannable size.
-14. **The grid is derived from `PrintAttributes.mediaSize`,** so any paper the operator picks re-fits. A4 is only what `QrLabelPrinter` requests as the default.
+14. **The grid is derived from `PrintAttributes.mediaSize`,** so any paper the operator picks re-fits. Portrait A4 is what `QrLabelPrinter` requests as the default.
+14a. **Media is pinned portrait with `asPortrait()`** at both the request and in `onLayout`. `ISO_A4` on its own inherits whatever orientation the print service last used, and a landscape page lays the grid out rotated.
 15. **A4 yields a 4x5 grid, 20 labels per sheet,** ~47x55 mm per cell with a ~30 mm QR — dense enough to save paper, large enough to scan.
 16. **`forPage` never returns a zero-cell grid.** Columns and rows are floored to at least 1; a zero would make the page loop spin without advancing.
 17. **Cut borders are dashed vectors** drawn at page resolution, not raster.
 18. **QR bitmaps are drawn unfiltered** (`isFilterBitmap = false`) — smoothing the modules costs scan reliability at label size.
-19. **The edit screen preview uses the same `drawLabel`** at the same proportions, so the preview is what prints.
+19. **The edit screen preview uses the same `drawLabel`** against the same A4 cell (`QrLabelSheetLayout.a4()`), so the preview is what prints.
+20. **Type is sized in points with a readable floor** — 9 pt name, 12 pt price. Points survive any paper size or printer DPI; pixels would not.
+21. **The name block is reserved at `MAX_NAME_LINES` height whether or not the name fills it,** so every QR on a sheet sits at the same offset and the cut lines stay a regular grid.
+22. **The name wraps and then ellipsises; the price never wraps.** A price too wide for the cell shrinks by half-points to a 9 pt floor — a wrapped or clipped price is a misread charge.
+23. **The real-size preview converts through `DisplayMetrics.xdpi`/`ydpi`, not the density bucket.** A bucket is rounded to the nearest standard density, so a ruler held to the screen would disagree with the printout.
 
 ## Log filters
 
@@ -69,6 +74,12 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 | `core/data/androidTest/.../ProductImageStoreImplTest` | Import succeeds against a real `ContentResolver` (pins the bounds-decode bug), 1024 px downscale, code sanitising, unique name per pick, delete, unreadable-source failure |
 
 **Not yet covered:** `ProductViewModel` (price validation wiring, image lifecycle), EXIF rotation, `QrLabelSheetRenderer` (needs Android graphics). See [KI-TBD](KI-TBD.md) #3 and #5.
+
+## Backup
+
+`android:allowBackup` is a manifest placeholder set per build type in `android-application-convention.gradle.kts` — `false` on debug, `true` on release.
+
+Auto Backup restores a database written by an older build onto a newer one, and Room aborts on the identity-hash mismatch rather than opening it. On debug that resurrects local schema churn and survives even a full uninstall, which reads as an unkillable crash. Release keeps backup on so sales history survives a device migration; that is only safe once the migration set ships ([KI-TBD](KI-TBD.md) #4 and #11).
 
 ## Failure visibility
 

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.ui.export -->
+<resources>
+    <string name="export_title">Export Data</string>
+    <string name="export_back">Back</string>
+    <string name="export_generate_excel">Generate Excel file</string>
+</resources>

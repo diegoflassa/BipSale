@@ -2,6 +2,12 @@ complexity:
   ComplexCondition:
     active: true
     threshold: 5
+  LongParameterList:
+    active: true
+    # A stateless *ScreenContent takes its state, one callback per action, and a modifier.
+    # INSTRUMENTED_TEST_STANDARD section 1 mandates exactly that shape, so counting those
+    # parameters as a smell would flag the architecture the repo requires.
+    ignoreAnnotated: [ 'Composable' ]
 
 exceptions:
   TooGenericExceptionCaught:

@@ -39,4 +39,19 @@ interface SaleDao {
         insertSale(sale)
         insertSaleItems(items)
     }
+
+    @Query("SELECT * FROM sales")
+    suspend fun getAllSalesOnce(): List<SaleEntity>
+
+    @Query("SELECT * FROM sale_items")
+    suspend fun getAllSaleItemsOnce(): List<SaleItemEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSales(sales: List<SaleEntity>)
+
+    @Query("DELETE FROM sales")
+    suspend fun deleteAllSales()
+
+    @Query("DELETE FROM sale_items")
+    suspend fun deleteAllSaleItems()
 }

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.ui.dashboard -->
+<resources>
+    <string name="dashboard_title">BipSale</string>
+    <string name="dashboard_new_sale_title">Nova Venda</string>
+    <string name="dashboard_new_sale_description">Inicie uma venda via QR Code</string>
+    <string name="dashboard_products_title">Produtos</string>
+    <string name="dashboard_products_description">Gerencie seu estoque</string>
+    <string name="dashboard_history_title">Histórico</string>
+    <string name="dashboard_history_description">Veja suas vendas passadas</string>
+    <string name="dashboard_reports_title">Relatórios</string>
+    <string name="dashboard_reports_description">Exportar dados para Excel</string>
+</resources>

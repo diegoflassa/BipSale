@@ -71,6 +71,10 @@ class ProductViewModel @Inject constructor(
             is ProductContract.Intent.PrintSelectedQrCodes -> print(_uiState.value.selectedLabels)
             is ProductContract.Intent.PrintEditorLabel ->
                 print(listOfNotNull(_uiState.value.editor.label))
+            is ProductContract.Intent.ShowLabelPreview ->
+                updateEditor { it.copy(isLabelPreviewVisible = true) }
+            is ProductContract.Intent.HideLabelPreview ->
+                updateEditor { it.copy(isLabelPreviewVisible = false) }
         }
     }
 

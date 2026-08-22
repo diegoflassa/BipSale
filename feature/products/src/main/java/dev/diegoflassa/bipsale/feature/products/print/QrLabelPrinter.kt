@@ -26,12 +26,19 @@ class QrLabelPrinter(
             return false
         }
 
-        Timber.d("[BipSale][Product][QR_EXPORT] Print dialog opened for %d labels", labels.size)
+        // asPortrait matters: ISO_A4 on its own carries whatever orientation the print service
+        // last used, and a landscape A4 hands the adapter a 297x210 page whose grid comes out
+        // rotated. The dialog can still be changed by hand — the layout re-fits whatever it gets.
+        val requested = PrintAttributes.MediaSize.ISO_A4.asPortrait()
+        Timber.d(
+            "[BipSale][Product][QR_EXPORT] Print dialog opened for %d labels, requesting %s (%dx%d mils)",
+            labels.size, requested.id, requested.widthMils, requested.heightMils
+        )
         printManager.print(
             documentName,
             QrLabelPrintAdapter(context, documentName, labels, renderer),
             PrintAttributes.Builder()
-                .setMediaSize(PrintAttributes.MediaSize.ISO_A4)
+                .setMediaSize(requested)
                 .setResolution(PrintAttributes.Resolution("default", "default", DPI, DPI))
                 .setMinMargins(PrintAttributes.Margins.NO_MARGINS)
                 .build()

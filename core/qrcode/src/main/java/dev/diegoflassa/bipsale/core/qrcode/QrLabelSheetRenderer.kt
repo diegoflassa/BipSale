@@ -47,9 +47,13 @@ class QrLabelSheetRenderer @Inject constructor(
      * One label rendered at [widthPx] using the same geometry the printer gets, so what the edit
      * screen shows is what comes out of the tray.
      */
-    fun renderLabelPreview(label: LabelData, widthPx: Int): Bitmap {
-        val scale = widthPx / QrLabelSheetLayout.TARGET_CELL_WIDTH_PT
-        val heightPx = (QrLabelSheetLayout.TARGET_CELL_HEIGHT_PT * scale).toInt()
+    fun renderLabelPreview(
+        label: LabelData,
+        widthPx: Int,
+        layout: QrLabelSheetLayout = QrLabelSheetLayout.a4()
+    ): Bitmap {
+        val scale = widthPx / layout.cellWidthPt
+        val heightPx = (layout.cellHeightPt * scale).toInt()
 
         val bitmap = Bitmap.createBitmap(widthPx, heightPx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -58,12 +62,7 @@ class QrLabelSheetRenderer @Inject constructor(
 
         drawLabel(
             canvas = canvas,
-            cell = RectF(
-                0f,
-                0f,
-                QrLabelSheetLayout.TARGET_CELL_WIDTH_PT,
-                QrLabelSheetLayout.TARGET_CELL_HEIGHT_PT
-            ),
+            cell = RectF(0f, 0f, layout.cellWidthPt, layout.cellHeightPt),
             label = label,
             paints = LabelPaints()
         )
@@ -79,22 +78,34 @@ class QrLabelSheetRenderer @Inject constructor(
         canvas.drawRect(cell, paints.cut)
 
         val centerX = cell.centerX()
-        val nameLines = wrapText(label.productName, paints.name, cell.width() - 2 * CELL_PADDING_PT)
-            .take(MAX_NAME_LINES)
-        val nameHeight = nameLines.size * NAME_LINE_HEIGHT_PT
+        val innerWidth = cell.width() - 2 * CELL_PADDING_PT
 
-        var textY = cell.top + CELL_PADDING_PT + NAME_TEXT_SIZE_PT
+        // The name block is reserved at full height whether or not the name uses it, so every QR
+        // on the sheet lands at the same offset and the cut lines stay a regular grid.
+        val nameBlockHeight = MAX_NAME_LINES * NAME_LINE_HEIGHT_PT
+        val nameLines = wrapText(label.productName, paints.name, innerWidth).take(MAX_NAME_LINES)
+        val nameTop = cell.top + CELL_PADDING_PT +
+            (nameBlockHeight - nameLines.size * NAME_LINE_HEIGHT_PT) / 2f
+
+        var baseline = nameTop + NAME_TEXT_SIZE_PT
         for (line in nameLines) {
-            canvas.drawText(line, centerX, textY, paints.name)
-            textY += NAME_LINE_HEIGHT_PT
+            canvas.drawText(line, centerX, baseline, paints.name)
+            baseline += NAME_LINE_HEIGHT_PT
         }
 
-        val qrTop = cell.top + CELL_PADDING_PT + nameHeight + GAP_PT
+        // The price is one line, always. Shrink it to fit rather than wrap or clip it, and stop at
+        // a size that still reads once the label is cut out.
+        paints.price.textSize = PRICE_TEXT_SIZE_PT
+        while (
+            paints.price.measureText(label.priceFormatted) > innerWidth &&
+            paints.price.textSize > MIN_PRICE_TEXT_SIZE_PT
+        ) {
+            paints.price.textSize -= PRICE_SHRINK_STEP_PT
+        }
+
+        val qrTop = cell.top + CELL_PADDING_PT + nameBlockHeight + GAP_PT
         val qrBottom = cell.bottom - CELL_PADDING_PT - PRICE_TEXT_SIZE_PT - GAP_PT
-        val qrSide = minOf(
-            qrBottom - qrTop,
-            cell.width() - 2 * CELL_PADDING_PT
-        )
+        val qrSide = minOf(qrBottom - qrTop, innerWidth)
         if (qrSide > 0f) {
             val qrBitmap = qrGenerator.generateQrCode(label.qrData, QR_RENDER_PX, QR_RENDER_PX)
             if (qrBitmap != null) {
@@ -179,9 +190,16 @@ class QrLabelSheetRenderer @Inject constructor(
     private companion object {
         const val CELL_PADDING_PT = 6f
         const val GAP_PT = 3f
-        const val NAME_TEXT_SIZE_PT = 6.5f
-        const val NAME_LINE_HEIGHT_PT = 8f
-        const val PRICE_TEXT_SIZE_PT = 9f
+        /**
+         * Type sizes are in points, so they survive any paper size or printer DPI. 9 pt is about
+         * the floor for a name read at arm's length off a cut-out label; the price carries the
+         * number someone is charged, so it gets more.
+         */
+        const val NAME_TEXT_SIZE_PT = 9f
+        const val NAME_LINE_HEIGHT_PT = 11f
+        const val PRICE_TEXT_SIZE_PT = 12f
+        const val MIN_PRICE_TEXT_SIZE_PT = 9f
+        const val PRICE_SHRINK_STEP_PT = 0.5f
         const val MAX_NAME_LINES = 2
         const val CUT_LINE_WIDTH_PT = 0.5f
         const val DASH_ON_PT = 4f

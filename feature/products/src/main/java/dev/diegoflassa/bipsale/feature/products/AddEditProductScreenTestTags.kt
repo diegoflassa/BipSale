@@ -10,4 +10,6 @@ object AddEditProductScreenTestTags {
     const val SAVE_BUTTON = "add_edit_product_save_button"
     const val LABEL_PREVIEW = "add_edit_product_label_preview"
     const val PRINT_BUTTON = "add_edit_product_print_button"
+    const val REAL_SIZE_DIALOG = "add_edit_product_real_size_dialog"
+    const val REAL_SIZE_CLOSE = "add_edit_product_real_size_close"
 }

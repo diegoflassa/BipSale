@@ -14,6 +14,7 @@ import dev.diegoflassa.bipsale.feature.products.AddEditProductScreen
 import dev.diegoflassa.bipsale.feature.products.ProductListScreen
 import dev.diegoflassa.bipsale.feature.sales.CustomerInfoScreen
 import dev.diegoflassa.bipsale.feature.sales.SalesScreen
+import dev.diegoflassa.bipsale.ui.backup.BackupScreen
 import dev.diegoflassa.bipsale.ui.dashboard.DashboardScreen
 import dev.diegoflassa.bipsale.ui.export.ExportScreen
 
@@ -37,7 +38,8 @@ private fun NavGraphBuilder.salesGraph(navController: NavHostController) {
             onNewSale = { navController.navigate(Screen.NewSale) },
             onManageProducts = { navController.navigate(Screen.ManageProducts) },
             onHistory = { navController.navigate(Screen.History) },
-            onExport = { navController.navigate(Screen.Export) }
+            onExport = { navController.navigate(Screen.Export) },
+            onBackup = { navController.navigate(Screen.Backup) }
         )
     }
 
@@ -95,6 +97,10 @@ private fun NavGraphBuilder.historyGraph(navController: NavHostController) {
 
     composable<Screen.Export> {
         ExportScreen(onBack = { navController.popBackStack() })
+    }
+
+    composable<Screen.Backup> {
+        BackupScreen(onBack = { navController.popBackStack() })
     }
 }
 

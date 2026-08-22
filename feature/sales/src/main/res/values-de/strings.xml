@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.feature.sales -->
+<resources>
+    <string name="sale_title_anonymous">Anonymer Verkauf</string>
+    <string name="sale_title_format">Verkauf für %s</string>
+    <string name="scan_qr_description">QR-Code scannen</string>
+    <string name="empty_items_message">Keine Positionen hinzugefügt</string>
+    <string name="remove_item_description">Position entfernen</string>
+    <string name="currency_format">R$ %.2f</string>
+    <string name="subtotal_label">Zwischensumme:</string>
+    <string name="discount_label">Rabatt:</string>
+    <string name="payment_method_label">Zahlungsart:</string>
+    <string name="total_label">Gesamt:</string>
+    <string name="finalize_sale_button">Verkauf abschließen</string>
+    <string name="unknown_product">Unbekanntes Produkt</string>
+    <string name="invalid_qr_code">Ungültiger QR-Code</string>
+    <string name="anonymous_customer">Anonym</string>
+    <string name="error_finalizing_sale">Der Verkauf konnte nicht abgeschlossen werden. Bitte erneut versuchen.</string>
+    <string name="payment_method_pix">PIX</string>
+    <string name="payment_method_cash">Bar</string>
+    <string name="payment_method_credit">Kredit</string>
+    <string name="payment_method_debit">Debit</string>
+    <string name="discount_dialog_title">Rabatt festlegen</string>
+    <string name="discount_dialog_hint">Prozentsatz (0-100)</string>
+    <string name="discount_percentage">%1$d%%</string>
+</resources>

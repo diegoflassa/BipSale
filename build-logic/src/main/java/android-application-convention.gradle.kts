@@ -71,6 +71,10 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
 
     buildTypes {
         release {
+            // Backup is on for real users so sales history survives a device migration. It is only
+            // safe once the database ships migrations — a restore hands a new build the schema an
+            // older build wrote (CORE_RULES section 13).
+            manifestPlaceholders["allowBackup"] = true
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -81,7 +85,11 @@ configure<com.android.build.api.dsl.ApplicationExtension> {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
-        debug {}
+        debug {
+            // Off on debug: schema churn between local builds would otherwise be resurrected by a
+            // restore, and Room aborts on the identity-hash mismatch instead of opening the file.
+            manifestPlaceholders["allowBackup"] = false
+        }
     }
 
     compileOptions {

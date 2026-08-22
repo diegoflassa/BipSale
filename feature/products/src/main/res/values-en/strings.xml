@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.feature.products -->
+<resources>
+    <string name="product_deleted">Product removed</string>
+    <string name="products_edit_product">Edit Product</string>
+    <string name="products_new_product">New Product</string>
+    <string name="products_code_label">Product Code</string>
+    <string name="products_code_prefix">Code: %1$s</string>
+    <string name="products_name_label">Product Name</string>
+    <string name="products_price_label">Unit Price</string>
+    <string name="products_price_invalid">Enter a valid price greater than zero</string>
+    <string name="products_save">Save</string>
+    <string name="products_qr_code_label">Product QR Code:</string>
+    <string name="products_qr_label_preview">QR label preview</string>
+    <string name="products_print_preview_hint">Tap the label to see it at real printed size</string>
+    <string name="products_label_real_size_title">Real label size</string>
+    <string name="products_label_real_size_caption">%1$s × %2$s mm — as it will print, with a dashed cutting margin</string>
+    <string name="products_close">Close</string>
+    <string name="products_print_qr_code">Print QR Code</string>
+    <string name="products_back">Back</string>
+    <string name="products_manage_title">Manage Products</string>
+    <string name="products_selected_count">%1$d selected</string>
+    <string name="products_clear_selection">Clear selection</string>
+    <string name="products_select_product">Select product</string>
+    <string name="products_print_selected">Print selected</string>
+    <string name="products_add_product">Add product</string>
+    <string name="products_delete">Delete</string>
+    <string name="products_product_image">Product image</string>
+    <string name="products_print_all_qr_codes">Print QR Codes</string>
+    <string name="products_no_products_to_print">No products to print</string>
+    <string name="products_qr_labels_title">QR Code Labels</string>
+    <string name="products_image_save_failed">Could not save the image</string>
+    <string name="products_product_placeholder">No image</string>
+    <string name="products_empty_state">No products yet. Tap + to add the first one.</string>
+    <string name="products_generic_error">Something went wrong</string>
+</resources>

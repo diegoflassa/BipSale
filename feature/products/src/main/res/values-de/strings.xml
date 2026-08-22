@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.feature.products -->
+<resources>
+    <string name="product_deleted">Produkt entfernt</string>
+    <string name="products_edit_product">Produkt bearbeiten</string>
+    <string name="products_new_product">Neues Produkt</string>
+    <string name="products_code_label">Produktcode</string>
+    <string name="products_code_prefix">Code: %1$s</string>
+    <string name="products_name_label">Produktname</string>
+    <string name="products_price_label">Einzelpreis</string>
+    <string name="products_price_invalid">Gib einen gültigen Preis größer als null ein</string>
+    <string name="products_save">Speichern</string>
+    <string name="products_qr_code_label">QR-Code des Produkts:</string>
+    <string name="products_qr_label_preview">Vorschau des QR-Etiketts</string>
+    <string name="products_print_preview_hint">Tippe auf das Etikett, um es in echter Druckgröße zu sehen</string>
+    <string name="products_label_real_size_title">Echte Etikettengröße</string>
+    <string name="products_label_real_size_caption">%1$s × %2$s mm — so wird es gedruckt, mit gestrichelter Schnittkante</string>
+    <string name="products_close">Schließen</string>
+    <string name="products_print_qr_code">QR-Code drucken</string>
+    <string name="products_back">Zurück</string>
+    <string name="products_manage_title">Produkte verwalten</string>
+    <string name="products_selected_count">%1$d ausgewählt</string>
+    <string name="products_clear_selection">Auswahl aufheben</string>
+    <string name="products_select_product">Produkt auswählen</string>
+    <string name="products_print_selected">Auswahl drucken</string>
+    <string name="products_add_product">Produkt hinzufügen</string>
+    <string name="products_delete">Löschen</string>
+    <string name="products_product_image">Produktbild</string>
+    <string name="products_print_all_qr_codes">QR-Codes drucken</string>
+    <string name="products_no_products_to_print">Keine Produkte zum Drucken</string>
+    <string name="products_qr_labels_title">QR-Code-Etiketten</string>
+    <string name="products_image_save_failed">Das Bild konnte nicht gespeichert werden</string>
+    <string name="products_product_placeholder">Kein Bild</string>
+    <string name="products_empty_state">Noch keine Produkte. Tippe auf +, um das erste anzulegen.</string>
+    <string name="products_generic_error">Es ist ein unerwarteter Fehler aufgetreten</string>
+</resources>

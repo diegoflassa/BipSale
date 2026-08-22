@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -40,17 +41,20 @@ private fun SaleDetailContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Detalhes da Venda") },
+                title = { Text(stringResource(R.string.history_detail_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.history_back)
+                        )
                     }
                 }
             )
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding).padding(16.dp)) {
-            Text("Itens da Venda", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.history_items_title), style = MaterialTheme.typography.titleLarge)
             Spacer(modifier = Modifier.height(8.dp))
 
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -68,9 +72,19 @@ private fun SaleDetailItemRow(item: SaleItem) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Column {
             Text(item.productName, style = MaterialTheme.typography.bodyLarge)
-            Text("Qtd: ${item.quantity} x R$ ${String.format("%.2f", item.unitPrice)}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = stringResource(
+                    R.string.history_item_quantity,
+                    item.quantity,
+                    item.unitPrice
+                ),
+                style = MaterialTheme.typography.bodySmall
+            )
         }
-        Text("R$ ${String.format("%.2f", item.unitPrice * item.quantity)}", style = MaterialTheme.typography.bodyLarge)
+        Text(
+            text = stringResource(R.string.history_currency, item.unitPrice * item.quantity),
+            style = MaterialTheme.typography.bodyLarge
+        )
     }
 }
 

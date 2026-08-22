@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.ui.backup -->
+<resources>
+    <string name="backup_title">Backup e Restauração</string>
+    <string name="backup_back">Voltar</string>
+    <string name="backup_explainer">O backup guarda todos os produtos, vendas, itens de venda e imagens em um único arquivo .zip. Salve no Google Drive, no armazenamento do aparelho, ou compartilhe.</string>
+    <string name="backup_create">Criar backup</string>
+    <string name="backup_share">Compartilhar backup</string>
+    <string name="backup_restore">Restaurar backup</string>
+    <string name="backup_share_chooser">Compartilhar backup</string>
+    <string name="backup_created">Backup criado: %1$d produtos, %2$d vendas, %3$d imagens</string>
+    <string name="backup_restored">Backup restaurado: %1$d produtos, %2$d vendas, %3$d imagens</string>
+    <string name="backup_create_failed">Não foi possível criar o backup</string>
+    <string name="backup_share_failed">Não foi possível compartilhar o backup</string>
+    <string name="backup_restore_failed">Não foi possível restaurar o backup</string>
+    <string name="backup_restore_confirm_title">Restaurar backup?</string>
+    <string name="backup_restore_confirm_message">Todos os produtos, vendas e imagens atuais serão apagados e substituídos pelo conteúdo deste arquivo. Esta ação não pode ser desfeita.</string>
+    <string name="backup_invalid_archive">Arquivo inválido ou não é um backup do BipSale</string>
+    <string name="backup_metadata_heading">O arquivo contém:</string>
+    <string name="backup_metadata_products">%1$d produtos</string>
+    <string name="backup_metadata_sales">%1$d vendas (%2$d itens)</string>
+    <string name="backup_metadata_images">%1$d imagens</string>
+    <string name="backup_metadata_created_at">Criado em %1$s</string>
+    <string name="backup_metadata_app_version">Pelo BipSale %1$s</string>
+    <string name="backup_metadata_replacing">Substituindo agora: %1$d produtos e %2$d vendas</string>
+    <string name="backup_restore_confirm_accept">Apagar e restaurar</string>
+    <string name="backup_restore_confirm_cancel">Cancelar</string>
+    <string name="backup_summary_title">Última operação</string>
+    <string name="backup_summary_counts">%1$d produtos · %2$d vendas · %3$d itens · %4$d imagens</string>
+    <string name="backup_summary_created_at">Arquivo de %1$s</string>
+    <string name="dashboard_backup_title">Backup</string>
+    <string name="dashboard_backup_description">Salvar ou restaurar seus dados</string>
+</resources>

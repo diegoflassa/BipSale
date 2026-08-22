@@ -31,9 +31,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import dev.diegoflassa.bipsale.R
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.core.utils.ExcelExporter
 import dev.diegoflassa.bipsale.feature.history.HistoryContract
@@ -92,10 +94,13 @@ private fun ExportScreenContent(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Exportar Dados") },
+                title = { Text(stringResource(R.string.export_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Voltar")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.export_back)
+                        )
                     }
                 }
             )
@@ -137,7 +142,7 @@ private fun ExportScreenContent(
                 onClick = onExport,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Gerar Arquivo Excel")
+                Text(stringResource(R.string.export_generate_excel))
             }
         }
     }

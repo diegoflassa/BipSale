@@ -52,7 +52,7 @@ class QrLabelPrintAdapter(
             return
         }
 
-        val mediaSize = newAttributes.mediaSize ?: PrintAttributes.MediaSize.ISO_A4
+        val mediaSize = (newAttributes.mediaSize ?: PrintAttributes.MediaSize.ISO_A4).asPortrait()
         // MediaSize is in mils (1/1000"); the canvas works in points (1/72").
         pageWidthPt = milsToPoints(mediaSize.widthMils)
         pageHeightPt = milsToPoints(mediaSize.heightMils)

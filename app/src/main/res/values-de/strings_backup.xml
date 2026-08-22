@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.ui.backup -->
+<resources>
+    <string name="backup_title">Sicherung und Wiederherstellung</string>
+    <string name="backup_back">Zurück</string>
+    <string name="backup_explainer">Die Sicherung enthält alle Produkte, Verkäufe, Verkaufspositionen und Bilder in einer einzigen .zip-Datei. Speichere sie in Google Drive, auf dem Gerät, oder teile sie.</string>
+    <string name="backup_create">Sicherung erstellen</string>
+    <string name="backup_share">Sicherung teilen</string>
+    <string name="backup_restore">Sicherung wiederherstellen</string>
+    <string name="backup_share_chooser">Sicherung teilen</string>
+    <string name="backup_created">Sicherung erstellt: %1$d Produkte, %2$d Verkäufe, %3$d Bilder</string>
+    <string name="backup_restored">Sicherung wiederhergestellt: %1$d Produkte, %2$d Verkäufe, %3$d Bilder</string>
+    <string name="backup_create_failed">Die Sicherung konnte nicht erstellt werden</string>
+    <string name="backup_share_failed">Die Sicherung konnte nicht geteilt werden</string>
+    <string name="backup_restore_failed">Die Sicherung konnte nicht wiederhergestellt werden</string>
+    <string name="backup_restore_confirm_title">Sicherung wiederherstellen?</string>
+    <string name="backup_restore_confirm_message">Alle aktuellen Produkte, Verkäufe und Bilder werden gelöscht und durch den Inhalt dieser Datei ersetzt. Das lässt sich nicht rückgängig machen.</string>
+    <string name="backup_invalid_archive">Ungültige Datei, oder keine BipSale-Sicherung</string>
+    <string name="backup_metadata_heading">Die Datei enthält:</string>
+    <string name="backup_metadata_products">%1$d Produkte</string>
+    <string name="backup_metadata_sales">%1$d Verkäufe (%2$d Positionen)</string>
+    <string name="backup_metadata_images">%1$d Bilder</string>
+    <string name="backup_metadata_created_at">Erstellt am %1$s</string>
+    <string name="backup_metadata_app_version">Mit BipSale %1$s</string>
+    <string name="backup_metadata_replacing">Wird jetzt ersetzt: %1$d Produkte und %2$d Verkäufe</string>
+    <string name="backup_restore_confirm_accept">Löschen und wiederherstellen</string>
+    <string name="backup_restore_confirm_cancel">Abbrechen</string>
+    <string name="backup_summary_title">Letzter Vorgang</string>
+    <string name="backup_summary_counts">%1$d Produkte · %2$d Verkäufe · %3$d Positionen · %4$d Bilder</string>
+    <string name="backup_summary_created_at">Datei vom %1$s</string>
+    <string name="dashboard_backup_title">Sicherung</string>
+    <string name="dashboard_backup_description">Daten sichern oder wiederherstellen</string>
+</resources>

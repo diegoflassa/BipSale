@@ -22,4 +22,5 @@
     <string name="payment_method_debit">Débito</string>
     <string name="discount_dialog_title">Definir Desconto</string>
     <string name="discount_dialog_hint">Porcentagem (0-100)</string>
+    <string name="discount_percentage">%1$d%%</string>
 </resources>

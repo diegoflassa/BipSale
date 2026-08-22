@@ -3,11 +3,13 @@ package dev.diegoflassa.bipsale.feature.products
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -22,6 +24,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -34,20 +37,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
+import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetLayout
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.products.components.ProductImagePicker
 import dev.diegoflassa.bipsale.feature.products.print.QrLabelPrinter
+import kotlin.math.roundToInt
 
 @Composable
 fun AddEditProductScreen(
@@ -167,9 +175,17 @@ internal fun AddEditProductContent(
             if (labelBitmap != null) {
                 LabelPrintPreview(
                     labelBitmap = labelBitmap,
+                    onExpand = { onIntent(ProductContract.Intent.ShowLabelPreview) },
                     onPrint = { onIntent(ProductContract.Intent.PrintEditorLabel) }
                 )
             }
+        }
+
+        if (editor.isLabelPreviewVisible && labelBitmap != null) {
+            RealSizeLabelDialog(
+                labelBitmap = labelBitmap,
+                onDismiss = { onIntent(ProductContract.Intent.HideLabelPreview) }
+            )
         }
     }
 }
@@ -218,7 +234,11 @@ private fun ProductEditorFields(
 }
 
 @Composable
-private fun LabelPrintPreview(labelBitmap: Bitmap, onPrint: () -> Unit) {
+private fun LabelPrintPreview(
+    labelBitmap: Bitmap,
+    onExpand: () -> Unit,
+    onPrint: () -> Unit
+) {
     Text(
         stringResource(R.string.products_qr_code_label),
         style = MaterialTheme.typography.labelMedium
@@ -229,6 +249,10 @@ private fun LabelPrintPreview(labelBitmap: Bitmap, onPrint: () -> Unit) {
         modifier = Modifier
             .width(LABEL_PREVIEW_WIDTH_DP.dp)
             .testTag(AddEditProductScreenTestTags.LABEL_PREVIEW)
+            .clickable(
+                onClickLabel = stringResource(R.string.products_label_real_size_title),
+                onClick = onExpand
+            )
     )
     Text(
         text = stringResource(R.string.products_print_preview_hint),
@@ -246,6 +270,78 @@ private fun LabelPrintPreview(labelBitmap: Bitmap, onPrint: () -> Unit) {
     }
 }
 
+/**
+ * Shows the label at the size it physically prints.
+ *
+ * The conversion goes through the panel's real pixel pitch (`xdpi`/`ydpi`) rather than the density
+ * bucket: a bucket is rounded to the nearest standard density, so a ruler held to the screen would
+ * disagree with the printout by a few millimetres.
+ */
+@Composable
+private fun RealSizeLabelDialog(labelBitmap: Bitmap, onDismiss: () -> Unit) {
+    val layout = remember { QrLabelSheetLayout.a4() }
+    val metrics = LocalContext.current.resources.displayMetrics
+    val density = LocalDensity.current
+
+    val widthDp = with(density) {
+        ((layout.cellWidthPt / POINTS_PER_INCH) * metrics.xdpi).toDp()
+    }
+    val heightDp = with(density) {
+        ((layout.cellHeightPt / POINTS_PER_INCH) * metrics.ydpi).toDp()
+    }
+    val widthMm = QrLabelSheetLayout.pointsToMillimetres(layout.cellWidthPt).roundToInt()
+    val heightMm = QrLabelSheetLayout.pointsToMillimetres(layout.cellHeightPt).roundToInt()
+
+    Dialog(
+        onDismissRequest = onDismiss,
+        // Spelled out rather than left to defaults: back and an outside tap are the two ways out
+        // an operator will reach for first, and both must close this.
+        properties = DialogProperties(dismissOnBackPress = true, dismissOnClickOutside = true)
+    ) {
+        Surface(
+            shape = MaterialTheme.shapes.large,
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 6.dp,
+            modifier = Modifier.testTag(AddEditProductScreenTestTags.REAL_SIZE_DIALOG)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.products_label_real_size_title),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Image(
+                    bitmap = labelBitmap.asImageBitmap(),
+                    contentDescription = stringResource(R.string.products_qr_label_preview),
+                    modifier = Modifier.size(width = widthDp, height = heightDp)
+                )
+                Text(
+                    text = stringResource(
+                        R.string.products_label_real_size_caption,
+                        widthMm.toString(),
+                        heightMm.toString()
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(AddEditProductScreenTestTags.REAL_SIZE_CLOSE)
+                ) {
+                    Text(stringResource(R.string.products_close))
+                }
+            }
+        }
+    }
+}
+
+private const val POINTS_PER_INCH = 72f
 private const val LABEL_PREVIEW_PX = 420
 private const val LABEL_PREVIEW_WIDTH_DP = 200
 
@@ -359,6 +455,105 @@ private fun AddEditProductContentEditFilledPreview() {
             onIntent = {}
         )
     }
+}
+
+@Preview(
+    name = "ProductEditorFields · Preenchido · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductEditorFields · Preenchido · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductEditorFieldsFilledPreview() {
+    BipSaleTheme {
+        Column { ProductEditorFields(editor = previewEditorFilled, isEdit = true, onIntent = {}) }
+    }
+}
+
+@Preview(
+    name = "ProductEditorFields · Preco Invalido · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductEditorFields · Preco Invalido · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductEditorFieldsInvalidPricePreview() {
+    BipSaleTheme {
+        Column {
+            ProductEditorFields(
+                editor = ProductContract.Editor(
+                    code = "CT-A-RoS",
+                    name = "Coturno cano alto rosa",
+                    priceInput = "abc"
+                ),
+                isEdit = true,
+                onIntent = {}
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "LabelPrintPreview · Padrao · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "LabelPrintPreview · Padrao · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun LabelPrintPreviewDefaultPreview() {
+    BipSaleTheme {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            LabelPrintPreview(
+                labelBitmap = previewLabelBitmap(),
+                onExpand = {},
+                onPrint = {}
+            )
+        }
+    }
+}
+
+@Preview(
+    name = "RealSizeLabelDialog · Padrao · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "RealSizeLabelDialog · Padrao · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun RealSizeLabelDialogPreview() {
+    BipSaleTheme {
+        RealSizeLabelDialog(labelBitmap = previewLabelBitmap(), onDismiss = {})
+    }
+}
+
+/** Rendered through the real renderer so the preview shows the geometry that actually prints. */
+@Composable
+private fun previewLabelBitmap(): Bitmap {
+    val renderer = remember { QrLabelSheetRenderer(QrGenerator()) }
+    return remember { renderer.renderLabelPreview(previewEditorFilled.label!!, LABEL_PREVIEW_PX) }
 }
 
 // endregion

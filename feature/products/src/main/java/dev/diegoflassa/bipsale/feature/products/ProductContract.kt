@@ -43,6 +43,7 @@ class ProductContract {
         val imagePath: String? = null,
         val imageFileName: String? = null,
         val isSaving: Boolean = false,
+        val isLabelPreviewVisible: Boolean = false,
         val label: LabelData? = null
     ) {
         val canSave: Boolean
@@ -63,6 +64,8 @@ class ProductContract {
         data object PrintAllQrCodes : Intent
         data object PrintSelectedQrCodes : Intent
         data object PrintEditorLabel : Intent
+        data object ShowLabelPreview : Intent
+        data object HideLabelPreview : Intent
     }
 
     sealed interface Effect {

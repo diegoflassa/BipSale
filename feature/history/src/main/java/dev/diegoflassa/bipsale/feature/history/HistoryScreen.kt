@@ -33,6 +33,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -59,15 +60,18 @@ fun HistoryScreen(
             TopAppBar(
                 title = {
                     if (uiState.selectedSaleIds.isNotEmpty()) {
-                        Text("${uiState.selectedSaleIds.size} selecionados")
+                        Text(stringResource(R.string.history_selected_count, uiState.selectedSaleIds.size))
                     } else {
-                        Text("Histórico de Vendas")
+                        Text(stringResource(R.string.history_title))
                     }
                 },
                 navigationIcon = {
                     if (uiState.selectedSaleIds.isNotEmpty()) {
                         IconButton(onClick = { viewModel.onIntent(HistoryContract.Intent.ClearSelection) }) {
-                            Icon(Icons.Default.Close, contentDescription = "Limpar Seleção")
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = stringResource(R.string.history_clear_selection)
+                            )
                         }
                     }
                 },
@@ -84,7 +88,10 @@ fun HistoryScreen(
                                 viewModel.onIntent(HistoryContract.Intent.ClearSelection)
                             }
                         }) {
-                            Icon(Icons.Default.FileDownload, contentDescription = "Exportar Selecionados")
+                            Icon(
+                                Icons.Default.FileDownload,
+                                contentDescription = stringResource(R.string.history_export_selected)
+                            )
                         }
                     }
                 }
@@ -96,7 +103,7 @@ fun HistoryScreen(
                 value = uiState.searchQuery,
                 onValueChange = { viewModel.onIntent(HistoryContract.Intent.SearchSales(it)) },
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                placeholder = { Text("Pesquisar por nome ou CPF") },
+                placeholder = { Text(stringResource(R.string.history_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
             )
 
@@ -155,18 +162,33 @@ fun SaleHistoryItem(
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(sale.customerName.ifEmpty { "Anônimo" }, style = MaterialTheme.typography.titleMedium)
+                Text(
+                text = sale.customerName.ifEmpty {
+                    stringResource(R.string.history_anonymous_customer)
+                },
+                style = MaterialTheme.typography.titleMedium
+            )
                 if (isSelected) {
                     Checkbox(checked = true, onCheckedChange = { onClick() })
                 } else {
                     Text(dateFormat.format(Date(sale.date)), style = MaterialTheme.typography.bodySmall)
                 }
             }
-            Text("CPF: ${sale.customerCpf.ifEmpty { "-" }}", style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = stringResource(
+                    R.string.history_cpf,
+                    sale.customerCpf.ifEmpty { stringResource(R.string.history_cpf_empty) }
+                ),
+                style = MaterialTheme.typography.bodySmall
+            )
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("Total:", style = MaterialTheme.typography.bodyMedium)
-                Text("R$ ${String.format("%.2f", sale.finalAmount)}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                Text(stringResource(R.string.history_total_label), style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = stringResource(R.string.history_currency, sale.finalAmount),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }

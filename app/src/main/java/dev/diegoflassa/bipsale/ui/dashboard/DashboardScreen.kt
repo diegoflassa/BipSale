@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory
@@ -27,8 +28,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import dev.diegoflassa.bipsale.R
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,11 +40,12 @@ fun DashboardScreen(
     onNewSale: () -> Unit,
     onManageProducts: () -> Unit,
     onHistory: () -> Unit,
-    onExport: () -> Unit
+    onExport: () -> Unit,
+    onBackup: () -> Unit
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("BipSale Dashboard") })
+            TopAppBar(title = { Text(stringResource(R.string.dashboard_title)) })
         }
     ) { padding ->
         Column(
@@ -52,10 +56,36 @@ fun DashboardScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            DashboardCard("Nova Venda", "Inicie uma venda via QR Code", Icons.Default.ShoppingCart, onNewSale)
-            DashboardCard("Produtos", "Gerencie seu estoque", Icons.Default.Inventory, onManageProducts)
-            DashboardCard("Histórico", "Veja suas vendas passadas", Icons.Default.History, onHistory)
-            DashboardCard("Relatórios", "Exportar dados para Excel", Icons.Default.Description, onExport)
+            DashboardCard(
+                stringResource(R.string.dashboard_new_sale_title),
+                stringResource(R.string.dashboard_new_sale_description),
+                Icons.Default.ShoppingCart,
+                onNewSale
+            )
+            DashboardCard(
+                stringResource(R.string.dashboard_products_title),
+                stringResource(R.string.dashboard_products_description),
+                Icons.Default.Inventory,
+                onManageProducts
+            )
+            DashboardCard(
+                stringResource(R.string.dashboard_history_title),
+                stringResource(R.string.dashboard_history_description),
+                Icons.Default.History,
+                onHistory
+            )
+            DashboardCard(
+                stringResource(R.string.dashboard_reports_title),
+                stringResource(R.string.dashboard_reports_description),
+                Icons.Default.Description,
+                onExport
+            )
+            DashboardCard(
+                stringResource(R.string.dashboard_backup_title),
+                stringResource(R.string.dashboard_backup_description),
+                Icons.Default.Backup,
+                onBackup
+            )
         }
     }
 }
@@ -92,7 +122,7 @@ fun DashboardCard(
 @Composable
 private fun DashboardScreenPreview() {
     BipSaleTheme {
-        DashboardScreen(onNewSale = {}, onManageProducts = {}, onHistory = {}, onExport = {})
+        DashboardScreen(onNewSale = {}, onManageProducts = {}, onHistory = {}, onExport = {}, onBackup = {})
     }
 }
 
@@ -100,7 +130,7 @@ private fun DashboardScreenPreview() {
 @Composable
 private fun DashboardScreenDarkPreview() {
     BipSaleTheme {
-        DashboardScreen(onNewSale = {}, onManageProducts = {}, onHistory = {}, onExport = {})
+        DashboardScreen(onNewSale = {}, onManageProducts = {}, onHistory = {}, onExport = {}, onBackup = {})
     }
 }
 

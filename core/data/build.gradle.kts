@@ -33,6 +33,9 @@ dependencies {
     // Image
     implementation(libs.androidx.exifinterface)
 
+    // Backup archive
+    implementation(libs.kotlinx.serialization.json)
+
     // Common
     implementation(libs.ax.core.ktx)
     implementation(project(":core:domain"))

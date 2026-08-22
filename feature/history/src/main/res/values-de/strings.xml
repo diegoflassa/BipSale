@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.feature.history -->
+<resources>
+    <string name="history_title">Verkaufsverlauf</string>
+    <string name="history_selected_count">%1$d ausgewählt</string>
+    <string name="history_clear_selection">Auswahl aufheben</string>
+    <string name="history_export_selected">Auswahl exportieren</string>
+    <string name="history_search_placeholder">Nach Name oder CPF suchen</string>
+    <string name="history_cpf">CPF: %1$s</string>
+    <string name="history_cpf_empty">-</string>
+    <string name="history_anonymous_customer">Anonym</string>
+    <string name="history_total_label">Gesamt:</string>
+    <string name="history_currency">R$ %1$.2f</string>
+    <string name="history_detail_title">Verkaufsdetails</string>
+    <string name="history_back">Zurück</string>
+    <string name="history_items_title">Verkaufspositionen</string>
+    <string name="history_item_quantity">Menge: %1$d x R$ %2$.2f</string>
+</resources>
