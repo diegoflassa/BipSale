@@ -26,7 +26,12 @@ dependencies {
     implementation(platform(libs.ax.compose.bom))
     implementation(libs.ax.compose.ui)
     implementation(libs.ax.compose.material3)
+    implementation(libs.ax.compose.material.icons.core)
+    implementation(libs.ax.compose.material.icons.extended)
+    implementation(libs.ax.compose.ui.tooling.preview)
     implementation(libs.ax.lifecycle.viewmodel.compose)
+    implementation(libs.ax.lifecycle.runtime.compose)
+    implementation(project(":core:ui"))
 
     // Hilt
     implementation(libs.com.google.dagger.hilt.android)

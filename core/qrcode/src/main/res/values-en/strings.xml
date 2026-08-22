@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.core.qrcode -->
+<resources>
+    <string name="qr_scanner_title">Scan QR Code</string>
+    <string name="qr_scanner_hint">Point the camera at the product QR code</string>
+    <string name="qr_scanner_close">Close</string>
+    <string name="qr_scanner_torch_on">Turn on the flashlight</string>
+    <string name="qr_scanner_torch_off">Turn off the flashlight</string>
+</resources>

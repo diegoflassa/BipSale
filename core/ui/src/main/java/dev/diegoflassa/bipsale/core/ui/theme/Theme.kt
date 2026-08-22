@@ -45,9 +45,10 @@ fun BipSaleTheme(
     val view = LocalView.current
     if (!view.isInEditMode) {
         SideEffect {
+            // Only the icon tint is set: colouring the bar itself is deprecated under
+            // edge-to-edge, where the system draws it over the app's own background.
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

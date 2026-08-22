@@ -12,9 +12,7 @@
     <string name="payment_method_label">Forma de pago:</string>
     <string name="total_label">Total:</string>
     <string name="finalize_sale_button">Finalizar venta</string>
-    <string name="unknown_product">Producto desconocido</string>
     <string name="invalid_qr_code">Código QR no válido</string>
-    <string name="anonymous_customer">Anónimo</string>
     <string name="error_finalizing_sale">No se pudo finalizar la venta. Inténtalo de nuevo.</string>
     <string name="payment_method_pix">PIX</string>
     <string name="payment_method_cash">Efectivo</string>

@@ -13,11 +13,10 @@ Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-
 | `:core:data` | 0 | 2 | `ProductImageStoreImplTest` (6 tests) pins image import against a real `ContentResolver`, downscaling, code sanitising, per-pick naming and deletion. `BackupRepositoryImplTest` (7 tests) pins the archive round trip, replace-not-merge restore, stale-image cleanup and rejection of a non-archive. Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` still untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change; the v1 schema is now exported, so the harness is unblocked. |
 | `:core:ui` | 0 | 0 | Theme + `UiText` only. |
 | `:core:navigation` | 0 | 0 | Route definitions. |
-| `:core:qrcode` | 1 | 0 | `QrLabelSheetLayoutTest` (9 tests) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
+| `:core:qrcode` | 1 | 0 | CameraX scanning lives here too — hardware-dependent, instrumented only. `QrLabelSheetLayoutTest` (9 tests) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
 | `:feature:sales` | 0 | 0 | **Checkout is the money path** (cart → CPF → `SaleRepositoryImpl`) and has no coverage at all. |
 | `:feature:products` | 0 | 0 | CRUD + QR generation. |
 | `:feature:history` | 0 | 0 | History + search. |
-| `:feature:qrcode` | 0 | 0 | CameraX scanning — hardware-dependent; instrumented only. |
 
 **Priority gaps** (highest value first):
 1. **Checkout total/cart arithmetic** (`:feature:sales`) — a wrong total is a wrong charge. Pure-logic tests, no Android needed.

@@ -47,7 +47,6 @@ BipSale utiliza **Clean Architecture** com padrão **MVVM** em estrutura modular
 ├─ :feature:sales             — Fluxo completo de vendas
 ├─ :feature:products          — Gerenciamento de produtos e QR
 ├─ :feature:history           — Histórico de transações
-├─ :feature:qrcode            — Scanner e geração de QR code
 └─ :core
    ├─ :core:data              — Persistência com Room
    ├─ :core:navigation        — Navegação centralizada (Nav3)

@@ -31,6 +31,16 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 - QR labels print the product name at 9 pt and the price at 12 pt, up from 6.5 and 9, with a reserved two-line name block so every code lands at the same offset across a sheet
 - Long product names wrap to a second line and ellipsise beyond it; the price is never wrapped, shrinking to fit down to a 9 pt floor instead
 - Tapping the label on the product form opens it at true printed size, measured from the panel's physical pixel pitch, with its dimensions in millimetres and a close button
+- Removed the dead `:feature:qrcode` module — a duplicate of `QrScannerView`, `QrCodeAnalyzer` and `QrGenerator` that nothing depended on and that built on every compile
+- Removed committed IDE build output that shadowed the real sources (`core/domain/bin`, `core/domain/model`, `core/domain/repository`, `build-logic/bin`)
+- Dropped six module dependencies that were declared but never imported, including `:core:data` from the feature modules, which the layering rules say must not see the data layer at all
+- Removed orphaned string resources and cleared every deprecated API the compiler was flagging: `hiltViewModel`'s moved package, `ContextCompat.startActivity`, `Icons.Filled.ArrowForward`, and `window.statusBarColor`
+- Fixed the status bar using dark icons on the dark theme, which made them invisible — the light-appearance flag was set to `darkTheme` rather than its inverse
+- Redesigned the QR scanner: full-screen camera with a dimmed overlay and a framed scan window, corner brackets, an animated sweep line, a torch toggle on hardware that has a flash, an explicit close button, and an on-screen aiming hint
+- Fixed the scanner rendering as a letterboxed rectangle floating over the sale — the dialog kept the platform's default inset width, so `fillMaxSize` only filled the constrained window
+- Fixed a scanned code being reported once per decoded frame: between the first hit and the scanner closing, further frames added duplicate items to the cart. The first decode now latches
+- Fixed the camera rebinding on every recomposition; it now binds once and unbinds on dispose, and reports failures instead of printing a stack trace
+- A successful scan gives haptic feedback, since at a counter the operator is looking at the product rather than the screen
 - Backup and restore: a Backup entry on the dashboard writes every product, sale, sale item and product image into a single .zip, saved through the system document picker (Google Drive, device storage, anywhere else installed) or handed straight to the share sheet
 - The archive carries a described JSON manifest rather than a copy of the SQLite file, so an older backup can still be read after the schema moves on instead of making Room abort on the identity hash
 - Restore is confirmed against the archive's own manifest, read before anything is touched: product, sale, item and image counts, when it was created and which app version wrote it, alongside what is about to be replaced

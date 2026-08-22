@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -56,11 +55,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
-import dev.diegoflassa.bipsale.core.qrcode.QrScannerView
+import dev.diegoflassa.bipsale.core.qrcode.QrScannerScreen
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
@@ -161,18 +161,19 @@ fun SalesScreen(
             }
 
             if (showScanner) {
-                Dialog(onDismissRequest = { showScanner = false }) {
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .safeDrawingPadding(), // Avoid system bars in full screen dialog
-                        color = MaterialTheme.colorScheme.background
-                    ) {
-                        QrScannerView(onQrCodeScanned = { qr ->
+                Dialog(
+                    onDismissRequest = { showScanner = false },
+                    // Without this the dialog keeps the platform's inset width and the camera
+                    // preview renders as a letterboxed rectangle floating over the sale.
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    QrScannerScreen(
+                        onQrCodeScanned = { qr ->
                             viewModel.onIntent(SalesContract.Intent.AddProductByQr(qr))
                             showScanner = false
-                        })
-                    }
+                        },
+                        onClose = { showScanner = false }
+                    )
                 }
             }
         }

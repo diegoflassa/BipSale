@@ -29,7 +29,7 @@ Rules:
 
 ```
 feature:* → core:domain ← core:data
-feature:* → core:ui | core:navigation | core:qrcode
+feature:* → core:ui | core:qrcode
 app       → all
 ```
 
@@ -40,11 +40,10 @@ app       → all
 | `:core:data` | Room (`BipSaleDatabase`, DAOs), Retrofit, mappers, Hilt DI |
 | `:core:ui` | Material 3 theme, shared composables |
 | `:core:navigation` | Routes, `BipSaleNavHost` |
-| `:core:qrcode` | QR encode/decode utilities |
+| `:core:qrcode` | QR encode/decode, CameraX scanner UI, printable label rendering |
 | `:feature:sales` | POS / checkout |
 | `:feature:products` | Product CRUD + QR generation |
 | `:feature:history` | Sales history + search |
-| `:feature:qrcode` | CameraX scanning |
 | `build-logic` | Convention plugins, `Configuracoes.kt` |
 
 ## MVI Contract

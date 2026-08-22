@@ -43,8 +43,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.R
 import dev.diegoflassa.bipsale.core.domain.backup.BackupMetadata
@@ -103,11 +102,7 @@ private fun Context.shareArchive(effect: BackupContract.Effect.ShareFile) {
         putExtra(Intent.EXTRA_SUBJECT, effect.fileName)
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
-    ContextCompat.startActivity(
-        this,
-        Intent.createChooser(share, getString(R.string.backup_share_chooser)),
-        null
-    )
+    startActivity(Intent.createChooser(share, getString(R.string.backup_share_chooser)))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

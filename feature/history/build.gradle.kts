@@ -11,9 +11,7 @@ android {
 }
 
 dependencies {
-    implementation(project(":core:data"))
     implementation(project(":core:ui"))
-    implementation(project(":core:navigation"))
     implementation(project(":core:utils"))
     implementation(project(":core:domain"))
 

@@ -22,6 +22,8 @@ This KI is the **single source of truth** for every runtime log filter the app e
 | `[BipSale][Product]` | `feature/products/ProductViewModel.kt` | Product list load, single-product load, save, and delete — logs the product code on entry, success, and failure, plus the emitted list size. Warns on an unknown code and on a price the parser rejects. | `Timber.d` (entry/success), `Timber.w` (rejected input / missing row), `Timber.e` (failure) |
 | `[BipSale][Product][IMAGE]` | `core/data/image/ProductImageStoreImpl.kt`, `feature/products/ProductViewModel.kt` | Image import from the picker URI into app-private storage — logs the decoded dimensions and sample size, the stored file name and byte size, and the deletion outcome. Each decode failure branch reports which step failed (stream unavailable, unusable bounds, or no bitmap) plus EXIF-orientation read failures. | `Timber.d` (stored/deleted), `Timber.e` (failure) |
 | `[BipSale][Product][QR_EXPORT]` | `feature/products/print/QrLabelPrintAdapter.kt`, `feature/products/print/QrLabelPrinter.kt`, `feature/products/ProductViewModel.kt`, `core/qrcode/QrGenerator.kt` | QR label sheet printing — logs the resolved media size, grid shape, labels-per-page and page count at layout time, the label/page totals actually written, and QR encode failures. Warns when a print is requested with nothing to print. | `Timber.d` (progress), `Timber.w` (empty request), `Timber.e` (encode / write failure) |
+| `[BipSale][Scanner]` | `core/qrcode/QrScannerView.kt` | QR capture — logs camera binding and whether the device has a flash unit, the length of a decoded payload, and failures to obtain the provider, bind, unbind or toggle the torch. A frame holding no code is the expected result and is not logged, since that would emit at frame rate. | `Timber.d` (bind/decode), `Timber.e` (failure) |
+| `[BipSale][Backup]` | `core/data/backup/BackupRepositoryImpl.kt`, `app/ui/backup/BackupViewModel.kt` | Backup archive write, inspect, restore and share staging — logs the counts written or restored, what an inspected archive holds, and staging size. | `Timber.d` (progress), `Timber.i` (write/restore totals), `Timber.w` (cancelled/no selection), `Timber.e` (failure) |
 | `[BipSale][Sale]` | `core/data/repository/SaleRepositoryImpl.kt` | Failure inside `getSaleById`'s `runCatching { }.onFailure { }` when `saleDao.getFullSaleById(saleId)` throws — reports the sale id that failed to load. | `Timber.e` — production signal |
 | `[BipSale][Export]` | `app/ui/export/ExportScreen.kt` | Failure in the "export sales to Excel" flow — wraps file creation/write via `ExcelExporter().exportSalesToExcel(...)`. | `Timber.e` — production signal |
 
@@ -39,7 +41,7 @@ Filter names are **public string contracts**. Renaming or removing any one requi
 One-turn change or none.
 
 ## Validation
-- [x] All 5 distinct filter tags catalogued across 6 rows — `[BipSale][Product]` is emitted from both the repository and the ViewModel (verified 2026-08-22)
+- [x] All 7 distinct filter tags catalogued across 8 rows — `[BipSale][Product]` is emitted from both the repository and the ViewModel (verified 2026-08-22)
 - [x] No `android.util.Log` usage anywhere in the codebase
 - [x] 3-segment tags `[BipSale][Product][IMAGE]` and `[BipSale][Product][QR_EXPORT]` used for step-level granularity within the Product flow
 - [x] Print path logs the media size and grid it resolved, so a wrong-looking sheet can be diagnosed from a capture alone
