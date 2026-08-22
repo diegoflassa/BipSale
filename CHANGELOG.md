@@ -31,6 +31,12 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 - QR labels print the product name at 9 pt and the price at 12 pt, up from 6.5 and 9, with a reserved two-line name block so every code lands at the same offset across a sheet
 - Long product names wrap to a second line and ellipsise beyond it; the price is never wrapped, shrinking to fit down to a 9 pt floor instead
 - Tapping the label on the product form opens it at true printed size, measured from the panel's physical pixel pitch, with its dimensions in millimetres and a close button
+- Backup and restore: a Backup entry on the dashboard writes every product, sale, sale item and product image into a single .zip, saved through the system document picker (Google Drive, device storage, anywhere else installed) or handed straight to the share sheet
+- The archive carries a described JSON manifest rather than a copy of the SQLite file, so an older backup can still be read after the schema moves on instead of making Room abort on the identity hash
+- Restore is confirmed against the archive's own manifest, read before anything is touched: product, sale, item and image counts, when it was created and which app version wrote it, alongside what is about to be replaced
+- Restore applies in a single transaction and replaces rather than merges, so a half-applied archive cannot leave sales pointing at products that were never written
+- Extracted every remaining hardcoded UI string in the dashboard, export, history and sales screens into per-package resources, and added full en/es/de translations across app, history, sales and products (110 keys per locale, verified in parity)
+- Fixed the payment method dropdown showing the stored wire name (`CREDIT_CARD`) instead of the translated label
 - Print now requests portrait A4 explicitly: `ISO_A4` alone carries whatever orientation the print service last used, so a landscape page produced a rotated grid. The adapter also normalises the chosen media to portrait, and logs the size it resolved
 - `android:allowBackup` is now per-variant: off on debug so local schema churn is not resurrected by a restore, on for release
 - Fixed Auto Backup restoring a pre-rename `bipsale_database` onto a fresh install, which made Room abort on the identity-hash mismatch and crash every screen that opened the database, surviving even a full uninstall

@@ -8,9 +8,9 @@ Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-
 
 | Module | JVM test files | Instrumented test files | Notes |
 |---|---|---|---|
-| `:app` | 0 | 0 | Only `ExampleUnitTest` / `ExampleInstrumentedTest`. Export-to-Excel flow untested. |
+| `:app` | 0 | 0 | Only `ExampleUnitTest` / `ExampleInstrumentedTest`. Export-to-Excel and `BackupViewModel` untested. |
 | `:core:domain` | 2 | 0 | `PriceInputTest` (9 tests) pins comma/dot decimal parsing and the zero-price rejection; `SaveProductUseCaseTest` (7 tests) pins code/name/price validation and QR payload shape. `FinalizeSaleUseCase` and `AddProductByQrUseCase` remain uncovered. |
-| `:core:data` | 0 | 1 | `ProductImageStoreImplTest` (6 tests) pins image import against a real `ContentResolver`, downscaling, code sanitising, per-pick naming and deletion. Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` still untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change; the v1 schema is now exported, so the harness is unblocked. |
+| `:core:data` | 0 | 2 | `ProductImageStoreImplTest` (6 tests) pins image import against a real `ContentResolver`, downscaling, code sanitising, per-pick naming and deletion. `BackupRepositoryImplTest` (7 tests) pins the archive round trip, replace-not-merge restore, stale-image cleanup and rejection of a non-archive. Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` still untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change; the v1 schema is now exported, so the harness is unblocked. |
 | `:core:ui` | 0 | 0 | Theme + `UiText` only. |
 | `:core:navigation` | 0 | 0 | Route definitions. |
 | `:core:qrcode` | 1 | 0 | `QrLabelSheetLayoutTest` (9 tests) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
