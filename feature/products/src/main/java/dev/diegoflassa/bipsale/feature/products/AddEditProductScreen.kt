@@ -22,6 +22,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -31,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -44,6 +47,7 @@ import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.products.components.ProductImagePicker
+import dev.diegoflassa.bipsale.feature.products.print.QrLabelPrinter
 
 @Composable
 fun AddEditProductScreen(
@@ -52,10 +56,25 @@ fun AddEditProductScreen(
     viewModel: ProductViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val context = LocalContext.current
+    val printer = remember { QrLabelPrinter(QrLabelSheetRenderer(QrGenerator())) }
 
-    LaunchedEffect(viewModel) {
+    LaunchedEffect(viewModel, context) {
         viewModel.effect.collect { effect ->
-            if (effect is ProductContract.Effect.NavigationBack) onBack()
+            when (effect) {
+                is ProductContract.Effect.NavigationBack -> onBack()
+
+                is ProductContract.Effect.ShowSnackbar ->
+                    snackbarHostState.showSnackbar(effect.message.asString(context))
+
+                is ProductContract.Effect.PrintLabels ->
+                    printer.print(
+                        context = context,
+                        documentName = context.getString(R.string.products_qr_labels_title),
+                        labels = effect.labels
+                    )
+            }
         }
     }
 
@@ -68,6 +87,7 @@ fun AddEditProductScreen(
     AddEditProductContent(
         editor = uiState.editor,
         isEdit = productCode != null,
+        snackbarHostState = snackbarHostState,
         onBack = onBack,
         onIntent = viewModel::onIntent
     )
@@ -78,6 +98,7 @@ fun AddEditProductScreen(
 internal fun AddEditProductContent(
     editor: ProductContract.Editor,
     isEdit: Boolean,
+    snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onIntent: (ProductContract.Intent) -> Unit,
     modifier: Modifier = Modifier
@@ -89,6 +110,7 @@ internal fun AddEditProductContent(
 
     Scaffold(
         modifier = modifier.testTag(AddEditProductScreenTestTags.ROOT),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = {
@@ -258,6 +280,7 @@ private fun AddEditProductContentNewPreview() {
         AddEditProductContent(
             editor = ProductContract.Editor(),
             isEdit = false,
+            snackbarHostState = SnackbarHostState(),
             onBack = {},
             onIntent = {}
         )
@@ -277,6 +300,7 @@ private fun AddEditProductContentNewDarkPreview() {
         AddEditProductContent(
             editor = ProductContract.Editor(),
             isEdit = false,
+            snackbarHostState = SnackbarHostState(),
             onBack = {},
             onIntent = {}
         )
@@ -305,6 +329,7 @@ private fun AddEditProductContentInvalidPricePreview() {
                 priceInput = "abc"
             ),
             isEdit = true,
+            snackbarHostState = SnackbarHostState(),
             onBack = {},
             onIntent = {}
         )
@@ -329,6 +354,7 @@ private fun AddEditProductContentEditFilledPreview() {
         AddEditProductContent(
             editor = previewEditorFilled,
             isEdit = true,
+            snackbarHostState = SnackbarHostState(),
             onBack = {},
             onIntent = {}
         )

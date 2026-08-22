@@ -63,18 +63,37 @@ class ProductImageStoreImpl @Inject constructor(
      */
     private fun decodeDownscaled(uri: Uri): Bitmap? {
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)?.use {
-            BitmapFactory.decodeStream(it, null, bounds)
-        } ?: return null
+        // With inJustDecodeBounds set, decodeStream returns null on SUCCESS — the dimensions land
+        // in `bounds`. Null-check the stream, never the decode result, or every image is rejected.
+        val boundsStream = context.contentResolver.openInputStream(uri)
+        if (boundsStream == null) {
+            Timber.e("[BipSale][Product][IMAGE] Could not open a stream for %s", uri)
+            return null
+        }
+        boundsStream.use { BitmapFactory.decodeStream(it, null, bounds) }
 
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return null
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            Timber.e(
+                "[BipSale][Product][IMAGE] Source reports no usable size (%dx%d) for %s",
+                bounds.outWidth, bounds.outHeight, uri
+            )
+            return null
+        }
 
         val options = BitmapFactory.Options().apply {
             inSampleSize = calculateInSampleSize(bounds.outWidth, bounds.outHeight)
         }
         val decoded = context.contentResolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, options)
-        } ?: return null
+        }
+        if (decoded == null) {
+            Timber.e("[BipSale][Product][IMAGE] Decode produced no bitmap for %s", uri)
+            return null
+        }
+        Timber.d(
+            "[BipSale][Product][IMAGE] Decoded %dx%d (sample=%d) from %dx%d",
+            decoded.width, decoded.height, options.inSampleSize, bounds.outWidth, bounds.outHeight
+        )
 
         return applyExifRotation(uri, decoded)
     }

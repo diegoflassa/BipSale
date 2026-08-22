@@ -10,7 +10,7 @@ Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-
 |---|---|---|---|
 | `:app` | 0 | 0 | Only `ExampleUnitTest` / `ExampleInstrumentedTest`. Export-to-Excel flow untested. |
 | `:core:domain` | 2 | 0 | `PriceInputTest` (9 tests) pins comma/dot decimal parsing and the zero-price rejection; `SaveProductUseCaseTest` (7 tests) pins code/name/price validation and QR payload shape. `FinalizeSaleUseCase` and `AddProductByQrUseCase` remain uncovered. |
-| `:core:data` | 0 | 0 | Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` all untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change. |
+| `:core:data` | 0 | 1 | `ProductImageStoreImplTest` (6 tests) pins image import against a real `ContentResolver`, downscaling, code sanitising, per-pick naming and deletion. Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` still untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change; the v1 schema is now exported, so the harness is unblocked. |
 | `:core:ui` | 0 | 0 | Theme + `UiText` only. |
 | `:core:navigation` | 0 | 0 | Route definitions. |
 | `:core:qrcode` | 1 | 0 | `QrLabelSheetLayoutTest` (9 tests) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
@@ -23,15 +23,16 @@ Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-
 1. **Checkout total/cart arithmetic** (`:feature:sales`) — a wrong total is a wrong charge. Pure-logic tests, no Android needed.
 2. **`SaleRepositoryImpl` + `ProductRepositoryImpl`** — both already have `[BipSale][Sale]` / `[BipSale][Product]` error breadcrumbs proving the failure paths matter; none are pinned by a test.
 3. **`ProductViewModel`** — now owns price validation, currency formatting and image lifecycle; none of it is pinned. `ProductImageStore` is an interface, so a fake makes this a plain JVM suite.
-4. **Room migration harness** — required before the first schema change ships (`CORE_RULES §13`). Blocked on `exportSchema = false` in `BipSaleDatabase`, which must be flipped to `true` first.
-5. **`ProductImageStoreImpl`** — EXIF rotation, downscaling and file naming need a real `ContentResolver`, so instrumented.
+4. **Room migration harness** — required before the next schema change ships (`CORE_RULES §13`). Now unblocked: `exportSchema = true` and `core/data/schemas/…/1.json` is committed.
+5. **EXIF rotation** — the one part of `ProductImageStoreImpl` still unpinned; needs a fixture photo carrying an orientation tag.
 
 **Verification commands:**
 
 | Command | Purpose |
 |---|---|
 | `./gradlew test` | All JVM unit suites |
-| `./gradlew :core:domain:test :core:qrcode:testDebugUnitTest` | The suites that currently exist |
+| `./gradlew :core:domain:test :core:qrcode:testDebugUnitTest` | The JVM suites that currently exist |
+| `./gradlew :core:data:connectedDebugAndroidTest` | Image store suite (needs a device) |
 | `./gradlew connectedAndroidTest` | Instrumented suites on an attached device/emulator |
 | `./gradlew :app:detekt` | Static analysis — **only `:app` has detekt wired; there is no `ktlintCheck` task in this build** |
 | `./gradlew koverHtmlReport` | Coverage report |

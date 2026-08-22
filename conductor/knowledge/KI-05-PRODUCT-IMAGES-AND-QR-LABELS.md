@@ -35,24 +35,25 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 4. **Product codes are sanitized** to `[A-Za-z0-9-_]` before use as a file name.
 5. **Images are downscaled to 1024 px on the long edge** and re-encoded as JPEG at quality 85, with EXIF orientation applied. A full-resolution copy per product would run to hundreds of MB.
 6. **Deleting a product deletes its image.** `DeleteProductUseCase` owns both halves.
-7. **Never call `File.exists()` in composition.** `ProductThumbnail` routes a missing file to the loader's error slot instead; probing puts a disk read in every frame of a `LazyColumn`.
+7. **Bounds decoding null-checks the stream, never the decode result.** `BitmapFactory.decodeStream` returns **null on success** when `inJustDecodeBounds` is set — the dimensions land in the `Options`. Binding an elvis to that result rejects every image ever picked, and does it silently.
+8. **Never call `File.exists()` in composition.** `ProductThumbnail` routes a missing file to the loader's error slot instead; probing puts a disk read in every frame of a `LazyColumn`.
 
 ### Price
 
-8. **`parsePriceInput` accepts both `,` and `.`.** A pt-BR operator types `130,50`; `String.toDoubleOrNull` alone returns null, and defaulting that to `0.0` sells the product for nothing.
-9. **It rejects zero, negatives, non-finite values, and multi-separator input** (`1.234,56` is refused rather than guessed at).
-10. **`SaveProductUseCase` re-validates** — the form is not the boundary, the use case is.
-11. **Currency is formatted in the ViewModel** with `NumberFormat.getCurrencyInstance(pt-BR)` and arrives on the UI model ready to render.
+9. **`parsePriceInput` accepts both `,` and `.`.** A pt-BR operator types `130,50`; `String.toDoubleOrNull` alone returns null, and defaulting that to `0.0` sells the product for nothing.
+10. **It rejects zero, negatives, non-finite values, and multi-separator input** (`1.234,56` is refused rather than guessed at).
+11. **`SaveProductUseCase` re-validates** — the form is not the boundary, the use case is.
+12. **Currency is formatted in the ViewModel** with `NumberFormat.getCurrencyInstance(pt-BR)` and arrives on the UI model ready to render.
 
 ### Printing
 
-12. **Print through `PrintDocumentAdapter` + `PdfDocument`, never a single composed bitmap.** A full-page ARGB_8888 bitmap at print resolution is ~33 MB; the previous implementation allocated one per page and then concatenated all pages into one image, exhausting the heap past a single page. It also squashed every page onto one sheet, since a printed bitmap is one page.
-13. **The grid is derived from `PrintAttributes.mediaSize`,** so any paper the operator picks re-fits. A4 is only what `QrLabelPrinter` requests as the default.
-14. **A4 yields a 4x5 grid, 20 labels per sheet,** ~47x55 mm per cell with a ~30 mm QR — dense enough to save paper, large enough to scan.
-15. **`forPage` never returns a zero-cell grid.** Columns and rows are floored to at least 1; a zero would make the page loop spin without advancing.
-16. **Cut borders are dashed vectors** drawn at page resolution, not raster.
-17. **QR bitmaps are drawn unfiltered** (`isFilterBitmap = false`) — smoothing the modules costs scan reliability at label size.
-18. **The edit screen preview uses the same `drawLabel`** at the same proportions, so the preview is what prints.
+13. **Print through `PrintDocumentAdapter` + `PdfDocument`, never a single composed bitmap.** A full-page ARGB_8888 bitmap at print resolution is ~33 MB, so allocating one per page and concatenating them exhausts the heap past a single page. A printed bitmap is also always *one* page, so that route squashes an entire batch onto a single sheet at unscannable size.
+14. **The grid is derived from `PrintAttributes.mediaSize`,** so any paper the operator picks re-fits. A4 is only what `QrLabelPrinter` requests as the default.
+15. **A4 yields a 4x5 grid, 20 labels per sheet,** ~47x55 mm per cell with a ~30 mm QR — dense enough to save paper, large enough to scan.
+16. **`forPage` never returns a zero-cell grid.** Columns and rows are floored to at least 1; a zero would make the page loop spin without advancing.
+17. **Cut borders are dashed vectors** drawn at page resolution, not raster.
+18. **QR bitmaps are drawn unfiltered** (`isFilterBitmap = false`) — smoothing the modules costs scan reliability at label size.
+19. **The edit screen preview uses the same `drawLabel`** at the same proportions, so the preview is what prints.
 
 ## Log filters
 
@@ -65,8 +66,15 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 | `core/domain/.../PriceInputTest` | Comma and dot separators, zero/negative rejection, multi-separator refusal |
 | `core/domain/.../SaveProductUseCaseTest` | Code/name/price validation, image name pass-through, QR payload shape |
 | `core/qrcode/.../QrLabelSheetLayoutTest` | A4 4x5 grid, pagination boundaries, cell geometry, tiny-paper guard |
+| `core/data/androidTest/.../ProductImageStoreImplTest` | Import succeeds against a real `ContentResolver` (pins the bounds-decode bug), 1024 px downscale, code sanitising, unique name per pick, delete, unreadable-source failure |
 
-**Not yet covered:** `ProductViewModel` (price validation wiring, image lifecycle), `ProductImageStoreImpl` (EXIF, downscale — needs a real `ContentResolver`), `QrLabelSheetRenderer` (needs Android graphics). See [KI-TBD](KI-TBD.md) #3 and #5.
+**Not yet covered:** `ProductViewModel` (price validation wiring, image lifecycle), EXIF rotation, `QrLabelSheetRenderer` (needs Android graphics). See [KI-TBD](KI-TBD.md) #3 and #5.
+
+## Failure visibility
+
+Every screen that sends effects hosts a `SnackbarHost` and handles **every** branch of the `Effect` `when` — no `else -> {}`, no partial `if (effect is ...)`.
+
+A screen that collects only the branch it navigates on drops the rest silently: a failed image import and a print request both produce no snackbar, no print dialog, and no visible change, which is indistinguishable from a dead button. Exhaustive handling is what makes the `when` fail to compile when a new effect is added, instead of the new effect quietly going nowhere.
 
 ## Gotchas
 

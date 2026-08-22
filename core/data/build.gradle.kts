@@ -11,6 +11,12 @@ android {
     namespace = "dev.diegoflassa.bipsale.core.data"
 }
 
+// Exported schemas are what let a migration test catch a forgotten version bump in CI instead of
+// at a point of sale (CORE_RULES §13).
+ksp {
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     // Room
     implementation(libs.ax.room.runtime)
@@ -31,4 +37,9 @@ dependencies {
     implementation(libs.ax.core.ktx)
     implementation(project(":core:domain"))
     implementation(libs.com.jakewharton.timber)
+
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.ax.test.ext.junit.ktx)
+    androidTestImplementation(libs.ax.test.runner)
+    androidTestImplementation(libs.com.google.truth)
 }

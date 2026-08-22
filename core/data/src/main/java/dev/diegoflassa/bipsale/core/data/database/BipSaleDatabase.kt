@@ -15,7 +15,7 @@ import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
         SaleItemEntity::class
     ],
     version = 1,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class BipSaleDatabase : RoomDatabase() {
     abstract fun productDao(): ProductDao

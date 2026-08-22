@@ -24,5 +24,9 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 - Product images are addressed by file name rather than absolute path, so a backup restore or a secondary user profile no longer orphans every image
 - Guarded the label grid against a paper size smaller than one cell, which previously hung the print request in a loop that never advanced
 - Extracted `ProductItem`, `ProductThumbnail` and `ProductImagePicker` into their own component files, added test tags and the loading/empty/error states to the product list
-- Added unit coverage for price parsing, product save validation, and A4 label sheet pagination (25 tests, the project's first)
+- Added unit coverage for price parsing, product save validation, and A4 label sheet pagination, plus instrumented coverage for image import, downscaling, file naming and deletion (31 tests, the project's first)
+- Fixed product image import rejecting every photo: bounds decoding runs with `inJustDecodeBounds`, where `decodeStream` returns null on success, and the null check was bound to that result instead of to the input stream
+- Fixed the add/edit product screen discarding every snackbar and print request, which made the failed image import look like nothing had happened at all
+- Every image-import failure branch now logs what it saw, so the same class of failure is diagnosable from a log capture
+- Room now exports its schema (`exportSchema = true` + `room.schemaLocation`), unblocking the migration harness `CORE_RULES` §13 requires
 - Fixed detekt failing on `:app` (wildcard imports, missing trailing newlines, over-long nav host) and taught it that `@Preview` functions are not dead code
