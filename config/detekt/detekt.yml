@@ -15,3 +15,8 @@ naming:
 style:
   MaxLineLength:
     active: false
+  UnusedPrivateMember:
+    active: true
+    # @Preview functions are invoked by the Compose tooling, not by code, and PREVIEW_STANDARD
+    # makes them mandatory — detekt would otherwise flag every one of them as dead.
+    ignoreAnnotated: [ 'Preview', 'PreviewLightDark', 'PreviewScreenSizes' ]

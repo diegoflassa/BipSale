@@ -11,4 +11,8 @@ java {
 dependencies {
     implementation(libs.javax.inject)
     implementation(libs.org.jetbrains.kotlinx.coroutines.core)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.com.google.truth)
+    testImplementation(libs.org.jetbrains.kotlinx.coroutines.test)
 }

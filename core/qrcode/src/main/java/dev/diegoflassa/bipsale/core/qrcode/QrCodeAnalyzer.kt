@@ -31,8 +31,8 @@ class QrCodeAnalyzer(
         try {
             val result = reader.decode(binaryBitmap)
             onQrCodeScanned(result.text)
-        } catch (e: NotFoundException) {
-            // No QR code in this frame
+        } catch (_: NotFoundException) {
+            // Most frames legitimately hold no code; logging here would spam at frame rate.
         } finally {
             image.close()
         }

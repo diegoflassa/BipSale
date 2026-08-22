@@ -34,4 +34,9 @@ dependencies {
 
     // Common
     implementation(libs.ax.core.ktx)
+    implementation(libs.com.jakewharton.timber)
+    implementation(libs.javax.inject)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.com.google.truth)
 }

@@ -7,13 +7,29 @@ import javax.inject.Inject
 class SaveProductUseCase @Inject constructor(
     private val productRepository: ProductRepository
 ) {
-    suspend operator fun invoke(code: String, name: String, price: Double): Result<Product> =
+    suspend operator fun invoke(
+        code: String,
+        name: String,
+        price: Double,
+        imageFileName: String? = null
+    ): Result<Product> =
         runCatching {
             require(code.isNotBlank()) { "Product code cannot be blank." }
             require(name.isNotBlank()) { "Product name cannot be blank." }
-            val qrData = "bipsale://product?code=$code&price=$price"
-            val product = Product(code = code, name = name, price = price, qrCode = qrData)
+            require(price.isFinite() && price > 0.0) { "Product price must be greater than zero." }
+            val product = Product(
+                code = code,
+                name = name,
+                price = price,
+                qrCode = buildQrPayload(code, price),
+                imageFileName = imageFileName
+            )
             productRepository.insertProduct(product)
             product
         }
+
+    companion object {
+        fun buildQrPayload(code: String, price: Double): String =
+            "bipsale://product?code=$code&price=$price"
+    }
 }

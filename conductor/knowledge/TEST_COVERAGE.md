@@ -2,18 +2,18 @@
 
 Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-generated `ExampleUnitTest` / `ExampleInstrumentedTest` placeholders are excluded from the counts.
 
-**Last verified:** 2026-07-21
+**Last verified:** 2026-08-22
 
-> ⚠️ **The project currently has no real test coverage.** The only test files present are the two IDE-generated placeholders in `:app`. Every row below is zero by fact, not by omission.
+> ⚠️ **Coverage is thin but no longer zero.** `:core:domain` and `:core:qrcode` have their first suites; every other module is still uncovered. A green `./gradlew test` proves only what the rows below claim.
 
 | Module | JVM test files | Instrumented test files | Notes |
 |---|---|---|---|
 | `:app` | 0 | 0 | Only `ExampleUnitTest` / `ExampleInstrumentedTest`. Export-to-Excel flow untested. |
-| `:core:domain` | 0 | 0 | Pure Kotlin use cases — the cheapest and highest-value place to start. |
+| `:core:domain` | 2 | 0 | `PriceInputTest` (9 tests) pins comma/dot decimal parsing and the zero-price rejection; `SaveProductUseCaseTest` (7 tests) pins code/name/price validation and QR payload shape. `FinalizeSaleUseCase` and `AddProductByQrUseCase` remain uncovered. |
 | `:core:data` | 0 | 0 | Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` all untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change. |
 | `:core:ui` | 0 | 0 | Theme + `UiText` only. |
 | `:core:navigation` | 0 | 0 | Route definitions. |
-| `:core:qrcode` | 0 | 0 | QR encode/decode utilities — pure functions, trivially testable. |
+| `:core:qrcode` | 1 | 0 | `QrLabelSheetLayoutTest` (9 tests) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
 | `:feature:sales` | 0 | 0 | **Checkout is the money path** (cart → CPF → `SaleRepositoryImpl`) and has no coverage at all. |
 | `:feature:products` | 0 | 0 | CRUD + QR generation. |
 | `:feature:history` | 0 | 0 | History + search. |
@@ -22,16 +22,18 @@ Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-
 **Priority gaps** (highest value first):
 1. **Checkout total/cart arithmetic** (`:feature:sales`) — a wrong total is a wrong charge. Pure-logic tests, no Android needed.
 2. **`SaleRepositoryImpl` + `ProductRepositoryImpl`** — both already have `[BipSale][Sale]` / `[BipSale][Product]` error breadcrumbs proving the failure paths matter; none are pinned by a test.
-3. **Room migration harness** — required before the first schema change ships (`CORE_RULES §13`).
-4. **`:core:qrcode`** — pure functions, cheapest possible coverage.
+3. **`ProductViewModel`** — now owns price validation, currency formatting and image lifecycle; none of it is pinned. `ProductImageStore` is an interface, so a fake makes this a plain JVM suite.
+4. **Room migration harness** — required before the first schema change ships (`CORE_RULES §13`). Blocked on `exportSchema = false` in `BipSaleDatabase`, which must be flipped to `true` first.
+5. **`ProductImageStoreImpl`** — EXIF rotation, downscaling and file naming need a real `ContentResolver`, so instrumented.
 
 **Verification commands:**
 
 | Command | Purpose |
 |---|---|
 | `./gradlew test` | All JVM unit suites |
+| `./gradlew :core:domain:test :core:qrcode:testDebugUnitTest` | The suites that currently exist |
 | `./gradlew connectedAndroidTest` | Instrumented suites on an attached device/emulator |
-| `./gradlew detekt ktlintCheck` | Static analysis |
+| `./gradlew :app:detekt` | Static analysis — **only `:app` has detekt wired; there is no `ktlintCheck` task in this build** |
 | `./gradlew koverHtmlReport` | Coverage report |
 
 > **Update protocol:** on every test-coverage boundary, re-count the files and update the rows. If a module's count grows by 1+ without an entry here, the row is stale.

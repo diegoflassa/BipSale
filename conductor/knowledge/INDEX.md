@@ -6,6 +6,7 @@ One-line summaries. Fetch an individual KI file **only** if the current task mat
 |----|------|-------|--------------|-----------|
 | KI-03 | KI-03-TOKEN-AUDIT-AND-PRUNING.md | Token budget audit + index pruning rules | Editing `conductor/index.md` / running `token_audit` | `conductor/index.md`, `CLAUDE.md`, `conductor/rules/CORE_RULES.md` |
 | KI-04 | KI-04-LOG-FILTERS.md | Log filter catalogue (SOT for every `[BipSale][X]` tag) | Adding/renaming/removing a log filter, running `/remove_filter` | `core/data/repository/*.kt`, `app/ui/export/ExportScreen.kt` |
+| KI-05 | KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md | Product image storage + QR label printing contract | Touching product images, the price input, or QR label/print code | `core/domain/image/`, `core/data/image/`, `core/qrcode/`, `feature/products/` |
 | KI-TBD | KI-TBD.md | **Master index of all deferred / not-yet-implemented items** | Planning next work, checking what is outstanding before starting a task | (index only — see linked KIs) |
 | KI-AUTHORING | KI-AUTHORING.md | KI authoring rules: index maintenance, present-tense spec, self-sufficiency, size limits | Creating, renaming, revising, or deleting any KI | (this directory) |
 

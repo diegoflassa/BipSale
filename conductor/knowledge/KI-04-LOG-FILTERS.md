@@ -1,7 +1,7 @@
 # KI-04: App Log Filters Catalogue
 
 **Scope:** all modules (cross-cutting)
-**Last verified:** 2026-07-13
+**Last verified:** 2026-08-22
 
 ## Problem
 
@@ -19,10 +19,13 @@ This KI is the **single source of truth** for every runtime log filter the app e
 | Filter | Primary class | What it monitors | Level |
 |---|---|---|---|
 | `[BipSale][Product]` | `core/data/repository/ProductRepositoryImpl.kt` | Failures in the product CRUD path (`getProductByCode`, `insertProduct`, `updateProduct`, `deleteProduct`) — each catches an `Exception` from the Room `productDao` call and reports the failing operation plus product code. | `Timber.e` — production signal |
+| `[BipSale][Product]` | `feature/products/ProductViewModel.kt` | Product list load, single-product load, save, and delete — logs the product code on entry, success, and failure, plus the emitted list size. Warns on an unknown code and on a price the parser rejects. | `Timber.d` (entry/success), `Timber.w` (rejected input / missing row), `Timber.e` (failure) |
+| `[BipSale][Product][IMAGE]` | `core/data/image/ProductImageStoreImpl.kt`, `feature/products/ProductViewModel.kt` | Image import from the picker URI into app-private storage — logs the stored file name and byte size, deletion outcome, and EXIF-orientation read failures. | `Timber.d` (stored/deleted), `Timber.e` (failure) |
+| `[BipSale][Product][QR_EXPORT]` | `feature/products/print/QrLabelPrintAdapter.kt`, `feature/products/print/QrLabelPrinter.kt`, `feature/products/ProductViewModel.kt`, `core/qrcode/QrGenerator.kt` | QR label sheet printing — logs the resolved media size, grid shape, labels-per-page and page count at layout time, the label/page totals actually written, and QR encode failures. Warns when a print is requested with nothing to print. | `Timber.d` (progress), `Timber.w` (empty request), `Timber.e` (encode / write failure) |
 | `[BipSale][Sale]` | `core/data/repository/SaleRepositoryImpl.kt` | Failure inside `getSaleById`'s `runCatching { }.onFailure { }` when `saleDao.getFullSaleById(saleId)` throws — reports the sale id that failed to load. | `Timber.e` — production signal |
 | `[BipSale][Export]` | `app/ui/export/ExportScreen.kt` | Failure in the "export sales to Excel" flow — wraps file creation/write via `ExcelExporter().exportSalesToExcel(...)`. | `Timber.e` — production signal |
 
-All three filters are currently error-level (`Timber.e`) — there are no debug-level (`Timber.d`) filters in the codebase yet. None are candidates for `/remove_filter` today since each is the sole diagnostic breadcrumb for its catch block; all three are effectively **Protected**.
+The codebase now includes both error-level (`Timber.e`) and debug-level (`Timber.d`) filters. All filters are **Protected**.
 
 ## Adding / renaming procedure
 
@@ -36,6 +39,7 @@ Filter names are **public string contracts**. Renaming or removing any one requi
 One-turn change or none.
 
 ## Validation
-- [x] All 3 filter tags in the codebase catalogued (verified via full-repo grep, 2026-07-13)
+- [x] All 6 filter tags in the codebase catalogued (verified 2026-08-22)
 - [x] No `android.util.Log` usage anywhere in the codebase
-- [x] No 3-segment `[BipSale][X][Y]` tags exist
+- [x] 3-segment tags `[BipSale][Product][IMAGE]` and `[BipSale][Product][QR_EXPORT]` used for step-level granularity within the Product flow
+- [x] Print path logs the media size and grid it resolved, so a wrong-looking sheet can be diagnosed from a capture alone

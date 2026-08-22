@@ -137,4 +137,4 @@ Shared widgets go in `core:ui`. Domain models shared across features live in `co
 - Convention plugins in `build-logic/` (app + library variants).
 - Config SSOT: `build-logic/Configuracoes.kt`.
 - Versioning: `version.properties` (`0.0.2-alpha-build_N`).
-- Static analysis: detekt + ktlint. Coverage: `koverHtmlReport`.
+- Static analysis: detekt, applied in `app/build.gradle.kts` only. The ktlint plugin is declared `apply false` at the root and never applied — there is no `ktlintCheck` task (KI-TBD #9). Coverage: `koverHtmlReport`.

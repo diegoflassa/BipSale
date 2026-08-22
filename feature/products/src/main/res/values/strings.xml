@@ -1,4 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Owner package: dev.diegoflassa.bipsale.feature.products -->
 <resources>
     <string name="product_deleted">Produto removido</string>
+    <string name="products_edit_product">Editar Produto</string>
+    <string name="products_new_product">Novo Produto</string>
+    <string name="products_code_label">Código do Produto</string>
+    <string name="products_code_prefix">Código: %1$s</string>
+    <string name="products_name_label">Nome do Produto</string>
+    <string name="products_price_label">Preço Unitário</string>
+    <string name="products_price_invalid">Informe um preço válido maior que zero</string>
+    <string name="products_save">Salvar</string>
+    <string name="products_qr_code_label">QR Code do Produto:</string>
+    <string name="products_qr_label_preview">Prévia da etiqueta QR Code</string>
+    <string name="products_print_preview_hint">A etiqueta será impressa neste formato, com margem tracejada para recorte</string>
+    <string name="products_print_qr_code">Imprimir QR Code</string>
+    <string name="products_back">Voltar</string>
+    <string name="products_manage_title">Gerenciar Produtos</string>
+    <string name="products_selected_count">%1$d selecionados</string>
+    <string name="products_clear_selection">Limpar seleção</string>
+    <string name="products_select_product">Selecionar produto</string>
+    <string name="products_print_selected">Imprimir selecionados</string>
+    <string name="products_add_product">Adicionar produto</string>
+    <string name="products_delete">Excluir</string>
+    <string name="products_product_image">Imagem do produto</string>
+    <string name="products_print_all_qr_codes">Imprimir QR Codes</string>
+    <string name="products_no_products_to_print">Nenhum produto para imprimir</string>
+    <string name="products_qr_labels_title">Etiquetas QR Code</string>
+    <string name="products_image_save_failed">Falha ao salvar imagem</string>
+    <string name="products_product_placeholder">Sem imagem</string>
+    <string name="products_empty_state">Nenhum produto cadastrado. Toque em + para adicionar o primeiro.</string>
+    <string name="products_generic_error">Ocorreu um erro inesperado</string>
 </resources>

@@ -22,7 +22,10 @@ dependencies {
     ksp(libs.com.google.dagger.hilt.android.compiler)
 
     // Coroutines
-    implementation(libs.org.jetbrains.kotlinx.coroutines.test)
+    implementation(libs.org.jetbrains.kotlinx.coroutines.core)
+
+    // Image
+    implementation(libs.androidx.exifinterface)
 
     // Common
     implementation(libs.ax.core.ktx)

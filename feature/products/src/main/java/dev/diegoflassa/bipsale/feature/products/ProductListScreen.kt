@@ -1,266 +1,454 @@
 package dev.diegoflassa.bipsale.feature.products
 
 import android.content.res.Configuration
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Print
-import androidx.compose.material3.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.print.PrintHelper
-import dev.diegoflassa.bipsale.core.domain.model.Product
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
+import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
+import dev.diegoflassa.bipsale.core.ui.util.UiText
+import dev.diegoflassa.bipsale.feature.products.components.ProductItem
+import dev.diegoflassa.bipsale.feature.products.print.QrLabelPrinter
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProductListScreen(
     onAddProduct: () -> Unit,
     onEditProduct: (String) -> Unit,
     viewModel: ProductViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
+    val printer = remember { QrLabelPrinter(QrLabelSheetRenderer(QrGenerator())) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(viewModel, context) {
         viewModel.effect.collect { effect ->
             when (effect) {
-                is ProductContract.Effect.ShowSnackbar -> {
-                    snackbarHostState.showSnackbar(
-                        message = effect.message.asString(context)
+                is ProductContract.Effect.ShowSnackbar ->
+                    snackbarHostState.showSnackbar(effect.message.asString(context))
+
+                is ProductContract.Effect.PrintLabels ->
+                    printer.print(
+                        context = context,
+                        documentName = context.getString(R.string.products_qr_labels_title),
+                        labels = effect.labels
                     )
-                }
-                else -> {}
+
+                is ProductContract.Effect.NavigationBack -> Unit
             }
         }
     }
 
+    ProductListContent(
+        state = uiState,
+        snackbarHostState = snackbarHostState,
+        onAddProduct = onAddProduct,
+        onEditProduct = onEditProduct,
+        onIntent = viewModel::onIntent
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun ProductListContent(
+    state: ProductContract.State,
+    snackbarHostState: SnackbarHostState,
+    onAddProduct: () -> Unit,
+    onEditProduct: (String) -> Unit,
+    onIntent: (ProductContract.Intent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val hasSelection = state.selectedProductCodes.isNotEmpty()
+
     Scaffold(
+        modifier = modifier.testTag(ProductListScreenTestTags.ROOT),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { 
-                    if (uiState.selectedProductCodes.isNotEmpty()) {
-                        Text("${uiState.selectedProductCodes.size} selecionados")
-                    } else {
-                        Text("Gerenciar Produtos")
-                    }
-                },
-                navigationIcon = {
-                    if (uiState.selectedProductCodes.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.onIntent(ProductContract.Intent.ClearSelection) }) {
-                            Icon(Icons.Default.Close, contentDescription = "Limpar Seleção")
-                        }
-                    }
-                },
-                actions = {
-                    if (uiState.selectedProductCodes.isNotEmpty()) {
-                        IconButton(onClick = {
-                            val selectedProducts = uiState.products.filter { it.code in uiState.selectedProductCodes }
-                            if (selectedProducts.isNotEmpty()) {
-                                printBatchQrCodes(context, selectedProducts)
-                            }
-                        }) {
-                            Icon(Icons.Default.Print, contentDescription = "Imprimir Selecionados")
-                        }
-                    }
-                }
+            ProductListTopBar(
+                state = state,
+                hasSelection = hasSelection,
+                onIntent = onIntent
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddProduct) {
-                Icon(Icons.Default.Add, contentDescription = "Adicionar Produto")
+            FloatingActionButton(
+                onClick = onAddProduct,
+                modifier = Modifier.testTag(ProductListScreenTestTags.ADD_BUTTON)
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(R.string.products_add_product)
+                )
             }
         }
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(padding)
         ) {
-            items(uiState.products) { product ->
-                ProductItem(
-                    product = product,
-                    isSelected = uiState.selectedProductCodes.contains(product.code),
-                    onClick = { 
-                        if (uiState.selectedProductCodes.isNotEmpty()) {
-                            viewModel.onIntent(ProductContract.Intent.ToggleProductSelection(product.code))
-                        } else {
-                            onEditProduct(product.code)
-                        }
-                    },
-                    onLongClick = {
-                        viewModel.onIntent(ProductContract.Intent.ToggleProductSelection(product.code))
-                    },
-                    onDelete = { viewModel.onIntent(ProductContract.Intent.DeleteProduct(product)) }
+            when {
+                state.isLoading -> CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .testTag(ProductListScreenTestTags.LOADING)
+                )
+
+                state.errorMessage != null -> ProductListMessage(
+                    text = state.errorMessage.asString(),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .testTag(ProductListScreenTestTags.ERROR)
+                )
+
+                state.products.isEmpty() -> ProductListMessage(
+                    text = stringResource(R.string.products_empty_state),
+                    modifier = Modifier
+                        .align(Alignment.Center)
+                        .testTag(ProductListScreenTestTags.EMPTY)
+                )
+
+                else -> ProductRows(
+                    state = state,
+                    hasSelection = hasSelection,
+                    onEditProduct = onEditProduct,
+                    onIntent = onIntent
                 )
             }
         }
     }
 }
 
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProductItem(
-    product: Product,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    onDelete: () -> Unit
+private fun ProductListTopBar(
+    state: ProductContract.State,
+    hasSelection: Boolean,
+    onIntent: (ProductContract.Intent) -> Unit
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        colors = if (isSelected) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        } else {
-            CardDefaults.cardColors()
-        }
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(16.dp)
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = product.name, style = MaterialTheme.typography.titleMedium)
-                Text(text = "Código: ${product.code}", style = MaterialTheme.typography.bodySmall)
-                Text(
-                    text = "R$ ${String.format("%.2f", product.price)}",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            if (!isSelected) {
-                IconButton(onClick = onDelete) {
-                    Icon(Icons.Default.Delete, contentDescription = "Excluir")
+    TopAppBar(
+        title = {
+            Text(
+                if (hasSelection) {
+                    stringResource(
+                        R.string.products_selected_count,
+                        state.selectedProductCodes.size
+                    )
+                } else {
+                    stringResource(R.string.products_manage_title)
                 }
-            } else {
-                Checkbox(checked = true, onCheckedChange = { onClick() })
+            )
+        },
+        navigationIcon = {
+            if (hasSelection) {
+                IconButton(
+                    onClick = { onIntent(ProductContract.Intent.ClearSelection) },
+                    modifier = Modifier
+                        .testTag(ProductListScreenTestTags.CLEAR_SELECTION_BUTTON)
+                ) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = stringResource(R.string.products_clear_selection)
+                    )
+                }
+            }
+        },
+        actions = {
+            when {
+                hasSelection -> IconButton(
+                    onClick = { onIntent(ProductContract.Intent.PrintSelectedQrCodes) },
+                    modifier = Modifier
+                        .testTag(ProductListScreenTestTags.PRINT_SELECTED_BUTTON)
+                ) {
+                    Icon(
+                        Icons.Default.Print,
+                        contentDescription = stringResource(R.string.products_print_selected)
+                    )
+                }
+
+                state.products.isNotEmpty() -> IconButton(
+                    onClick = { onIntent(ProductContract.Intent.PrintAllQrCodes) },
+                    modifier = Modifier.testTag(ProductListScreenTestTags.PRINT_ALL_BUTTON)
+                ) {
+                    Icon(
+                        Icons.Default.Print,
+                        contentDescription = stringResource(R.string.products_print_all_qr_codes)
+                    )
+                }
             }
         }
+    )
+}
+
+@Composable
+private fun ProductRows(
+    state: ProductContract.State,
+    hasSelection: Boolean,
+    onEditProduct: (String) -> Unit,
+    onIntent: (ProductContract.Intent) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag(ProductListScreenTestTags.LIST),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(state.products, key = { it.code }) { product ->
+            ProductItem(
+                product = product,
+                isSelected = product.code in state.selectedProductCodes,
+                onClick = {
+                    if (hasSelection) {
+                        onIntent(ProductContract.Intent.ToggleProductSelection(product.code))
+                    } else {
+                        onEditProduct(product.code)
+                    }
+                },
+                onLongClick = {
+                    onIntent(ProductContract.Intent.ToggleProductSelection(product.code))
+                },
+                onDelete = { onIntent(ProductContract.Intent.DeleteProduct(product.code)) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun ProductListMessage(text: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier.padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Default.Inventory2,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
 // region Previews
 
-private val previewProductInStock = Product(
-    code = "7891000100103",
-    name = "Café Premium 200ml",
-    price = 12.50,
-    qrCode = null,
+private fun previewProduct(
+    code: String,
+    name: String,
+    price: String,
+    imagePath: String? = null
+) = ProductContract.ProductUiModel(
+    code = code,
+    name = name,
+    priceFormatted = price,
+    imagePath = imagePath,
+    label = LabelData("bipsale://product?code=$code", name, price)
 )
 
-private val previewProductLongName = Product(
-    code = "7891000100202",
-    name = "Padaria e Confeitaria Gourmet do Centro - Combo Especial",
-    price = 45.90,
-    qrCode = null,
+private val previewProducts = listOf(
+    previewProduct("7891000100103", "Café Premium 200ml", "R$ 12,50"),
+    previewProduct("CT-A-RoS", "Coturno cano alto rosa", "R$ 130,00"),
+    previewProduct(
+        "7891000100202",
+        "Padaria e Confeitaria Gourmet do Centro - Combo Especial",
+        "R$ 45,90"
+    )
 )
 
-@Preview(name = "ProductItem · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "ProductItem · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(
+    name = "ProductListContent · Carregando · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListContent · Carregando · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
 @Composable
-private fun ProductItemDefaultPreview() {
+private fun ProductListContentLoadingPreview() {
     BipSaleTheme {
-        ProductItem(product = previewProductInStock, isSelected = false, onClick = {}, onLongClick = {}, onDelete = {})
+        ProductListContent(
+            state = ProductContract.State(isLoading = true),
+            snackbarHostState = SnackbarHostState(),
+            onAddProduct = {},
+            onEditProduct = {},
+            onIntent = {}
+        )
     }
 }
 
-@Preview(name = "ProductItem · Default · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(
+    name = "ProductListContent · Vazio · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListContent · Vazio · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
 @Composable
-private fun ProductItemDefaultDarkPreview() {
+private fun ProductListContentEmptyPreview() {
     BipSaleTheme {
-        ProductItem(product = previewProductInStock, isSelected = false, onClick = {}, onLongClick = {}, onDelete = {})
+        ProductListContent(
+            state = ProductContract.State(isLoading = false),
+            snackbarHostState = SnackbarHostState(),
+            onAddProduct = {},
+            onEditProduct = {},
+            onIntent = {}
+        )
     }
 }
 
-@Preview(name = "ProductItem · Selecionado · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "ProductItem · Selecionado · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(
+    name = "ProductListContent · Erro · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListContent · Erro · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
 @Composable
-private fun ProductItemSelectedPreview() {
+private fun ProductListContentErrorPreview() {
     BipSaleTheme {
-        ProductItem(product = previewProductInStock, isSelected = true, onClick = {}, onLongClick = {}, onDelete = {})
+        ProductListContent(
+            state = ProductContract.State(
+                isLoading = false,
+                errorMessage = UiText.DynamicString("Falha ao carregar produtos")
+            ),
+            snackbarHostState = SnackbarHostState(),
+            onAddProduct = {},
+            onEditProduct = {},
+            onIntent = {}
+        )
     }
 }
 
-@Preview(name = "ProductItem · Nome Longo · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "ProductItem · Nome Longo · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(
+    name = "ProductListContent · Conteudo · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListContent · Conteudo · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
 @Composable
-private fun ProductItemLongNamePreview() {
+private fun ProductListContentDataPreview() {
     BipSaleTheme {
-        ProductItem(product = previewProductLongName, isSelected = false, onClick = {}, onLongClick = {}, onDelete = {})
+        ProductListContent(
+            state = ProductContract.State(isLoading = false, products = previewProducts),
+            snackbarHostState = SnackbarHostState(),
+            onAddProduct = {},
+            onEditProduct = {},
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(
+    name = "ProductListContent · Conteudo · Phone · Dark",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420",
+    uiMode = Configuration.UI_MODE_NIGHT_YES
+)
+@Composable
+private fun ProductListContentDataDarkPreview() {
+    BipSaleTheme {
+        ProductListContent(
+            state = ProductContract.State(isLoading = false, products = previewProducts),
+            snackbarHostState = SnackbarHostState(),
+            onAddProduct = {},
+            onEditProduct = {},
+            onIntent = {}
+        )
+    }
+}
+
+@Preview(
+    name = "ProductListContent · Selecao · Phone",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1080px,height=2520px,dpi=420"
+)
+@Preview(
+    name = "ProductListContent · Selecao · Tablet",
+    showBackground = true,
+    locale = "pt",
+    device = "spec:width=1200px,height=2000px,dpi=240"
+)
+@Composable
+private fun ProductListContentSelectionPreview() {
+    BipSaleTheme {
+        ProductListContent(
+            state = ProductContract.State(
+                isLoading = false,
+                products = previewProducts,
+                selectedProductCodes = setOf("CT-A-RoS")
+            ),
+            snackbarHostState = SnackbarHostState(),
+            onAddProduct = {},
+            onEditProduct = {},
+            onIntent = {}
+        )
     }
 }
 
 // endregion
-
-private fun printBatchQrCodes(context: android.content.Context, products: List<Product>) {
-    val qrGenerator = QrGenerator()
-    val bitmaps = products.mapNotNull { product ->
-        qrGenerator.generateQrCode(product.qrCode ?: product.code, 300, 300)?.let { qr ->
-            // Create a bitmap with text and QR
-            val combined = Bitmap.createBitmap(400, 450, Bitmap.Config.ARGB_8888)
-            val canvas = Canvas(combined)
-            canvas.drawColor(Color.WHITE)
-            val paint = Paint().apply {
-                color = Color.BLACK
-                textSize = 24f
-                textAlign = Paint.Align.CENTER
-            }
-            canvas.drawBitmap(qr, 50f, 20f, null)
-            canvas.drawText(product.name, 200f, 350f, paint)
-            canvas.drawText("R$ ${String.format("%.2f", product.price)}", 200f, 390f, paint)
-            combined
-        }
-    }
-
-    if (bitmaps.isEmpty()) return
-
-    // Create a final vertical bitmap containing all
-    val spacing = 20
-    val totalHeight = bitmaps.sumOf { it.getHeight() } + (bitmaps.size + 1) * spacing
-    val maxWidth = bitmaps.maxOf { it.getWidth() }
-    
-    val finalBitmap = Bitmap.createBitmap(maxWidth, totalHeight, Bitmap.Config.ARGB_8888)
-    val canvas = Canvas(finalBitmap)
-    canvas.drawColor(Color.WHITE)
-    
-    var currentY = spacing.toFloat()
-    for (bitmap in bitmaps) {
-        canvas.drawBitmap(bitmap, (maxWidth - bitmap.getWidth()) / 2f, currentY, null)
-        currentY += bitmap.getHeight() + spacing
-    }
-
-    val printHelper = PrintHelper(context)
-    printHelper.scaleMode = PrintHelper.SCALE_MODE_FILL
-    printHelper.printBitmap("Etiquetas QR Code", finalBitmap)
-}

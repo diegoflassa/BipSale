@@ -15,6 +15,7 @@ Single bootstrap file for all AI agents working on this repo.
 
 - [KI-03: Token Audit & Pruning](conductor/knowledge/KI-03-TOKEN-AUDIT-AND-PRUNING.md)
 - [KI-04: Log Filters Catalogue](conductor/knowledge/KI-04-LOG-FILTERS.md)
+- [KI-05: Product Images & QR Label Printing](conductor/knowledge/KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md)
 - [KI-TBD: Future Work Index](conductor/knowledge/KI-TBD.md)
 
 Full index (read this first, not the list above): [conductor/knowledge/INDEX.md](conductor/knowledge/INDEX.md)

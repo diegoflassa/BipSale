@@ -8,7 +8,8 @@ fun ProductEntity.toDomain(): Product {
         code = productCode,
         name = productName,
         price = price,
-        qrCode = qrCodeData
+        qrCode = qrCodeData,
+        imageFileName = imageFileName
     )
 }
 
@@ -18,6 +19,7 @@ fun Product.toEntity(): ProductEntity {
         productName = name,
         price = price,
         qrCodeData = qrCode,
+        imageFileName = imageFileName,
         lastUpdated = System.currentTimeMillis()
     )
 }

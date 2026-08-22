@@ -1,6 +1,10 @@
 package dev.diegoflassa.bipsale.core.data.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Transaction
 import dev.diegoflassa.bipsale.core.data.model.SaleEntity
 import dev.diegoflassa.bipsale.core.data.model.SaleItemEntity
 import dev.diegoflassa.bipsale.core.data.model.SaleWithItems

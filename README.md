@@ -6,11 +6,13 @@ BipSale é um aplicativo Android modularizado projetado para facilitar vendas r�
 
 - **Leitura de QR Code** — Scan rápido de preços via câmera com CameraX
 - **Adição Manual de Produtos** — Interface simplificada para cadastro rápido
+- **Imagem do Produto** — Upload de foto do produto via galeria, exibida na lista e no cadastro
 - **Desconto PIX Configurável** — Aplicar descontos dinâmicos por operação de venda
 - **Histórico de Transações** — Rastreabilidade completa com busca e filtros
 - **Exportação para Excel** — Relatórios em `.xlsx` via Apache POI
 - **Funcionamento 100% Offline** — Operação completa sem conexão, com sincronização posterior
-- **Geração de QR Code** — Criar e imprimir QR codes para produtos
+- **Geração de QR Code** — Criar e imprimir QR codes com nome do produto e preço
+- **Impressão em Lote** — Imprimir etiquetas QR de todos os produtos (ou apenas os selecionados) em grade otimizada: 20 etiquetas por folha A4 (4x5) com margem tracejada para recorte, adaptando-se a qualquer outro tamanho de papel, com pré-visualização página a página e opção de salvar como PDF
 
 ## 🛠️ Tech Stack
 
