@@ -29,6 +29,12 @@ data class QrLabelSheetLayout(
     }
 
     companion object {
+        /** Index into the [cellBounds] array; named so a caller cannot transpose two edges. */
+        const val LEFT = 0
+        const val TOP = 1
+        const val RIGHT = 2
+        const val BOTTOM = 3
+
         /** A4 is the house default; the print dialog may still hand us any other media size. */
         const val A4_WIDTH_PT = 595f
         const val A4_HEIGHT_PT = 842f

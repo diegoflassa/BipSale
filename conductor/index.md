@@ -59,7 +59,7 @@ Coverage state → [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md) · Deferred wo
 2. No build / no commit without user authorization.
 3. `conductor/` = primary docs. Load KIs lazily via [knowledge/INDEX.md](knowledge/INDEX.md).
 4. **Never `fallbackToDestructiveMigration()`** — this database holds sales records ([CORE_RULES §13](rules/CORE_RULES.md)).
-5. **The test suite covers only `:core:domain` and `:core:qrcode`** — see [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md). A green `./gradlew test` proves little beyond those.
+5. **Every module carries a JVM test suite** (182+ JVM tests, 3 Compose UI test suites) — see [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md). A green `./gradlew test` covers the domain, data, and ViewModel layers.
 6. Architecture questions → [rules/architecture.md](rules/architecture.md), never re-derived from source.
 
 ---
@@ -68,7 +68,7 @@ Coverage state → [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md) · Deferred wo
 
 **What:** Android point-of-sale app. Products are registered with QR codes, scanned into a cart, and checked out against a CPF; sales land in Room and surface in a searchable history with Excel export.
 
-**Stack:** Hilt · Room (SSOT) · Retrofit · Nav 3 · Compose Material 3 · CameraX · Timber · Firebase App Distribution. Convention plugins in `build-logic/`; config SSOT in `build-logic/Configuracoes.kt`; versioning via `version.properties` (`0.0.2-alpha-build_N`). Static analysis: detekt (`:app` only). Coverage: Kover.
+**Stack:** Hilt · Room (SSOT) · Retrofit · Nav 3 · Compose Material 3 · CameraX · Timber · Firebase App Distribution. Convention plugins in `build-logic/`; config SSOT in `build-logic/Configuracoes.kt`; versioning via `version.properties` (`0.0.2-alpha-build_N`). Static analysis: detekt (all modules via `detekt-convention` plugin). Coverage: Kover.
 
 **Module graph, layers, MVI, DI, persistence, key files →** [rules/architecture.md](rules/architecture.md)
 
@@ -78,5 +78,5 @@ Coverage state → [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md) · Deferred wo
 |---|---|
 | Build | `./gradlew assembleDebug` · `assembleRelease` · `bundleRelease` |
 | Test | `./gradlew test` · `:feature:sales:test` · `connectedAndroidTest` |
-| Analysis | `./gradlew :app:detekt` — **only `:app` has detekt applied; ktlint is declared at the root but never applied, so there is no `ktlintCheck` task** (KI-TBD #9) |
+| Analysis | `./gradlew detekt` — runs on all modules via `detekt-convention` plugin |
 | Coverage | `./gradlew koverHtmlReport` |

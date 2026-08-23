@@ -29,4 +29,7 @@ dependencies {
 
     // Common
     implementation(libs.ax.core.ktx)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.com.google.truth)
 }

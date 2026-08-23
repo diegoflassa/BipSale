@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FlashOff
@@ -39,13 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
-
-object QrScannerScreenTestTags {
-    const val ROOT = "qr_scanner_screen"
-    const val CLOSE_BUTTON = "qr_scanner_close"
-    const val TORCH_BUTTON = "qr_scanner_torch"
-    const val HINT = "qr_scanner_hint"
-}
 
 /**
  * Full-screen QR capture: camera underneath, a dimmed overlay with a scan window on top, and the
@@ -133,7 +126,7 @@ private fun ScannerControls(
             FilledIconButton(
                 onClick = onClose,
                 colors = buttonColors,
-                shape = RoundedCornerShape(50),
+                shape = CircleShape,
                 modifier = Modifier.testTag(QrScannerScreenTestTags.CLOSE_BUTTON)
             ) {
                 Icon(
@@ -152,7 +145,7 @@ private fun ScannerControls(
                 FilledIconButton(
                     onClick = onToggleTorch,
                     colors = buttonColors,
-                    shape = RoundedCornerShape(50),
+                    shape = CircleShape,
                     modifier = Modifier.testTag(QrScannerScreenTestTags.TORCH_BUTTON)
                 ) {
                     Icon(

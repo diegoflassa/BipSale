@@ -28,7 +28,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +51,7 @@ import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetLayout
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
+import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.products.components.ProductImagePicker
 import dev.diegoflassa.bipsale.feature.products.print.QrLabelPrinter
@@ -120,15 +120,11 @@ internal fun AddEditProductContent(
         modifier = modifier.testTag(AddEditProductScreenTestTags.ROOT),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        stringResource(
-                            if (isEdit) R.string.products_edit_product
-                            else R.string.products_new_product
-                        )
-                    )
-                },
+            BipSaleTopAppBar(
+                title = stringResource(
+                    if (isEdit) R.string.products_edit_product
+                    else R.string.products_new_product
+                ),
                 navigationIcon = {
                     IconButton(
                         onClick = onBack,

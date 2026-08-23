@@ -52,5 +52,8 @@ data class BackupSaleItem(
     val productCode: String,
     val productName: String,
     val unitPrice: Double,
-    val quantity: Int
+    val quantity: Int,
+    /** Defaulted so an archive written before per-line discounts existed still restores. */
+    val discountType: String = "NONE",
+    val discountValue: Double = 0.0
 )

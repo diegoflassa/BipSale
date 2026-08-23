@@ -1,11 +1,13 @@
 package dev.diegoflassa.bipsale.feature.history
 
 import android.content.res.Configuration
-import androidx.compose.foundation.combinedClickable
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,82 +17,141 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
+import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
-import dev.diegoflassa.bipsale.core.utils.ExcelExporter
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import dev.diegoflassa.bipsale.feature.history.components.SaleHistoryItem
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryScreen(
     onSaleClick: (String) -> Unit,
+    onBack: () -> Unit,
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
     val context = LocalContext.current
 
+    // The system document picker is what lets the operator drop the sheet into Drive, Downloads or
+    // anywhere else they can find it again — app-private storage they cannot browse to.
+    val createLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(SPREADSHEET_MIME_TYPE)
+    ) { uri: Uri? ->
+        val intent = if (uri == null) {
+            HistoryContract.Intent.ExportCancelled
+        } else {
+            HistoryContract.Intent.ExportDestinationChosen(uri.toString())
+        }
+        viewModel.onIntent(intent)
+    }
+
+    LaunchedEffect(viewModel, context) {
+        viewModel.effect.collect { effect ->
+            when (effect) {
+                is HistoryContract.Effect.ShowSnackbar ->
+                    snackbarHostState.showSnackbar(effect.message.asString(context))
+
+                is HistoryContract.Effect.PickExportDestination ->
+                    createLauncher.launch(effect.suggestedFileName)
+            }
+        }
+    }
+
+    HistoryScreenContent(
+        state = uiState,
+        snackbarHostState = snackbarHostState,
+        onBack = onBack,
+        onSaleClick = onSaleClick,
+        onExportSelected = {
+            viewModel.onIntent(
+                HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.SELECTED)
+            )
+        },
+        onIntent = viewModel::onIntent
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun HistoryScreenContent(
+    state: HistoryContract.State,
+    snackbarHostState: SnackbarHostState,
+    onBack: () -> Unit,
+    onSaleClick: (String) -> Unit,
+    onExportSelected: () -> Unit,
+    onIntent: (HistoryContract.Intent) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val hasSelection = state.selectedSaleIds.isNotEmpty()
+
     Scaffold(
+        modifier = modifier.testTag(HistoryScreenTestTags.ROOT),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = {
-                    if (uiState.selectedSaleIds.isNotEmpty()) {
-                        Text(stringResource(R.string.history_selected_count, uiState.selectedSaleIds.size))
-                    } else {
-                        Text(stringResource(R.string.history_title))
-                    }
+            BipSaleTopAppBar(
+                title = if (hasSelection) {
+                    stringResource(R.string.history_selected_count, state.selectedSaleIds.size)
+                } else {
+                    stringResource(R.string.history_title)
                 },
-                navigationIcon = {
-                    if (uiState.selectedSaleIds.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.onIntent(HistoryContract.Intent.ClearSelection) }) {
+                onBack = onBack,
+                navigationIcon = if (!hasSelection) {
+                    null
+                } else {
+                    {
+                        IconButton(
+                            onClick = { onIntent(HistoryContract.Intent.ClearSelection) },
+                            modifier = Modifier.testTag(
+                                HistoryScreenTestTags.CLEAR_SELECTION_BUTTON
+                            )
+                        ) {
                             Icon(
                                 Icons.Default.Close,
-                                contentDescription = stringResource(R.string.history_clear_selection)
+                                contentDescription = stringResource(
+                                    R.string.history_clear_selection
+                                )
                             )
                         }
                     }
                 },
                 actions = {
-                    if (uiState.selectedSaleIds.isNotEmpty()) {
-                        val exporter = remember { ExcelExporter() }
-                        IconButton(onClick = {
-                            val selectedSales = uiState.sales.filter { it.id in uiState.selectedSaleIds }
-                            if (selectedSales.isNotEmpty()) {
-                                val file = java.io.File(context.getExternalFilesDir(null), "vendas_selecionadas_${System.currentTimeMillis()}.xlsx")
-                                java.io.FileOutputStream(file).use { outputStream ->
-                                    exporter.exportSalesToExcel(outputStream, selectedSales)
-                                }
-                                viewModel.onIntent(HistoryContract.Intent.ClearSelection)
-                            }
-                        }) {
+                    if (hasSelection) {
+                        IconButton(
+                            onClick = onExportSelected,
+                            enabled = !state.isExporting,
+                            modifier = Modifier.testTag(
+                                HistoryScreenTestTags.EXPORT_SELECTED_BUTTON
+                            )
+                        ) {
                             Icon(
                                 Icons.Default.FileDownload,
-                                contentDescription = stringResource(R.string.history_export_selected)
+                                contentDescription = stringResource(
+                                    R.string.history_export_selected
+                                )
                             )
                         }
                     }
@@ -100,99 +161,89 @@ fun HistoryScreen(
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = { viewModel.onIntent(HistoryContract.Intent.SearchSales(it)) },
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                value = state.searchQuery,
+                onValueChange = { onIntent(HistoryContract.Intent.SearchSales(it)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .testTag(HistoryScreenTestTags.SEARCH_FIELD),
                 placeholder = { Text(stringResource(R.string.history_search_placeholder)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
             )
 
-            if (uiState.isLoading) {
-                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            if (state.isLoading || state.isExporting) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .testTag(HistoryScreenTestTags.LOADING)
+                )
             }
 
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(uiState.sales) { sale ->
-                    SaleHistoryItem(
-                        sale = sale,
-                        isSelected = uiState.selectedSaleIds.contains(sale.id),
-                        onClick = {
-                            if (uiState.selectedSaleIds.isNotEmpty()) {
-                                viewModel.onIntent(HistoryContract.Intent.ToggleSaleSelection(sale.id))
-                            } else {
-                                onSaleClick(sale.id)
-                            }
-                        },
-                        onLongClick = {
-                            viewModel.onIntent(HistoryContract.Intent.ToggleSaleSelection(sale.id))
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
-@Composable
-fun SaleHistoryItem(
-    sale: Sale,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
-) {
-    val dateFormat = remember { SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()) }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        colors = if (isSelected) {
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-        } else {
-            CardDefaults.cardColors()
-        }
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(
-                text = sale.customerName.ifEmpty {
-                    stringResource(R.string.history_anonymous_customer)
-                },
-                style = MaterialTheme.typography.titleMedium
-            )
-                if (isSelected) {
-                    Checkbox(checked = true, onCheckedChange = { onClick() })
-                } else {
-                    Text(dateFormat.format(Date(sale.date)), style = MaterialTheme.typography.bodySmall)
-                }
-            }
-            Text(
-                text = stringResource(
-                    R.string.history_cpf,
-                    sale.customerCpf.ifEmpty { stringResource(R.string.history_cpf_empty) }
-                ),
-                style = MaterialTheme.typography.bodySmall
-            )
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text(stringResource(R.string.history_total_label), style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    text = stringResource(R.string.history_currency, sale.finalAmount),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+            if (state.sales.isEmpty() && !state.isLoading) {
+                EmptyHistory()
+            } else {
+                SalesList(
+                    state = state,
+                    onSaleClick = onSaleClick,
+                    onIntent = onIntent
                 )
             }
         }
     }
 }
+
+@Composable
+private fun EmptyHistory() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.history_empty),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.testTag(HistoryScreenTestTags.EMPTY)
+        )
+    }
+}
+
+@Composable
+private fun SalesList(
+    state: HistoryContract.State,
+    onSaleClick: (String) -> Unit,
+    onIntent: (HistoryContract.Intent) -> Unit
+) {
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .testTag(HistoryScreenTestTags.LIST),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(state.sales, key = { it.id }) { sale ->
+            SaleHistoryItem(
+                sale = sale,
+                isSelected = state.selectedSaleIds.contains(sale.id),
+                onClick = {
+                    if (state.selectedSaleIds.isEmpty()) {
+                        onSaleClick(sale.id)
+                    } else {
+                        onIntent(HistoryContract.Intent.ToggleSaleSelection(sale.id))
+                    }
+                },
+                onLongClick = {
+                    onIntent(HistoryContract.Intent.ToggleSaleSelection(sale.id))
+                },
+                modifier = Modifier.testTag(HistoryScreenTestTags.saleRow(sale.id))
+            )
+        }
+    }
+}
+
+private const val SPREADSHEET_MIME_TYPE =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
 // region Previews
 
@@ -218,38 +269,69 @@ private val previewSaleAnonymous = Sale(
     date = 1752003600000L,
 )
 
-@Preview(name = "SaleHistoryItem · Nomeado · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "SaleHistoryItem · Nomeado · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(name = "HistoryScreenContent · Lista · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "HistoryScreenContent · Lista · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
 @Composable
-private fun SaleHistoryItemNamedPreview() {
+private fun HistoryScreenContentListPreview() {
     BipSaleTheme {
-        SaleHistoryItem(sale = previewSaleNamed, isSelected = false, onClick = {}, onLongClick = {})
+        HistoryScreenContent(
+            state = HistoryContract.State(sales = listOf(previewSaleNamed, previewSaleAnonymous)),
+            snackbarHostState = SnackbarHostState(),
+            onBack = {},
+            onSaleClick = {},
+            onExportSelected = {},
+            onIntent = {}
+        )
     }
 }
 
-@Preview(name = "SaleHistoryItem · Nomeado · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "HistoryScreenContent · Lista · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun SaleHistoryItemNamedDarkPreview() {
+private fun HistoryScreenContentListDarkPreview() {
     BipSaleTheme {
-        SaleHistoryItem(sale = previewSaleNamed, isSelected = false, onClick = {}, onLongClick = {})
+        HistoryScreenContent(
+            state = HistoryContract.State(sales = listOf(previewSaleNamed, previewSaleAnonymous)),
+            snackbarHostState = SnackbarHostState(),
+            onBack = {},
+            onSaleClick = {},
+            onExportSelected = {},
+            onIntent = {}
+        )
     }
 }
 
-@Preview(name = "SaleHistoryItem · Anônimo · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "SaleHistoryItem · Anônimo · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(name = "HistoryScreenContent · Vazio · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "HistoryScreenContent · Vazio · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
 @Composable
-private fun SaleHistoryItemAnonymousPreview() {
+private fun HistoryScreenContentEmptyPreview() {
     BipSaleTheme {
-        SaleHistoryItem(sale = previewSaleAnonymous, isSelected = false, onClick = {}, onLongClick = {})
+        HistoryScreenContent(
+            state = HistoryContract.State(),
+            snackbarHostState = SnackbarHostState(),
+            onBack = {},
+            onSaleClick = {},
+            onExportSelected = {},
+            onIntent = {}
+        )
     }
 }
 
-@Preview(name = "SaleHistoryItem · Selecionado · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "SaleHistoryItem · Selecionado · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(name = "HistoryScreenContent · Selecao · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "HistoryScreenContent · Selecao · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
 @Composable
-private fun SaleHistoryItemSelectedPreview() {
+private fun HistoryScreenContentSelectionPreview() {
     BipSaleTheme {
-        SaleHistoryItem(sale = previewSaleNamed, isSelected = true, onClick = {}, onLongClick = {})
+        HistoryScreenContent(
+            state = HistoryContract.State(
+                sales = listOf(previewSaleNamed, previewSaleAnonymous),
+                selectedSaleIds = setOf("1")
+            ),
+            snackbarHostState = SnackbarHostState(),
+            onBack = {},
+            onSaleClick = {},
+            onExportSelected = {},
+            onIntent = {}
+        )
     }
 }
 

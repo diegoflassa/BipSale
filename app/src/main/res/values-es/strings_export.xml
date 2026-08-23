@@ -2,6 +2,8 @@
 <!-- Owner package: dev.diegoflassa.bipsale.ui.export -->
 <resources>
     <string name="export_title">Exportar datos</string>
-    <string name="export_back">Volver</string>
     <string name="export_generate_excel">Generar archivo de Excel</string>
+    <string name="export_explainer_title">Exportar historial de ventas</string>
+    <string name="export_explainer_body">Genere un archivo Excel (.xlsx) con todas las ventas registradas y elija dónde guardarlo.</string>
+    <string name="export_sale_count">%1$d ventas registradas</string>
 </resources>

@@ -36,7 +36,12 @@ class QrLabelSheetRenderer @Inject constructor(
             val bounds = layout.cellBounds(index - first)
             drawLabel(
                 canvas = canvas,
-                cell = RectF(bounds[0], bounds[1], bounds[2], bounds[3]),
+                cell = RectF(
+                    bounds[QrLabelSheetLayout.LEFT],
+                    bounds[QrLabelSheetLayout.TOP],
+                    bounds[QrLabelSheetLayout.RIGHT],
+                    bounds[QrLabelSheetLayout.BOTTOM]
+                ),
                 label = labels[index],
                 paints = paints
             )

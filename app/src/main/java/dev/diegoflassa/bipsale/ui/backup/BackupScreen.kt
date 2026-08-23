@@ -31,7 +31,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,6 +47,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.R
 import dev.diegoflassa.bipsale.core.domain.backup.BackupMetadata
 import dev.diegoflassa.bipsale.core.domain.backup.BackupSummary
+import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.ui.backup.components.BackupSummaryCard
 import dev.diegoflassa.bipsale.ui.backup.components.RestoreConfirmationDialog
@@ -120,16 +120,9 @@ internal fun BackupScreenContent(
         modifier = modifier.testTag(BackupScreenTestTags.ROOT),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(R.string.backup_title)) },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.backup_back)
-                        )
-                    }
-                }
+            BipSaleTopAppBar(
+                title = stringResource(R.string.backup_title),
+                onBack = onBack
             )
         }
     ) { padding ->

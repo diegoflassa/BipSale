@@ -15,6 +15,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import dev.diegoflassa.bipsale.core.ui.theme.ScannerAccent
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -29,7 +30,7 @@ import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 @Composable
 fun QrScannerOverlay(
     modifier: Modifier = Modifier,
-    accentColor: Color = Color(0xFF7FC8F8)
+    accentColor: Color = ScannerAccent
 ) {
     val transition = rememberInfiniteTransition(label = "scanLine")
     val sweep by transition.animateFloat(

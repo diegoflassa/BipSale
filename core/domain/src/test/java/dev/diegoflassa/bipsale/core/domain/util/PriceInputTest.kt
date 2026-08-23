@@ -55,4 +55,28 @@ class PriceInputTest {
         assertThat(parsePriceInput("Infinity")).isNull()
         assertThat(parsePriceInput("NaN")).isNull()
     }
+
+    @Test
+    fun `a decimal input accepts zero, which is how a discount is cleared`() {
+        assertThat(parseDecimalInput("0")).isEqualTo(0.0)
+        assertThat(parseDecimalInput("0,00")).isEqualTo(0.0)
+    }
+
+    @Test
+    fun `a decimal input accepts either separator`() {
+        assertThat(parseDecimalInput("12,50")).isEqualTo(12.50)
+        assertThat(parseDecimalInput("12.50")).isEqualTo(12.50)
+    }
+
+    @Test
+    fun `a decimal input rejects a negative value`() {
+        assertThat(parseDecimalInput("-1")).isNull()
+    }
+
+    @Test
+    fun `a decimal input rejects text and blanks`() {
+        assertThat(parseDecimalInput("de graca")).isNull()
+        assertThat(parseDecimalInput("   ")).isNull()
+        assertThat(parseDecimalInput("1,2,3")).isNull()
+    }
 }

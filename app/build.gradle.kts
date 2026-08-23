@@ -1,4 +1,3 @@
-import io.gitlab.arturbosch.detekt.Detekt
 import java.util.Properties
 
 val firebaseAppDistributionProps = Properties()
@@ -24,7 +23,6 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.hilt.android.gradle.plugin)
     alias(libs.plugins.firebase.appdistribution.gradle)
-    alias(libs.plugins.arturbosch.detekt)
 }
 
 // Configure Firebase App Distribution
@@ -58,21 +56,6 @@ java {
     }
 }
 
-detekt {
-    buildUponDefaultConfig = true
-    allRules = true
-    config.setFrom("$rootDir/config/detekt/detekt.yml")
-    //baseline = file("$projectDir/config/baseline.xml")
-}
-
-tasks.withType<Detekt>().configureEach {
-    reports {
-        html.required.set(true)
-        //checkstyle.required.set(true)
-        sarif.required.set(true)
-        md.required.set(true)
-    }
-}
 dependencies {
     //Modules
     implementation(project(":feature:sales"))
@@ -92,6 +75,9 @@ dependencies {
     //Common Testing
     testImplementation(libs.junit)
     testImplementation(libs.ax.test.ext.junit.ktx)
+    testImplementation(libs.com.google.truth)
+    testImplementation(libs.org.jetbrains.kotlinx.coroutines.test)
+    testImplementation(libs.app.cash.turbine)
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.ax.test.ext.junit.ktx)
 

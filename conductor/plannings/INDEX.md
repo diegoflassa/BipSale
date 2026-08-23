@@ -11,7 +11,7 @@ Plan governance (storage, naming, creation criteria, META_PLANNING, lifecycle): 
 
 ## Active Plans
 
-_None yet._
+_None._
 
 ## Meta Planning
 
@@ -19,4 +19,6 @@ _None yet._
 
 ## Archived Plans
 
-_None yet._
+| Plan | Status | Covers |
+|---|---|---|
+| [tbd_unblocked_backlog_plan.md](archived/tbd_unblocked_backlog_plan.md) | ✅ Complete | KI-TBD #1–#3, #5, #7–#10, #12, #13 closed. Excel export fixed (system document picker + off-main-thread write + snackbar feedback). `:feature:history` instrumented test suite added (12 tests). All three feature modules now have Compose UI test suites. |

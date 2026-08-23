@@ -5,10 +5,12 @@ import dagger.Module
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import dev.diegoflassa.bipsale.core.data.backup.BackupRepositoryImpl
+import dev.diegoflassa.bipsale.core.data.export.SalesExportRepositoryImpl
 import dev.diegoflassa.bipsale.core.data.image.ProductImageStoreImpl
 import dev.diegoflassa.bipsale.core.data.repository.ProductRepositoryImpl
 import dev.diegoflassa.bipsale.core.data.repository.SaleRepositoryImpl
 import dev.diegoflassa.bipsale.core.domain.backup.BackupRepository
+import dev.diegoflassa.bipsale.core.domain.export.SalesExportRepository
 import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
 import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
 import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
@@ -41,4 +43,10 @@ abstract class RepositoryModule {
     abstract fun bindBackupRepository(
         backupRepositoryImpl: BackupRepositoryImpl
     ): BackupRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindSalesExportRepository(
+        salesExportRepositoryImpl: SalesExportRepositoryImpl
+    ): SalesExportRepository
 }

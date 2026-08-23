@@ -147,18 +147,18 @@ class ProductImageStoreImpl @Inject constructor(
                         ExifInterface.ORIENTATION_NORMAL
                     )
                 ) {
-                    ExifInterface.ORIENTATION_ROTATE_90 -> 90f
-                    ExifInterface.ORIENTATION_ROTATE_180 -> 180f
-                    ExifInterface.ORIENTATION_ROTATE_270 -> 270f
-                    else -> 0f
+                    ExifInterface.ORIENTATION_ROTATE_90 -> QUARTER_TURN_DEGREES
+                    ExifInterface.ORIENTATION_ROTATE_180 -> HALF_TURN_DEGREES
+                    ExifInterface.ORIENTATION_ROTATE_270 -> THREE_QUARTER_TURN_DEGREES
+                    else -> NO_ROTATION_DEGREES
                 }
-            } ?: 0f
+            } ?: NO_ROTATION_DEGREES
         }.getOrElse { throwable ->
             Timber.e(throwable, "[BipSale][Product][IMAGE] Could not read EXIF orientation")
-            0f
+            NO_ROTATION_DEGREES
         }
 
-        if (degrees == 0f) return bitmap
+        if (degrees == NO_ROTATION_DEGREES) return bitmap
 
         val matrix = android.graphics.Matrix().apply { postRotate(degrees) }
         val rotated = Bitmap.createBitmap(
@@ -177,5 +177,10 @@ class ProductImageStoreImpl @Inject constructor(
         const val JPEG_QUALITY = 85
         const val MAX_CODE_CHARS = 48
         val UNSAFE_FILE_NAME_CHARS = Regex("[^A-Za-z0-9-_]")
+
+        const val NO_ROTATION_DEGREES = 0f
+        const val QUARTER_TURN_DEGREES = 90f
+        const val HALF_TURN_DEGREES = 180f
+        const val THREE_QUARTER_TURN_DEGREES = 270f
     }
 }

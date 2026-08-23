@@ -4,36 +4,36 @@ Per-module test inventory. Counts are `*.kt` files hosting `@Test` methods. IDE-
 
 **Last verified:** 2026-08-22
 
-> ⚠️ **Coverage is thin but no longer zero.** `:core:domain` and `:core:qrcode` have their first suites; every other module is still uncovered. A green `./gradlew test` proves only what the rows below claim.
+> **Every module carries a JVM suite.** 182 JVM tests, 13 instrumented data tests, and 3 Compose UI test suites (12 + 19 + 31 instrumented tests across `:feature:history`, `:feature:sales` and `:feature:products`). The gaps that remain are `:app` screens and Android-graphics work.
 
 | Module | JVM test files | Instrumented test files | Notes |
 |---|---|---|---|
-| `:app` | 0 | 0 | Only `ExampleUnitTest` / `ExampleInstrumentedTest`. Export-to-Excel and `BackupViewModel` untested. |
-| `:core:domain` | 2 | 0 | `PriceInputTest` (9 tests) pins comma/dot decimal parsing and the zero-price rejection; `SaveProductUseCaseTest` (7 tests) pins code/name/price validation and QR payload shape. `FinalizeSaleUseCase` and `AddProductByQrUseCase` remain uncovered. |
-| `:core:data` | 0 | 2 | `ProductImageStoreImplTest` (6 tests) pins image import against a real `ContentResolver`, downscaling, code sanitising, per-pick naming and deletion. `BackupRepositoryImplTest` (7 tests) pins the archive round trip, replace-not-merge restore, stale-image cleanup and rejection of a non-archive. Room DAOs, mappers, `ProductRepositoryImpl`, `SaleRepositoryImpl` still untested. **No Room migration test exists** — `CORE_RULES §13` requires one per schema change; the v1 schema is now exported, so the harness is unblocked. |
-| `:core:ui` | 0 | 0 | Theme + `UiText` only. |
-| `:core:navigation` | 0 | 0 | Route definitions. |
-| `:core:qrcode` | 1 | 0 | CameraX scanning lives here too — hardware-dependent, instrumented only. `QrLabelSheetLayoutTest` (9 tests) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
-| `:feature:sales` | 0 | 0 | **Checkout is the money path** (cart → CPF → `SaleRepositoryImpl`) and has no coverage at all. |
-| `:feature:products` | 0 | 0 | CRUD + QR generation. |
-| `:feature:history` | 0 | 0 | History + search. |
+| `:app` | 1 | 0 | `BackupViewModelTest` (9 tests) pins archive write, share staging, the inspect-before-restore gate, cancellation and the unreadable-archive path. Export-to-Excel UI untested. |
+| `:core:domain` | 6 | 0 | `SaleTotalsTest` (10) and `SaleItemTest` (10) pin the whole money path — line gross/discount/net, sale-level percentage ordering, HALF_UP rounding to cents, and every rejected discount. `FinalizeSaleUseCaseTest` (8), `AddProductByQrUseCaseTest` (8), `AddProductByCodeUseCaseTest` (5), `SaveProductUseCaseTest` (7), `PriceInputTest` (9). |
+| `:core:data` | 4 | 2 | `SaleRepositoryImplTest` (10) and `ProductRepositoryImplTest` (9) pin which failures are swallowed and which rethrow, driven by fake DAOs that throw. `SaleMapperTest` (10) and `ProductMapperTest` (4) pin the entity↔domain round trip, the discount flattening and the coercion of a corrupt stored discount. Instrumented: `ProductImageStoreImplTest` (6), `BackupRepositoryImplTest` (7). **No Room migration test** — deferred, see KI-TBD #4. |
+| `:core:ui` | 1 | 0 | `UiTextTest` (8) pins `StringResource` equality, which decides whether a screen holding one recomposes on every emission. |
+| `:core:navigation` | 0 | 0 | Route definitions only — nothing to assert that the compiler does not. |
+| `:core:qrcode` | 1 | 0 | `QrLabelSheetLayoutTest` (9) pins the A4 4x5 grid, pagination, cell geometry and the tiny-paper guard. `QrGenerator` and `QrLabelSheetRenderer` need Android graphics, so they stay instrumented-only. |
+| `:core:utils` | 1 | 0 | `ExcelExporterTest` (7) pins the header, one row per sale item, and that values stay under the header they belong to. |
+| `:feature:sales` | 1 | 1 | `SalesViewModelTest` (20) pins the cart end to end. `SalesScreenContentInstrumentedTest` (19) drives the stateless composable. |
+| `:feature:products` | 1 | 1 | `ProductViewModelTest` (24) pins list load, price parsing, image lifecycle. `ProductScreenContentInstrumentedTest` (31) drives the stateless composable. |
+| `:feature:history` | 1 | 1 | `HistoryViewModelTest` (10) pins search, date filtering, load failure, selection. `HistoryScreenContentInstrumentedTest` (12) drives the stateless composable. |
 
 **Priority gaps** (highest value first):
-1. **Checkout total/cart arithmetic** (`:feature:sales`) — a wrong total is a wrong charge. Pure-logic tests, no Android needed.
-2. **`SaleRepositoryImpl` + `ProductRepositoryImpl`** — both already have `[BipSale][Sale]` / `[BipSale][Product]` error breadcrumbs proving the failure paths matter; none are pinned by a test.
-3. **`ProductViewModel`** — now owns price validation, currency formatting and image lifecycle; none of it is pinned. `ProductImageStore` is an interface, so a fake makes this a plain JVM suite.
-4. **Room migration harness** — required before the next schema change ships (`CORE_RULES §13`). Now unblocked: `exportSchema = true` and `core/data/schemas/…/1.json` is committed.
-5. **EXIF rotation** — the one part of `ProductImageStoreImpl` still unpinned; needs a fixture photo carrying an orientation tag.
+1. **`:app` screen Compose UI tests** — `BackupScreen`, `ExportScreen` and `DashboardScreen` still lack the two-layer split and test tags needed for instrumented testing (KI-TBD #6).
+2. **Room migration harness** — required before the first schema change ships to a released build (`CORE_RULES §13`, KI-TBD #4).
+3. **`:core:qrcode` bitmap rendering** — `QrGenerator` / `QrLabelSheetRenderer` need real Android graphics, so instrumented only (KI-TBD #5).
+4. **EXIF rotation** — the one part of `ProductImageStoreImpl` still unpinned; needs a fixture photo carrying an orientation tag.
 
 **Verification commands:**
 
 | Command | Purpose |
 |---|---|
-| `./gradlew test` | All JVM unit suites |
-| `./gradlew :core:domain:test :core:qrcode:testDebugUnitTest` | The JVM suites that currently exist |
-| `./gradlew :core:data:connectedDebugAndroidTest` | Image store suite (needs a device) |
+| `./gradlew test` | All JVM unit suites (178 tests) |
+| `./gradlew :core:domain:test` | The money path on its own |
+| `./gradlew :core:data:connectedDebugAndroidTest` | Image store + backup suites (needs a device) |
 | `./gradlew connectedAndroidTest` | Instrumented suites on an attached device/emulator |
-| `./gradlew :app:detekt` | Static analysis — **only `:app` has detekt wired; there is no `ktlintCheck` task in this build** |
+| `./gradlew detekt` | Static analysis — **every module**, via `detekt-convention` in `build-logic` |
 | `./gradlew koverHtmlReport` | Coverage report |
 
 > **Update protocol:** on every test-coverage boundary, re-count the files and update the rows. If a module's count grows by 1+ without an entry here, the row is stale.

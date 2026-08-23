@@ -8,10 +8,24 @@ All notable changes to this project. Governed by [`conductor/rules/CORE_RULES.md
 
 Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Unreleased` to `## [X.Y.Z] YYYY-MM-DD` and add a fresh empty `## Unreleased` above it.
 
-> History before 2026-07-21 lives in git only — this file starts here.
+> Entries before 2026-07-21 were reconstructed from git history after the fact, so they are grouped by month rather than by work unit. Everything from 2026-07-21 onward was written as the work landed.
 
 ## Unreleased
 
+- Cart and checkout now derive every total from one domain function, rounded to cents, so the amount displayed and the amount persisted cannot disagree
+- Sale-level discount is editable: the bottom bar opens a dialog that refuses anything outside 0-100 instead of accepting it silently
+- Per-item discounts, by percentage of the line or by a fixed amount off it, shown on the line with the original price struck through
+- Products can be added to a sale by picking from the registered catalogue or by typing a code, not only by scanning a QR label
+- A typed or picked code that matches no product is refused rather than rung up as a zero-priced line
+- Checkout emits `[BipSale][Sale][CHECKOUT]` breadcrumbs for every cart change and every finalize leg, carrying counts and totals but never a customer field
+- Every screen now uses one shared header with a back arrow, keeping its existing title
+- detekt runs on every module via a `detekt-convention` plugin rather than only `:app`, and the whole project is clean
+- Test coverage extended from 2 modules to all 10 (31 tests to 182), covering the money path, repository failure paths and every ViewModel
+- Fixed the history search racing itself: an abandoned query could still overwrite the list with results for a query the field no longer held
+- Fixed `UiText.StringResource` comparing by array identity, which made any state holding one look changed on every emission
+- Fixed the Excel export writing column indices independently of its header row, so a column change could file values under the wrong heading
+- Fixed the Excel export writing to invisible app-private storage on the main thread with no feedback; it now opens the system document picker, writes off the main thread, and shows a snackbar on success, failure or empty data
+- Extracted the customer-info screen's hardcoded strings into resources across all four locales
 - Aligned `conductor/` structure and rules with the shared cross-project reference layout
 - Added seven AI-code-review rules to `conductor/rules/`: cancellation re-throw, named seam interfaces over lambdas, selective saved state, ViewModel-side derivation, `IconButton` for icon-only actions, Material 3 over a hand-rolled `Box`, enum over an all-object sealed hierarchy
 - Product image upload: pick a photo from the gallery, downscaled and stored in app-private storage, shown on the edit screen and on product list rows (placeholder icon when absent)
@@ -52,3 +66,34 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 - Fixed Auto Backup restoring a pre-rename `bipsale_database` onto a fresh install, which made Room abort on the identity-hash mismatch and crash every screen that opened the database, surviving even a full uninstall
 - Room now exports its schema (`exportSchema = true` + `room.schemaLocation`), unblocking the migration harness `CORE_RULES` §13 requires
 - Fixed detekt failing on `:app` (wildcard imports, missing trailing newlines, over-long nav host) and taught it that `@Preview` functions are not dead code
+
+## Reconstructed history (before 2026-07-21)
+
+Rebuilt from git history; grouped by month because the per-work-unit record did not exist yet.
+
+### 2026-06
+
+- Consolidated the `conductor/` rule set and added the skills catalogue, workflows and templates
+- Applied the strict Timber log-filter convention across the app (REMEDIATION-01)
+
+### 2026-04
+
+- Resolved dependency and import conflicts in `:core:qrcode`
+- Tuned Gradle JVM args for a 32 GB machine (G1GC) and bumped the version catalog
+
+### 2026-03
+
+- Refactored Products and Sales onto Clean Architecture with explicit use cases
+- Overhauled the README with project specs and development guidelines
+
+### 2026-02
+
+- Initialised the Conductor documentation framework
+- Consolidated agent infrastructure and the build environment
+
+### 2026-01
+
+- First working app version
+- Migrated to AGP 9.0; fixed the Kotlin DSL, configuration cache and KSP setup
+- Fixed the Compose compiler, ProGuard rules and BuildConfig configuration
+- Fixed a serialization crash in `:core:navigation`

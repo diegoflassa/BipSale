@@ -223,7 +223,7 @@ class BackupRepositoryImpl @Inject constructor(
 
     private companion object {
         const val FORMAT_VERSION = 1
-        const val SCHEMA_VERSION = 1
+        const val SCHEMA_VERSION = 2
         const val DOCUMENT_ENTRY = "backup.json"
         const val IMAGES_DIR = "images"
         const val SHARE_DIR = "backup_share"
@@ -279,7 +279,9 @@ private fun SaleItemEntity.toBackup() = BackupSaleItem(
     productCode = productCode,
     productName = productName,
     unitPrice = unitPrice,
-    quantity = quantity
+    quantity = quantity,
+    discountType = discountType,
+    discountValue = discountValue
 )
 
 private fun BackupSaleItem.toEntity() = SaleItemEntity(
@@ -288,5 +290,7 @@ private fun BackupSaleItem.toEntity() = SaleItemEntity(
     productCode = productCode,
     productName = productName,
     unitPrice = unitPrice,
-    quantity = quantity
+    quantity = quantity,
+    discountType = discountType,
+    discountValue = discountValue
 )

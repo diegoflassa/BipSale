@@ -167,7 +167,7 @@ apache-poi = "5.5.1"
 androidx-print = "1.1.0"
 
 # Image
-androidx-exifinterface = "1.4.1"
+androidx-exifinterface = "1.4.2"
 
 
 #Plugins
@@ -186,6 +186,7 @@ com-google-devtools-ksp = "2.3.3"
 android-gradle-plugin-library = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 kotlin-gradle-plugin-library = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 ksp-gradle-plugin-library = { module = "com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin", version.ref = "com-google-devtools-ksp" }
+detekt-gradle-plugin-library = { module = "io.gitlab.arturbosch.detekt:detekt-gradle-plugin", version.ref = "arturbosch-detekt" }
 
 #Project build.gradle
 google-services-library = { module = "com.google.gms:google-services", version.ref = "google-services" }

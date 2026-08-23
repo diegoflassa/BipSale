@@ -25,7 +25,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
+import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.core.ui.util.UiText
 import dev.diegoflassa.bipsale.feature.products.components.ProductItem
@@ -52,6 +52,7 @@ import dev.diegoflassa.bipsale.feature.products.print.QrLabelPrinter
 fun ProductListScreen(
     onAddProduct: () -> Unit,
     onEditProduct: (String) -> Unit,
+    onBack: () -> Unit,
     viewModel: ProductViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -82,6 +83,7 @@ fun ProductListScreen(
         snackbarHostState = snackbarHostState,
         onAddProduct = onAddProduct,
         onEditProduct = onEditProduct,
+        onBack = onBack,
         onIntent = viewModel::onIntent
     )
 }
@@ -93,6 +95,7 @@ internal fun ProductListContent(
     snackbarHostState: SnackbarHostState,
     onAddProduct: () -> Unit,
     onEditProduct: (String) -> Unit,
+    onBack: () -> Unit,
     onIntent: (ProductContract.Intent) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -105,6 +108,7 @@ internal fun ProductListContent(
             ProductListTopBar(
                 state = state,
                 hasSelection = hasSelection,
+                onBack = onBack,
                 onIntent = onIntent
             )
         },
@@ -162,23 +166,23 @@ internal fun ProductListContent(
 private fun ProductListTopBar(
     state: ProductContract.State,
     hasSelection: Boolean,
+    onBack: () -> Unit,
     onIntent: (ProductContract.Intent) -> Unit
 ) {
-    TopAppBar(
-        title = {
-            Text(
-                if (hasSelection) {
-                    stringResource(
-                        R.string.products_selected_count,
-                        state.selectedProductCodes.size
-                    )
-                } else {
-                    stringResource(R.string.products_manage_title)
-                }
+    BipSaleTopAppBar(
+        title = if (hasSelection) {
+            stringResource(
+                R.string.products_selected_count,
+                state.selectedProductCodes.size
             )
+        } else {
+            stringResource(R.string.products_manage_title)
         },
-        navigationIcon = {
-            if (hasSelection) {
+        onBack = onBack,
+        navigationIcon = if (!hasSelection) {
+            null
+        } else {
+            {
                 IconButton(
                     onClick = { onIntent(ProductContract.Intent.ClearSelection) },
                     modifier = Modifier
@@ -319,6 +323,7 @@ private fun ProductListContentLoadingPreview() {
             snackbarHostState = SnackbarHostState(),
             onAddProduct = {},
             onEditProduct = {},
+            onBack = {},
             onIntent = {}
         )
     }
@@ -344,6 +349,7 @@ private fun ProductListContentEmptyPreview() {
             snackbarHostState = SnackbarHostState(),
             onAddProduct = {},
             onEditProduct = {},
+            onBack = {},
             onIntent = {}
         )
     }
@@ -372,6 +378,7 @@ private fun ProductListContentErrorPreview() {
             snackbarHostState = SnackbarHostState(),
             onAddProduct = {},
             onEditProduct = {},
+            onBack = {},
             onIntent = {}
         )
     }
@@ -397,6 +404,7 @@ private fun ProductListContentDataPreview() {
             snackbarHostState = SnackbarHostState(),
             onAddProduct = {},
             onEditProduct = {},
+            onBack = {},
             onIntent = {}
         )
     }
@@ -417,6 +425,7 @@ private fun ProductListContentDataDarkPreview() {
             snackbarHostState = SnackbarHostState(),
             onAddProduct = {},
             onEditProduct = {},
+            onBack = {},
             onIntent = {}
         )
     }
@@ -446,6 +455,7 @@ private fun ProductListContentSelectionPreview() {
             snackbarHostState = SnackbarHostState(),
             onAddProduct = {},
             onEditProduct = {},
+            onBack = {},
             onIntent = {}
         )
     }
@@ -507,6 +517,7 @@ private fun ProductListTopBarDefaultPreview() {
         ProductListTopBar(
             state = ProductContract.State(isLoading = false, products = previewProducts),
             hasSelection = false,
+            onBack = {},
             onIntent = {}
         )
     }
@@ -534,6 +545,7 @@ private fun ProductListTopBarSelectionPreview() {
                 selectedProductCodes = setOf("CT-A-RoS")
             ),
             hasSelection = true,
+            onBack = {},
             onIntent = {}
         )
     }

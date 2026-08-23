@@ -22,6 +22,7 @@ plugins {
     id("com.android.application")
     //alias(libs.plugins.com.google.devtools.ksp)
     id("com.google.devtools.ksp")
+    id("detekt-convention")
 }
 
 // Call the initialization method from Configuracoes.

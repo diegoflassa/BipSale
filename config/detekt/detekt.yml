@@ -2,12 +2,32 @@ complexity:
   ComplexCondition:
     active: true
     threshold: 5
+  CyclomaticComplexMethod:
+    active: true
+    # An MVI onIntent is one `when` over the intent hierarchy. Its complexity tracks the number of
+    # intents a screen has, not how tangled the code is, and architecture.md mandates that shape.
+    ignoreSingleWhenExpression: true
+  LongMethod:
+    active: true
+    # A Compose layout reads as one declarative block; splitting it purely to satisfy a line count
+    # produces indirection, not clarity. Still capped, so a genuinely sprawling screen is flagged.
+    threshold: 90
   LongParameterList:
     active: true
     # A stateless *ScreenContent takes its state, one callback per action, and a modifier.
     # INSTRUMENTED_TEST_STANDARD section 1 mandates exactly that shape, so counting those
     # parameters as a smell would flag the architecture the repo requires.
     ignoreAnnotated: [ 'Composable' ]
+  TooManyFunctions:
+    active: true
+    # A ViewModel decomposes its intents into one small private handler each, and previews are
+    # private too — both are the shape the repo wants, so neither should count against a budget.
+    ignorePrivate: true
+    ignoreOverridden: true
+    # A DAO is a query surface: every function is one statement, and there is nothing to extract.
+    thresholdInInterfaces: 20
+    thresholdInClasses: 15
+    thresholdInFiles: 15
 
 exceptions:
   TooGenericExceptionCaught:
@@ -19,8 +39,21 @@ naming:
     functionPattern: '[a-zA-Z][a-zA-Z0-9]*'
 
 style:
+  MagicNumber:
+    active: true
+    # A named top-level `val` (a theme colour, a layout constant) already *is* the well-named
+    # constant this rule asks for; flagging its initialiser asks for a constant holding a constant.
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
   MaxLineLength:
     active: false
+  ReturnCount:
+    active: true
+    # Guard clauses are the readable form of input validation (CORE_RULES section 5.1); counting
+    # them pushes toward nested ifs, which is the opposite of what the rule is for. A validating
+    # parser rejects one condition per early return, so the cap sits above that shape, not under it.
+    excludeGuardClauses: true
+    max: 5
   UnusedPrivateMember:
     active: true
     # @Preview functions are invoked by the Compose tooling, not by code, and PREVIEW_STANDARD

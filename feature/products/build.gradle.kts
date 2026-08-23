@@ -40,4 +40,18 @@ dependencies {
     // Common
     implementation(libs.ax.core.ktx)
     implementation(libs.ax.compose.ui.graphics)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.com.google.truth)
+    testImplementation(libs.org.jetbrains.kotlinx.coroutines.test)
+    testImplementation(libs.app.cash.turbine)
+
+    androidTestImplementation(platform(libs.ax.compose.bom))
+    androidTestImplementation(libs.junit)
+    androidTestImplementation(libs.ax.test.ext.junit.ktx)
+    androidTestImplementation(libs.ax.test.runner)
+    androidTestImplementation(libs.com.google.truth)
+    androidTestImplementation(libs.ax.compose.ui.test)
+    androidTestImplementation(libs.ax.compose.ui.test.junit4)
+    debugImplementation(libs.ax.compose.ui.test.manifest)
 }

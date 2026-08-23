@@ -15,4 +15,10 @@
     <string name="history_back">Volver</string>
     <string name="history_items_title">Artículos de la venta</string>
     <string name="history_item_quantity">Cant.: %1$d x R$ %2$.2f</string>
+    <string name="history_load_failed">No se pudieron cargar las ventas</string>
+    <string name="history_empty">Ninguna venta registrada</string>
+    <string name="history_export_failed">No se pudo guardar el archivo</string>
+    <string name="history_export_success">Archivo guardado con %1$d ventas</string>
+    <string name="history_export_empty">No hay ventas para exportar</string>
+    <string name="history_export_cancelled">Exportación cancelada</string>
 </resources>

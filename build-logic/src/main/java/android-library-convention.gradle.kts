@@ -9,6 +9,7 @@ plugins {
     // id("org.jetbrains.kotlin.parcelize")
     //alias(libs.plugins.com.google.devtools.ksp)
     id("com.google.devtools.ksp")
+    id("detekt-convention")
 }
 
 // Access the Android Library extension using the new API interface

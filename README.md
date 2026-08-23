@@ -7,9 +7,10 @@ BipSale é um aplicativo Android modularizado projetado para facilitar vendas r�
 - **Leitura de QR Code** — Scan rápido de preços via câmera com CameraX
 - **Adição Manual de Produtos** — Interface simplificada para cadastro rápido
 - **Imagem do Produto** — Upload de foto do produto via galeria, exibida na lista e no cadastro
+- **Desconto por Item** — Desconto percentual ou fixo por linha do carrinho, com preço original riscado
 - **Desconto PIX Configurável** — Aplicar descontos dinâmicos por operação de venda
 - **Histórico de Transações** — Rastreabilidade completa com busca e filtros
-- **Exportação para Excel** — Relatórios em `.xlsx` via Apache POI
+- **Exportação para Excel** — Relatórios em `.xlsx` via Apache POI, salvos onde o usuário escolher (Google Drive, Downloads, etc.)
 - **Backup e Restauração** — Salvar produtos, vendas e imagens em um único arquivo .zip no Google Drive ou no aparelho, compartilhar, e restaurar com confirmação que mostra o conteúdo do arquivo antes de substituir os dados
 - **Funcionamento 100% Offline** — Operação completa sem conexão, com sincronização posterior
 - **Geração de QR Code** — Criar e imprimir QR codes com nome do produto e preço
@@ -154,10 +155,10 @@ Relatório: `build/reports/kover/html/index.html`
 4. Suporte a múltiplas variações por produto
 
 ### Exportação de Dados
-1. Seleção de período de transações no histórico
-2. Geração de relatório em Excel (Apache POI)
-3. Colunas: Data, Produto, Quantidade, Preço, Desconto, Total
-4. Arquivo salvo em storage externo para compartilhamento
+1. Selecione vendas no histórico ou exporte todas pela tela de exportação
+2. O sistema abre o seletor de documentos do Android para escolher o destino
+3. Geração de relatório em Excel (Apache POI) com colunas: Data, Produto, Quantidade, Preço, Desconto, Total
+4. Feedback via Snackbar: sucesso (com contagem), falha, dados vazios ou cancelamento
 
 ## 🛠️ Desenvolvimento
 
@@ -181,7 +182,7 @@ Relatório: `build/reports/kover/html/index.html`
 
 ### Padrões Obrigatórios
 
-- **Strings:** Sempre em `res/strings.xml` — suporte a PT, EN, ES
+- **Strings:** Sempre em `res/strings.xml` — suporte a PT, EN, ES, DE
 - **Cores/Temas:** Usar `BipSaleTheme` tokens — nunca hardcoded
 - **Logging:** `Timber.d()`, `Timber.e()` com tags descritivas
 - **IO:** `DocumentFile` + `runCatching` para storage externo
@@ -221,9 +222,10 @@ Para versões detalhadas, ver `gradle/libs.versions.toml`.
 - Aumente iluminação ambiente
 
 **Exportação Excel falha:**
-- Verifique permissão `WRITE_EXTERNAL_STORAGE`
+- O app abre o seletor de documentos do sistema — escolha um local acessível (Downloads, Drive)
 - Garanta espaço livre no dispositivo
-- Logs via Timber para diagnosticar
+- Se aparecer "Nenhuma venda para exportar", registre vendas primeiro
+- Logs via Timber (`[BipSale][Export]`) para diagnosticar
 
 **Sync offline não funciona:**
 - Verifique conectividade (Airplane Mode desligado)

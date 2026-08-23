@@ -58,7 +58,8 @@ private fun NavGraphBuilder.salesGraph(navController: NavHostController) {
             customerName = arguments?.getString("name").orEmpty(),
             customerCpf = arguments?.getString("cpf").orEmpty(),
             isAnonymous = arguments?.getString("anon")?.toBoolean() ?: false,
-            onFinish = { navController.popBackStack() }
+            onFinish = { navController.popBackStack() },
+            onBack = { navController.popBackStack() }
         )
     }
 }
@@ -67,7 +68,8 @@ private fun NavGraphBuilder.productsGraph(navController: NavHostController) {
     composable<Screen.ManageProducts> {
         ProductListScreen(
             onAddProduct = { navController.navigate(Screen.ProductDetail(null)) },
-            onEditProduct = { code -> navController.navigate(Screen.ProductDetail(code)) }
+            onEditProduct = { code -> navController.navigate(Screen.ProductDetail(code)) },
+            onBack = { navController.popBackStack() }
         )
     }
 
@@ -83,7 +85,8 @@ private fun NavGraphBuilder.productsGraph(navController: NavHostController) {
 private fun NavGraphBuilder.historyGraph(navController: NavHostController) {
     composable<Screen.History> {
         HistoryScreen(
-            onSaleClick = { id -> navController.navigate(Screen.SaleDetail(id)) }
+            onSaleClick = { id -> navController.navigate(Screen.SaleDetail(id)) },
+            onBack = { navController.popBackStack() }
         )
     }
 

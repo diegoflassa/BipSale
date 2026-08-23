@@ -3,6 +3,7 @@ package dev.diegoflassa.bipsale.core.domain.usecase
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.domain.model.saleTotals
 import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
 import java.util.UUID
 import javax.inject.Inject
@@ -18,16 +19,15 @@ class FinalizeSaleUseCase @Inject constructor(
         paymentMethod: PaymentMethod
     ): Result<Sale> = runCatching {
         require(items.isNotEmpty()) { "Cannot finalize a sale with no items." }
+        val totals = saleTotals(items, discountPercentage)
         val saleId = UUID.randomUUID().toString()
-        val total = items.sumOf { it.unitPrice * it.quantity }
-        val finalAmount = total - total * (discountPercentage / 100.0)
         val sale = Sale(
             id = saleId,
             customerName = customerName,
             customerCpf = customerCpf,
-            totalAmount = total,
+            totalAmount = totals.grossAmount,
             discountPercentage = discountPercentage,
-            finalAmount = finalAmount,
+            finalAmount = totals.finalAmount,
             paymentMethod = paymentMethod,
             date = System.currentTimeMillis(),
             items = items.map { it.copy(saleId = saleId) }

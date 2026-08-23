@@ -15,4 +15,10 @@
     <string name="history_back">Back</string>
     <string name="history_items_title">Sale Items</string>
     <string name="history_item_quantity">Qty: %1$d x R$ %2$.2f</string>
+    <string name="history_load_failed">Could not load the sales</string>
+    <string name="history_empty">No sales recorded</string>
+    <string name="history_export_failed">Could not save the file</string>
+    <string name="history_export_success">File saved with %1$d sales</string>
+    <string name="history_export_empty">No sales to export</string>
+    <string name="history_export_cancelled">Export cancelled</string>
 </resources>

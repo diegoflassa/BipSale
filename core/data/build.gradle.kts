@@ -39,7 +39,12 @@ dependencies {
     // Common
     implementation(libs.ax.core.ktx)
     implementation(project(":core:domain"))
+    implementation(project(":core:utils"))
     implementation(libs.com.jakewharton.timber)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.com.google.truth)
+    testImplementation(libs.org.jetbrains.kotlinx.coroutines.test)
 
     androidTestImplementation(libs.junit)
     androidTestImplementation(libs.ax.test.ext.junit.ktx)

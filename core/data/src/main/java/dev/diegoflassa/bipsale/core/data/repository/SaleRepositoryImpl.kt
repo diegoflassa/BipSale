@@ -25,7 +25,27 @@ class SaleRepositoryImpl @Inject constructor(
             .getOrNull()
 
     override suspend fun insertFullSale(sale: Sale) {
-        saleDao.insertFullSale(sale.toEntity(), sale.items.map { it.toEntity() })
+        // The customer fields never reach the log: id, counts and total are what reconciles a sale
+        // that failed at a terminal, and none of them identify anybody (CORE_RULES section 8.3).
+        Timber.d(
+            "[BipSale][Sale][CHECKOUT] Persisting sale id=%s items=%d total=%.2f final=%.2f",
+            sale.id, sale.items.size, sale.totalAmount, sale.finalAmount
+        )
+        runCatching { saleDao.insertFullSale(sale.toEntity(), sale.items.map { it.toEntity() }) }
+            .onSuccess {
+                Timber.i(
+                    "[BipSale][Sale][CHECKOUT] Sale persisted id=%s items=%d final=%.2f",
+                    sale.id, sale.items.size, sale.finalAmount
+                )
+            }
+            .onFailure { throwable ->
+                Timber.e(
+                    throwable,
+                    "[BipSale][Sale][CHECKOUT] Persisting sale failed id=%s items=%d final=%.2f",
+                    sale.id, sale.items.size, sale.finalAmount
+                )
+                throw throwable
+            }
     }
 
     override fun searchSales(query: String): Flow<List<Sale>> =
