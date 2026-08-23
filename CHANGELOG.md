@@ -12,6 +12,29 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 ## Unreleased
 
+- Product photos expand to full size on tap, everywhere they appear — product list, product form, cart lines and the product sheet
+- The PIX QR code expands to full screen on tap, for a phone that will not read the inline one across a counter
+- Fixed the PIX QR disappearing the instant a sale was finalized: the screen now holds the code until the operator confirms the payment came through
+- A recorded PIX sale can have its code shown again from the history list, rebuilt from the amount that sale actually charged
+- When PIX is picked but not fully set up, the card in the QR's place names the fields that are still empty instead of saying "not configured"
+- QR labels print the product name at 13 pt and the price at 17 pt, up from 9 and 12, with the name free to wrap to as many lines as the cell can hold above a still-scannable code
+- Label spacing above and below the QR is now provably equal, and half what it was — the reserved name block that caused the gap is gone
+- The customer identification screen is optional: turned off, a sale opens straight on the cart and is recorded as anonymous
+- The product picker shows the same card as the product list — photo, code, stock and price — instead of a bare name row
+- Every input field carries a format hint, including the PIX city (city name only, max 15 characters — no state)
+- Products carry a stock quantity, shown on every row and zeroed rows flagged in the error colour
+- A finalized sale decrements the stock of every product it sold, in the same database transaction as the sale itself
+- QR label runs print one label per unit on hand instead of one per product, with a floor of one so an unstocked catalogue still prints
+- The payment method now starts on "select" instead of defaulting to PIX, and a sale cannot be finalized until one is chosen
+- New Settings screen: the PIX key, the payee name and city, and a default PIX discount by percentage or by fixed amount
+- Choosing PIX at checkout applies the configured default discount, but only when no discount was typed by hand
+- Choosing PIX shows a QR code carrying the sale total, so the customer confirms a pre-filled amount instead of typing one; with no key configured the screen says so rather than showing a QR nobody can pay
+- The PIX QR follows the cart: any line, discount or quantity change rebuilds the payload from the new total
+- Cart lines show the product photo, and tapping one opens a read-only product sheet with its price, quantity, line total and stock, plus a shortcut to the line discount
+- Products can be registered in bulk: download an .xlsx template, fill it in, and import it — a bad row is reported by its spreadsheet row number while the good rows still import
+- Product photos are attached per product after an import, since a spreadsheet cannot carry them
+- Backup and restore now carry the app settings and the stock quantity, both defaulted so an older archive still restores
+- Fixed the backup summary card wrapping to its widest line instead of filling the content width, which left it visibly narrower than the buttons above it
 - The exported report now ends in a TOTAIS row and carries a Resumo sheet: period, sale count, units sold, average ticket, gross, discounts, net revenue and the take per payment method
 - The export logs the totals it wrote and the take per payment method, so a report an operator disputes can be checked against a log capture
 - The Excel export now carries the sale date, the sale id, the quantity sold, the per-line discount and the line total, none of which it exported before

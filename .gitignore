@@ -32,3 +32,7 @@ version.properties
 # Logs / heap dumps
 *.log
 *.hprof
+
+# AI
+conductor/plannings
+conductor/knowledge/KI-TBD.md

@@ -101,6 +101,8 @@ dependencies {
 
     //Compose Testing
     androidTestImplementation(platform(libs.ax.compose.bom))
+    androidTestImplementation(libs.com.google.truth)
+    androidTestImplementation(libs.ax.test.runner)
     androidTestImplementation(libs.ax.compose.ui.test)
     androidTestImplementation(libs.ax.compose.ui.test.junit4)
     androidTestImplementation(libs.org.mockito.android)

@@ -5,7 +5,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.domain.pix.PixPayload
 import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.ExportSalesUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.NoSalesToExport
 import dev.diegoflassa.bipsale.core.ui.util.UiText
@@ -27,8 +30,12 @@ import javax.inject.Inject
 @HiltViewModel
 class HistoryViewModel @Inject constructor(
     private val saleRepository: SaleRepository,
-    private val exportSales: ExportSalesUseCase
+    private val exportSales: ExportSalesUseCase,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
+
+    /** Read once; rebuilding a recorded sale's code must not wait on a settings read per tap. */
+    private var settings: AppSettings = AppSettings.EMPTY
 
     private val _uiState = MutableStateFlow(HistoryContract.State())
     val uiState: StateFlow<HistoryContract.State> = _uiState.asStateFlow()
@@ -48,6 +55,11 @@ class HistoryViewModel @Inject constructor(
 
     init {
         onIntent(HistoryContract.Intent.RefreshSales)
+        viewModelScope.launch {
+            settings = runCatching { settingsRepository.current() }
+                .onFailure { Timber.e(it, "[BipSale][History] Loading settings failed") }
+                .getOrDefault(AppSettings.EMPTY)
+        }
     }
 
     fun onIntent(intent: HistoryContract.Intent) {
@@ -60,6 +72,11 @@ class HistoryViewModel @Inject constructor(
             is HistoryContract.Intent.ExportRequested -> requestExport(intent.scope)
             is HistoryContract.Intent.ExportDestinationChosen -> export(intent.destinationUri)
             is HistoryContract.Intent.ExportCancelled -> cancelExport()
+            is HistoryContract.Intent.ShowSalePix -> showSalePix(intent.saleId)
+            is HistoryContract.Intent.HideSalePix ->
+                _uiState.update {
+                    it.copy(pixSaleId = null, pixPayload = null, missingPixFields = emptyList())
+                }
         }
     }
 
@@ -97,6 +114,40 @@ class HistoryViewModel @Inject constructor(
                     Timber.d("[BipSale][History] Sales emitted count=%d", sales.size)
                     _uiState.update { it.copy(sales = sales, isLoading = false) }
                 }
+        }
+    }
+
+    /**
+     * Rebuilds the code from the sale's recorded total rather than from anything cached, so a
+     * customer who left without paying scans the same amount that was rung up.
+     */
+    private fun showSalePix(saleId: String) {
+        val sale = _uiState.value.sales.firstOrNull { it.id == saleId }
+        if (sale == null) {
+            Timber.w("[BipSale][History] PIX requested for a sale not in the list")
+            return
+        }
+        val missing = settings.missingPixFields()
+        val payload = if (settings.isPixConfigured) {
+            runCatching {
+                PixPayload.build(
+                    pixKey = settings.pixKey,
+                    merchantName = settings.pixMerchantName,
+                    merchantCity = settings.pixMerchantCity,
+                    amount = sale.finalAmount
+                )
+            }.onFailure {
+                Timber.e(it, "[BipSale][History] Rebuilding the PIX payload failed")
+            }.getOrNull()
+        } else {
+            null
+        }
+        Timber.d(
+            "[BipSale][History] Showing PIX for a recorded sale total=%.2f ready=%b",
+            sale.finalAmount, payload != null
+        )
+        _uiState.update {
+            it.copy(pixSaleId = saleId, pixPayload = payload, missingPixFields = missing)
         }
     }
 

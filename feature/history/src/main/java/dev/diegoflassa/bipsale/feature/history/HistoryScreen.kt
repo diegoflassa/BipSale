@@ -18,7 +18,9 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +29,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +45,9 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
+import dev.diegoflassa.bipsale.core.domain.settings.PixField
+import dev.diegoflassa.bipsale.core.qrcode.components.PixNotConfiguredCard
+import dev.diegoflassa.bipsale.core.qrcode.components.PixQrCard
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.history.components.SaleHistoryItem
@@ -79,6 +85,14 @@ fun HistoryScreen(
                     createLauncher.launch(effect.suggestedFileName)
             }
         }
+    }
+
+    if (uiState.isShowingPix) {
+        SalePixDialog(
+            payload = uiState.pixPayload,
+            missingFields = uiState.missingPixFields,
+            onDismiss = { viewModel.onIntent(HistoryContract.Intent.HideSalePix) }
+        )
     }
 
     HistoryScreenContent(
@@ -192,6 +206,35 @@ internal fun HistoryScreenContent(
     }
 }
 
+/**
+ * The PIX code for a sale that is already recorded — a customer who walked off without paying can
+ * still be handed the same amount to scan.
+ */
+@Composable
+private fun SalePixDialog(
+    payload: String?,
+    missingFields: List<PixField>,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        modifier = Modifier.testTag(HistoryScreenTestTags.PIX_DIALOG),
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.history_pix_title)) },
+        text = {
+            if (payload != null) {
+                PixQrCard(payload = payload)
+            } else {
+                PixNotConfiguredCard(missingFields = missingFields)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(R.string.history_pix_close))
+            }
+        }
+    )
+}
+
 @Composable
 private fun EmptyHistory() {
     Box(
@@ -235,6 +278,11 @@ private fun SalesList(
                 },
                 onLongClick = {
                     onIntent(HistoryContract.Intent.ToggleSaleSelection(sale.id))
+                },
+                onShowPix = if (sale.paymentMethod == PaymentMethod.PIX) {
+                    { onIntent(HistoryContract.Intent.ShowSalePix(sale.id)) }
+                } else {
+                    null
                 },
                 modifier = Modifier.testTag(HistoryScreenTestTags.saleRow(sale.id))
             )

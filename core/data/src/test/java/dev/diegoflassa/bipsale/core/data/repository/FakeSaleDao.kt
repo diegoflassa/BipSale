@@ -19,6 +19,13 @@ class FakeSaleDao(
     val sales = initial.map { it.sale }.toMutableList()
     val items = initial.flatMap { it.items }.toMutableList()
 
+    /** Units taken off each product code, so a test can assert stock moved with the sale. */
+    val stockTaken = mutableMapOf<String, Int>()
+
+    override suspend fun decrementProductStock(code: String, soldUnits: Int) {
+        stockTaken[code] = (stockTaken[code] ?: 0) + soldUnits
+    }
+
     private fun assemble(sale: SaleEntity) =
         SaleWithItems(sale, items.filter { it.saleId == sale.id })
 

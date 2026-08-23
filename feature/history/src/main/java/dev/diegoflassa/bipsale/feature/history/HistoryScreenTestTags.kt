@@ -8,6 +8,9 @@ object HistoryScreenTestTags {
     const val EMPTY = "history_empty"
     const val CLEAR_SELECTION_BUTTON = "history_clear_selection_button"
     const val EXPORT_SELECTED_BUTTON = "history_export_selected_button"
+    const val PIX_DIALOG = "history_pix_dialog"
+
+    fun pixButton(id: String) = "history_pix_button_$id"
 
     fun saleRow(id: String) = "history_row_$id"
 }

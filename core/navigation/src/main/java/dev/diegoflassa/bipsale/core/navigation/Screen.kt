@@ -22,6 +22,9 @@ sealed interface Screen {
     data object Backup : Screen
 
     @Serializable
+    data object Settings : Screen
+
+    @Serializable
     data class ProductDetail(val productCode: String?) : Screen
 
     @Serializable

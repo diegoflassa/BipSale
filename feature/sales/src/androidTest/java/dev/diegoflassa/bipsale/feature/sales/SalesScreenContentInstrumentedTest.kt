@@ -71,6 +71,7 @@ class SalesScreenContentInstrumentedTest {
         val removed = mutableListOf<String>()
         val discounted = mutableListOf<String>()
         val paymentMethods = mutableListOf<PaymentMethod>()
+        val detailed = mutableListOf<String>()
     }
 
     private fun render(state: SalesContract.State): Recorder {
@@ -88,6 +89,7 @@ class SalesScreenContentInstrumentedTest {
                     onDiscountItem = { recorder.discounted += it },
                     onSaleDiscountClick = { recorder.saleDiscount++ },
                     onPaymentMethodChange = { recorder.paymentMethods += it },
+                    onShowDetail = { recorder.detailed += it },
                     onFinalize = { recorder.finalize++ }
                 )
             }
@@ -110,10 +112,24 @@ class SalesScreenContentInstrumentedTest {
     }
 
     @Test
-    fun aCartWithItemsCanBeFinalized() {
-        render(SalesContract.State(items = listOf(cafe), totalAmount = 25.0, finalAmount = 25.0))
+    fun aCartWithItemsAndAPaymentMethodCanBeFinalized() {
+        render(
+            SalesContract.State(
+                items = listOf(cafe),
+                totalAmount = 25.0,
+                finalAmount = 25.0,
+                paymentMethod = PaymentMethod.CASH
+            )
+        )
 
         composeRule.onNodeWithTag(SalesScreenTestTags.FINALIZE_BUTTON).assertIsEnabled()
+    }
+
+    @Test
+    fun aCartWithNoPaymentMethodCannotBeFinalized() {
+        render(SalesContract.State(items = listOf(cafe), totalAmount = 25.0, finalAmount = 25.0))
+
+        composeRule.onNodeWithTag(SalesScreenTestTags.FINALIZE_BUTTON).assertIsNotEnabled()
     }
 
     @Test
@@ -231,7 +247,12 @@ class SalesScreenContentInstrumentedTest {
     @Test
     fun finalizingReportsItsClick() {
         val recorder = render(
-            SalesContract.State(items = listOf(cafe), totalAmount = 25.0, finalAmount = 25.0)
+            SalesContract.State(
+                items = listOf(cafe),
+                totalAmount = 25.0,
+                finalAmount = 25.0,
+                paymentMethod = PaymentMethod.CASH
+            )
         )
 
         composeRule.onNodeWithTag(SalesScreenTestTags.FINALIZE_BUTTON).performClick()

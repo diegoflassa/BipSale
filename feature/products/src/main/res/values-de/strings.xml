@@ -25,12 +25,25 @@
     <string name="products_print_selected">Auswahl drucken</string>
     <string name="products_add_product">Produkt hinzufügen</string>
     <string name="products_delete">Löschen</string>
-    <string name="products_product_image">Produktbild</string>
     <string name="products_print_all_qr_codes">QR-Codes drucken</string>
     <string name="products_no_products_to_print">Keine Produkte zum Drucken</string>
     <string name="products_qr_labels_title">QR-Code-Etiketten</string>
     <string name="products_image_save_failed">Das Bild konnte nicht gespeichert werden</string>
-    <string name="products_product_placeholder">Kein Bild</string>
     <string name="products_empty_state">Noch keine Produkte. Tippe auf +, um das erste anzulegen.</string>
     <string name="products_generic_error">Es ist ein unerwarteter Fehler aufgetreten</string>
+    <string name="products_quantity_label">Lagerbestand</string>
+    <string name="products_quantity_invalid">Gültige Menge eingeben</string>
+    <string name="products_stock_format">Bestand: %1$d</string>
+    <string name="products_more_actions">Weitere Aktionen</string>
+    <string name="products_download_template">Tabellenvorlage herunterladen</string>
+    <string name="products_import">Produkte importieren</string>
+    <string name="products_template_saved">Vorlage gespeichert</string>
+    <string name="products_template_failed">Vorlage konnte nicht gespeichert werden</string>
+    <string name="products_import_success">%1$d Produkte importiert</string>
+    <string name="products_import_partial">%1$d Produkte importiert, %2$d Zeilen übersprungen</string>
+    <string name="products_import_empty">Keine gültigen Produkte in der Tabelle</string>
+    <string name="products_import_failed">Tabelle konnte nicht importiert werden</string>
+    <string name="products_name_hint">Wie das Produkt auf dem Etikett und im Warenkorb erscheint</string>
+    <string name="products_price_hint">Komma oder Punkt möglich. Z. B. 12,50</string>
+    <string name="products_quantity_hint">Einheiten auf Lager. Legt auch fest, wie viele Etiketten gedruckt werden</string>
 </resources>

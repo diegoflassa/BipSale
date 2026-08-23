@@ -54,4 +54,22 @@
     <string name="sales_manual_code_confirm">Hinzufügen</string>
     <string name="sales_item_discounts_label">Artikelrabatte:</string>
     <string name="sales_quantity_format">%1$d x R$ %2$.2f</string>
+    <string name="sales_payment_method_required">Zahlungsart wählen</string>
+    <string name="sales_payment_method_select">Auswählen</string>
+    <string name="sales_pix_not_configured">PIX-Schlüssel in den Einstellungen hinterlegen</string>
+    <string name="sales_product_detail_title">Produktdetails</string>
+    <string name="sales_product_stock">Bestand: %1$d</string>
+    <string name="sales_product_detail_close">Schließen</string>
+    <string name="sales_product_detail_discount">Rabatt anwenden</string>
+    <string name="sales_code_prefix">Code: %1$s</string>
+    <string name="sales_unit_price_label">Stückpreis</string>
+    <string name="sales_quantity_label">Menge</string>
+    <string name="sales_line_total_label">Positionssumme</string>
+    <string name="sales_currency">R$ %1$.2f</string>
+    <string name="sales_completed_pix_title">Verkauf erfasst</string>
+    <string name="sales_completed_pix_done">Fertig</string>
+    <string name="sales_customer_name_hint">Optional. Vollständiger Name des Kunden</string>
+    <string name="sales_customer_cpf_hint">Optional. Nur Ziffern oder 000.000.000-00</string>
+    <string name="sales_manual_code_format">Derselbe Code, der auf dem Produktetikett steht</string>
+    <string name="sales_discount_percent_format">0 bis 100. Z. B. 10 für 10 % Rabatt</string>
 </resources>

@@ -19,9 +19,13 @@ import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.sales.R
 
+/**
+ * Opens on "select" rather than on a guess. A pre-picked method is the one nobody looks at, and a
+ * sale filed under the wrong one cannot be reconciled against the drawer or the card statement.
+ */
 @Composable
 fun PaymentMethodDropdown(
-    selectedMethod: PaymentMethod,
+    selectedMethod: PaymentMethod?,
     onMethodSelected: (PaymentMethod) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -29,7 +33,7 @@ fun PaymentMethodDropdown(
 
     Box(modifier = modifier) {
         OutlinedButton(onClick = { expanded = true }) {
-            Text(stringResource(selectedMethod.labelRes()))
+            Text(stringResource(selectedMethod?.labelRes() ?: R.string.sales_payment_method_select))
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             PaymentMethod.entries.forEach { method ->

@@ -1,7 +1,7 @@
 # KI-05: Product Images & QR Label Printing
 
 **Scope:** `:feature:products`, `:core:qrcode`, `core/data/image/`, `core/domain/image/`
-**Last verified:** 2026-08-22
+**Last verified:** 2026-08-23
 
 ## Problem
 

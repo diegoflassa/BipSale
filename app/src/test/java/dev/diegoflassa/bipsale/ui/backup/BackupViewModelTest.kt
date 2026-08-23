@@ -10,11 +10,13 @@ import dev.diegoflassa.bipsale.core.domain.usecase.CreateBackupUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.InspectBackupUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.RestoreBackupUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.ShareBackupUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class BackupViewModelTest {
 
     @get:Rule

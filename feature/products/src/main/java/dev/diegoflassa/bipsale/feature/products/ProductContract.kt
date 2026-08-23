@@ -16,7 +16,9 @@ class ProductContract {
         val name: String,
         val priceFormatted: String,
         val imagePath: String?,
-        val label: LabelData
+        val label: LabelData,
+        /** Units on hand. Also how many labels a print run produces for this product. */
+        val quantity: Int
     )
 
     @Immutable
@@ -28,10 +30,17 @@ class ProductContract {
         val editor: Editor = Editor()
     ) {
         val selectedLabels: List<LabelData>
-            get() = products.filter { it.code in selectedProductCodes }.map { it.label }
+            get() = products.filter { it.code in selectedProductCodes }.flatMap { it.printRun() }
 
         val allLabels: List<LabelData>
-            get() = products.map { it.label }
+            get() = products.flatMap { it.printRun() }
+
+        /**
+         * One label per unit on hand, so a shelf of eight gets eight tags in one run. A product
+         * with no stock still gets one — otherwise "print all" silently produces an empty job.
+         */
+        private fun ProductUiModel.printRun(): List<LabelData> =
+            List(quantity.coerceAtLeast(1)) { label }
     }
 
     /** Edit-screen form state. Lives here so a test can drive the screen from one value. */
@@ -40,6 +49,7 @@ class ProductContract {
         val code: String = "",
         val name: String = "",
         val priceInput: String = "",
+        val quantityInput: String = "",
         val imagePath: String? = null,
         val imageFileName: String? = null,
         val isSaving: Boolean = false,
@@ -56,6 +66,7 @@ class ProductContract {
         data class CodeChanged(val value: String) : Intent
         data class NameChanged(val value: String) : Intent
         data class PriceChanged(val value: String) : Intent
+        data class QuantityChanged(val value: String) : Intent
         data class ImagePicked(val uri: String) : Intent
         data object SaveProduct : Intent
         data class DeleteProduct(val code: String) : Intent
@@ -66,11 +77,19 @@ class ProductContract {
         data object PrintEditorLabel : Intent
         data object ShowLabelPreview : Intent
         data object HideLabelPreview : Intent
+
+        /** Asks for a destination; nothing is written until one comes back. */
+        data object DownloadTemplateRequested : Intent
+        data class TemplateDestinationChosen(val destinationUri: String) : Intent
+        data object ImportRequested : Intent
+        data class ImportSourceChosen(val sourceUri: String) : Intent
     }
 
     sealed interface Effect {
         data object NavigationBack : Effect
         data class ShowSnackbar(val message: UiText) : Effect
         data class PrintLabels(val labels: List<LabelData>) : Effect
+        data class PickTemplateDestination(val suggestedFileName: String) : Effect
+        data object PickImportSource : Effect
     }
 }

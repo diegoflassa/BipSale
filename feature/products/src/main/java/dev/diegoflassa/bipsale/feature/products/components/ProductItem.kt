@@ -28,6 +28,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
+import dev.diegoflassa.bipsale.core.ui.components.ProductThumbnail
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.products.ProductContract
 import dev.diegoflassa.bipsale.feature.products.ProductListScreenTestTags
@@ -88,6 +89,15 @@ fun ProductItem(
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
+                Text(
+                    text = stringResource(R.string.products_stock_format, product.quantity),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = if (product.quantity == 0) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
             }
 
             if (isSelected) {
@@ -122,7 +132,8 @@ private val previewProductCoffee = ProductContract.ProductUiModel(
     name = "Café Premium 200ml",
     priceFormatted = "R$ 12,50",
     imagePath = null,
-    label = LabelData("bipsale://product?code=7891000100103", "Café Premium 200ml", "R$ 12,50")
+    label = LabelData("bipsale://product?code=7891000100103", "Café Premium 200ml", "R$ 12,50"),
+    quantity = 8
 )
 
 private val previewProductLongName = ProductContract.ProductUiModel(
@@ -130,7 +141,8 @@ private val previewProductLongName = ProductContract.ProductUiModel(
     name = "Padaria e Confeitaria Gourmet do Centro - Combo Especial de Fim de Semana",
     priceFormatted = "R$ 45,90",
     imagePath = null,
-    label = LabelData("bipsale://product?code=7891000100202", "Combo Especial", "R$ 45,90")
+    label = LabelData("bipsale://product?code=7891000100202", "Combo Especial", "R$ 45,90"),
+    quantity = 0
 )
 
 @Preview(

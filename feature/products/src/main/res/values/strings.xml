@@ -25,12 +25,25 @@
     <string name="products_print_selected">Imprimir selecionados</string>
     <string name="products_add_product">Adicionar produto</string>
     <string name="products_delete">Excluir</string>
-    <string name="products_product_image">Imagem do produto</string>
     <string name="products_print_all_qr_codes">Imprimir QR Codes</string>
     <string name="products_no_products_to_print">Nenhum produto para imprimir</string>
     <string name="products_qr_labels_title">Etiquetas QR Code</string>
     <string name="products_image_save_failed">Falha ao salvar imagem</string>
-    <string name="products_product_placeholder">Sem imagem</string>
     <string name="products_empty_state">Nenhum produto cadastrado. Toque em + para adicionar o primeiro.</string>
     <string name="products_generic_error">Ocorreu um erro inesperado</string>
+    <string name="products_quantity_label">Quantidade em estoque</string>
+    <string name="products_quantity_invalid">Informe uma quantidade válida</string>
+    <string name="products_stock_format">Estoque: %1$d</string>
+    <string name="products_more_actions">Mais ações</string>
+    <string name="products_download_template">Baixar modelo de planilha</string>
+    <string name="products_import">Importar produtos</string>
+    <string name="products_template_saved">Modelo salvo</string>
+    <string name="products_template_failed">Não foi possível salvar o modelo</string>
+    <string name="products_import_success">%1$d produtos importados</string>
+    <string name="products_import_partial">%1$d produtos importados, %2$d linhas ignoradas</string>
+    <string name="products_import_empty">Nenhum produto válido na planilha</string>
+    <string name="products_import_failed">Não foi possível importar a planilha</string>
+    <string name="products_name_hint">Como o produto aparece na etiqueta e no carrinho</string>
+    <string name="products_price_hint">Use vírgula ou ponto. Ex.: 12,50</string>
+    <string name="products_quantity_hint">Unidades em estoque. Também define quantas etiquetas são impressas</string>
 </resources>

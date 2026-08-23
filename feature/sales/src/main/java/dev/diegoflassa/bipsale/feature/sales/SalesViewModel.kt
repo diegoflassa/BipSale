@@ -13,6 +13,10 @@ import dev.diegoflassa.bipsale.core.domain.usecase.AddProductByCodeUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.AddProductByQrUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.FinalizeSaleUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
+import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
+import dev.diegoflassa.bipsale.core.domain.pix.PixPayload
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.ui.util.UiText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -32,8 +36,13 @@ class SalesViewModel @Inject constructor(
     private val finalizeSaleUseCase: FinalizeSaleUseCase,
     private val addProductByQrUseCase: AddProductByQrUseCase,
     private val addProductByCodeUseCase: AddProductByCodeUseCase,
-    private val getProductsUseCase: GetProductsUseCase
+    private val getProductsUseCase: GetProductsUseCase,
+    private val settingsRepository: SettingsRepository,
+    private val productImageStore: ProductImageStore
 ) : ViewModel() {
+
+    /** Read once per sale; the checkout path must not wait on a settings read per keystroke. */
+    private var settings: AppSettings = AppSettings.EMPTY
 
     private val _uiState = MutableStateFlow(SalesContract.State())
     val uiState: StateFlow<SalesContract.State> = _uiState.asStateFlow()
@@ -43,6 +52,7 @@ class SalesViewModel @Inject constructor(
 
     init {
         loadCatalog()
+        loadSettings()
     }
 
     fun onIntent(intent: SalesContract.Intent) {
@@ -58,7 +68,28 @@ class SalesViewModel @Inject constructor(
 
             is SalesContract.Intent.UpdateDiscount -> updateDiscount(intent.percentage)
             is SalesContract.Intent.SelectPaymentMethod -> selectPaymentMethod(intent.method)
+            is SalesContract.Intent.ShowProductDetail ->
+                _uiState.update { it.copy(detailItemId = intent.itemId) }
+
+            is SalesContract.Intent.HideProductDetail ->
+                _uiState.update { it.copy(detailItemId = null) }
+
+            is SalesContract.Intent.PixPaymentAcknowledged -> acknowledgePixPayment()
             is SalesContract.Intent.FinalizeSale -> finalizeSale()
+        }
+    }
+
+    private fun loadSettings() {
+        viewModelScope.launch {
+            settings = runCatching { settingsRepository.current() }
+                .onFailure { Timber.e(it, "[BipSale][Sale] Loading settings failed") }
+                .getOrDefault(AppSettings.EMPTY)
+            Timber.d(
+                "[BipSale][Sale] Settings loaded pixConfigured=%b",
+                settings.isPixConfigured
+            )
+            // A method picked before the settings landed still gets its discount and its QR.
+            _uiState.value.paymentMethod?.let(::selectPaymentMethod)
         }
     }
 
@@ -160,28 +191,86 @@ class SalesViewModel @Inject constructor(
         )
     }
 
+    /**
+     * Picking PIX does two things beyond recording the method: it applies whatever default discount
+     * the operator configured, and it builds the payload the customer scans. Both are derived here
+     * rather than in the screen so the total shown and the total encoded cannot disagree.
+     */
     private fun selectPaymentMethod(method: PaymentMethod) {
-        _uiState.update { it.copy(paymentMethod = method) }
-        Timber.d("[BipSale][Sale][CHECKOUT] Payment method set to %s", method.serializedName)
+        val isPix = method == PaymentMethod.PIX
+        _uiState.update { state ->
+            val discounted = if (isPix) {
+                state.copy(paymentMethod = method).applyPixDiscount()
+            } else {
+                state.copy(paymentMethod = method, pixPayload = null, missingPixFields = emptyList())
+            }
+            discounted.withPixPayload(isPix)
+        }
+        Timber.d(
+            "[BipSale][Sale][CHECKOUT] Payment method set to %s total=%.2f pixReady=%b",
+            method.serializedName,
+            _uiState.value.finalAmount,
+            _uiState.value.pixPayload != null
+        )
+        if (isPix && !settings.isPixConfigured) {
+            Timber.w("[BipSale][Sale][CHECKOUT] PIX chosen with no key configured")
+        }
     }
 
+    /** The configured default only fills an empty sale discount; a typed one is never overwritten. */
+    private fun SalesContract.State.applyPixDiscount(): SalesContract.State {
+        val percent = (settings.pixDiscount as? ItemDiscount.Percentage)?.percent
+        if (percent == null || discountPercentage > 0.0) return this
+        Timber.d("[BipSale][Sale][CHECKOUT] Applying configured PIX discount percent=%.2f", percent)
+        return copy(discountPercentage = percent).recalculate()
+    }
+
+    private fun SalesContract.State.withPixPayload(isPix: Boolean): SalesContract.State {
+        if (!isPix) return this
+        val missing = settings.missingPixFields()
+        if (!settings.isPixConfigured) return copy(pixPayload = null, missingPixFields = missing)
+        val payload = runCatching {
+            PixPayload.build(
+                pixKey = settings.pixKey,
+                merchantName = settings.pixMerchantName,
+                merchantCity = settings.pixMerchantCity,
+                amount = finalAmount
+            )
+        }.onFailure {
+            Timber.e(it, "[BipSale][Sale][CHECKOUT] Building the PIX payload failed")
+        }.getOrNull()
+        return copy(pixPayload = payload, missingPixFields = missing)
+    }
+
+    /**
+     * A PIX payload encodes the amount, so the payload is rebuilt here rather than at the call
+     * sites: every cart change already goes through this, and a QR left showing the pre-change
+     * total is a customer underpaying by exactly the difference.
+     */
     private fun SalesContract.State.recalculate(): SalesContract.State {
         val totals = saleTotals(items, discountPercentage)
         return copy(
             totalAmount = totals.grossAmount,
             itemDiscountAmount = totals.itemDiscountAmount,
             finalAmount = totals.finalAmount
-        )
+        ).withPixPayload(paymentMethod == PaymentMethod.PIX)
     }
 
     private fun finalizeSale() {
         val state = _uiState.value
+        val method = state.paymentMethod
+        if (method == null) {
+            // canFinalize already gates the button; this covers an intent arriving any other way.
+            Timber.w("[BipSale][Sale][CHECKOUT] Finalize refused with no payment method chosen")
+            emitError(UiText.StringResource(R.string.sales_payment_method_required))
+            return
+        }
         // The customer fields never reach the log; counts and totals are what reconciles a sale
         // that failed at a terminal, and none of them identify anybody (CORE_RULES section 8.3).
         Timber.i(
             "[BipSale][Sale][CHECKOUT] Finalize requested lines=%d gross=%.2f final=%.2f method=%s anonymous=%b",
             state.items.size, state.totalAmount, state.finalAmount,
-            state.paymentMethod.serializedName, state.isAnonymous
+            method.serializedName, state.isAnonymous
         )
         _uiState.update { it.copy(isFinalizing = true) }
         viewModelScope.launch {
@@ -190,14 +279,31 @@ class SalesViewModel @Inject constructor(
                 customerCpf = if (state.isAnonymous) "" else state.customerCpf,
                 items = state.items,
                 discountPercentage = state.discountPercentage,
-                paymentMethod = state.paymentMethod
+                paymentMethod = method
             ).onSuccess { sale ->
                 Timber.i(
                     "[BipSale][Sale][CHECKOUT] Sale confirmed id=%s lines=%d final=%.2f",
                     sale.id, sale.items.size, sale.finalAmount
                 )
-                _uiState.update { it.copy(isFinalizing = false, isSaleFinished = true) }
-                _effect.send(SalesContract.Effect.NavigateBack)
+                // A PIX sale is not over when it is written — the customer still has to scan.
+                // The screen holds until the operator says the payment came through.
+                val awaitingPix = method == PaymentMethod.PIX
+                _uiState.update {
+                    it.copy(
+                        isFinalizing = false,
+                        isSaleFinished = true,
+                        isAwaitingPixPayment = awaitingPix
+                    )
+                }
+                if (awaitingPix) {
+                    Timber.i(
+                        "[BipSale][Sale][CHECKOUT] Holding for PIX payment pixReady=%b missing=%d",
+                        _uiState.value.pixPayload != null,
+                        _uiState.value.missingPixFields.size
+                    )
+                } else {
+                    _effect.send(SalesContract.Effect.NavigateBack)
+                }
             }.onFailure { throwable ->
                 if (throwable is CancellationException) throw throwable
                 Timber.e(
@@ -211,12 +317,23 @@ class SalesViewModel @Inject constructor(
         }
     }
 
+    private fun acknowledgePixPayment() {
+        Timber.d("[BipSale][Sale][CHECKOUT] PIX payment acknowledged")
+        _uiState.update { it.copy(isAwaitingPixPayment = false) }
+        viewModelScope.launch { _effect.send(SalesContract.Effect.NavigateBack) }
+    }
+
     private fun emitError(message: UiText) {
         viewModelScope.launch { _effect.send(SalesContract.Effect.ShowError(message)) }
     }
 
-    private fun Product.toCatalogProduct() =
-        SalesContract.CatalogProduct(code = code, name = name, price = price)
+    private fun Product.toCatalogProduct() = SalesContract.CatalogProduct(
+        code = code,
+        name = name,
+        price = price,
+        imagePath = imageFileName?.let(productImageStore::resolvePath),
+        quantity = quantity
+    )
 
     /** Which kind of discount was applied; the value itself is already in the logged totals. */
     private fun ItemDiscount.logKind(): String = when (this) {

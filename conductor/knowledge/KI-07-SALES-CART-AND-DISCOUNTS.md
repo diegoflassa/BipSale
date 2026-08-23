@@ -50,7 +50,11 @@ Checkout moves money. Every number the operator sees and every number Room store
 - **Every line has a stable `id`.** Two scans of the same product are two lines that discount and delete independently; intents address lines by id, never by index or by value equality.
 - **Three ways in:** scan (`AddProductByQr`), catalogue pick and typed code (both `AddProductByCode`).
 - **A scan trusts the price on the label** over the registered one — the label is what the shop advertised. A **typed code is refused if unknown**, because there is no label to trust and a zero-priced line would otherwise be rung up.
-- `canFinalize` is false for an empty cart, while a write is in flight, and after the sale is finished.
+- `canFinalize` is false for an empty cart, while a write is in flight, after the sale is finished,
+  and **until a payment method is chosen** — `paymentMethod` starts null rather than defaulting to
+  PIX, so a sale is never filed under a method nobody picked ([KI-09](KI-09-STOCK-SETTINGS-AND-PIX.md)).
+- Picking PIX applies the configured default discount into an **empty** sale discount only; a
+  percentage the operator typed is never overwritten.
 
 ## Storage
 

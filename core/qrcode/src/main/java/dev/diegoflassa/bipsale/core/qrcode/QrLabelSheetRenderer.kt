@@ -85,14 +85,13 @@ class QrLabelSheetRenderer @Inject constructor(
         val centerX = cell.centerX()
         val innerWidth = cell.width() - 2 * CELL_PADDING_PT
 
-        // The name block is reserved at full height whether or not the name uses it, so every QR
-        // on the sheet lands at the same offset and the cut lines stay a regular grid.
-        val nameBlockHeight = MAX_NAME_LINES * NAME_LINE_HEIGHT_PT
-        val nameLines = wrapText(label.productName, paints.name, innerWidth).take(MAX_NAME_LINES)
-        val nameTop = cell.top + CELL_PADDING_PT +
-            (nameBlockHeight - nameLines.size * NAME_LINE_HEIGHT_PT) / 2f
+        // The name takes as many lines as it needs, bounded only by leaving the QR enough room to
+        // still scan — an unscannable code makes the whole label useless, however readable its name.
+        val maxNameLines = maxNameLines(cell)
+        val nameLines = wrapText(label.productName, paints.name, innerWidth).take(maxNameLines)
+        val nameBlockHeight = nameLines.size * NAME_LINE_HEIGHT_PT
 
-        var baseline = nameTop + NAME_TEXT_SIZE_PT
+        var baseline = cell.top + CELL_PADDING_PT + NAME_TEXT_SIZE_PT
         for (line in nameLines) {
             canvas.drawText(line, centerX, baseline, paints.name)
             baseline += NAME_LINE_HEIGHT_PT
@@ -108,9 +107,15 @@ class QrLabelSheetRenderer @Inject constructor(
             paints.price.textSize -= PRICE_SHRINK_STEP_PT
         }
 
-        val qrTop = cell.top + CELL_PADDING_PT + nameBlockHeight + GAP_PT
-        val qrBottom = cell.bottom - CELL_PADDING_PT - PRICE_TEXT_SIZE_PT - GAP_PT
-        val qrSide = minOf(qrBottom - qrTop, innerWidth)
+        // Whatever vertical slack is left over is split evenly above and below the code, so the
+        // gap under the name always matches the gap over the price. Anchoring the QR to the name
+        // instead pushes all the slack to one side the moment the code is width-limited.
+        val nameBottom = cell.top + CELL_PADDING_PT + nameBlockHeight
+        val priceTop = cell.bottom - CELL_PADDING_PT - paints.price.textSize
+        val spaceForQr = priceTop - nameBottom
+        val qrSide = minOf(spaceForQr - 2 * GAP_PT, innerWidth).coerceAtLeast(0f)
+        val qrTop = nameBottom + (spaceForQr - qrSide) / 2f
+
         if (qrSide > 0f) {
             val qrBitmap = qrGenerator.generateQrCode(label.qrData, QR_RENDER_PX, QR_RENDER_PX)
             if (qrBitmap != null) {
@@ -131,6 +136,17 @@ class QrLabelSheetRenderer @Inject constructor(
             cell.bottom - CELL_PADDING_PT,
             paints.price
         )
+    }
+
+    /**
+     * How many name lines fit above a QR that is still worth printing. Derived from the cell rather
+     * than fixed, so a bigger paper size genuinely gives the name more room.
+     */
+    private fun maxNameLines(cell: RectF): Int {
+        val usableHeight = cell.height() - 2 * CELL_PADDING_PT
+        val reserved = PRICE_TEXT_SIZE_PT + 2 * GAP_PT + MIN_QR_SIDE_PT
+        val forName = usableHeight - reserved
+        return maxOf(1, (forName / NAME_LINE_HEIGHT_PT).toInt())
     }
 
     /** Built once per sheet — a Paint per label would churn allocations across a full page. */
@@ -194,18 +210,24 @@ class QrLabelSheetRenderer @Inject constructor(
 
     private companion object {
         const val CELL_PADDING_PT = 6f
-        const val GAP_PT = 3f
+        /** Halved from the original 3 pt: the code is what the eye goes to, so it sits close. */
+        const val GAP_PT = 1.5f
         /**
-         * Type sizes are in points, so they survive any paper size or printer DPI. 9 pt is about
-         * the floor for a name read at arm's length off a cut-out label; the price carries the
-         * number someone is charged, so it gets more.
+         * Type sizes are in points, so they survive any paper size or printer DPI. These are set to
+         * read across a counter rather than at arm's length, which is where a shelf label is
+         * actually read from; the price carries the number someone is charged, so it gets more.
          */
-        const val NAME_TEXT_SIZE_PT = 9f
-        const val NAME_LINE_HEIGHT_PT = 11f
-        const val PRICE_TEXT_SIZE_PT = 12f
-        const val MIN_PRICE_TEXT_SIZE_PT = 9f
+        const val NAME_TEXT_SIZE_PT = 13f
+        const val NAME_LINE_HEIGHT_PT = 15f
+        const val PRICE_TEXT_SIZE_PT = 17f
+        const val MIN_PRICE_TEXT_SIZE_PT = 12f
         const val PRICE_SHRINK_STEP_PT = 0.5f
-        const val MAX_NAME_LINES = 2
+
+        /**
+         * ~22 mm once printed. Below this a code stops reading reliably off a cut-out label under
+         * shop lighting, so the name gives way rather than the QR.
+         */
+        const val MIN_QR_SIDE_PT = 62f
         const val CUT_LINE_WIDTH_PT = 0.5f
         const val DASH_ON_PT = 4f
         const val DASH_OFF_PT = 4f

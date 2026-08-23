@@ -19,7 +19,23 @@ data class BackupDocument(
     val sales: List<BackupSale>,
     val saleItems: List<BackupSaleItem>,
     /** Image file names carried under `images/` in the archive, in the order they were written. */
-    val images: List<String>
+    val images: List<String>,
+    /**
+     * Everything the operator configured. Defaulted, so an archive written before settings were
+     * part of the format still restores — it simply carries none.
+     */
+    val settings: BackupSettings? = null
+)
+
+/** The configurable half of the app, so a restore brings back a working terminal, not just data. */
+@Serializable
+data class BackupSettings(
+    val pixKey: String = "",
+    val pixMerchantName: String = "",
+    val pixMerchantCity: String = "",
+    val pixDiscountType: String = "NONE",
+    val pixDiscountValue: Double = 0.0,
+    val askCustomerInfo: Boolean = true
 )
 
 @Serializable
@@ -29,7 +45,9 @@ data class BackupProduct(
     val price: Double,
     val qrCodeData: String? = null,
     val imageFileName: String? = null,
-    val lastUpdated: Long
+    val lastUpdated: Long,
+    /** Defaulted so an archive written before stock control existed still restores. */
+    val quantity: Int = 0
 )
 
 @Serializable

@@ -3,6 +3,7 @@ package dev.diegoflassa.bipsale.ui.backup.components
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
@@ -79,7 +80,7 @@ private val previewSummary = BackupSummary(
 @Composable
 private fun BackupSummaryCardPreview() {
     BipSaleTheme {
-        BackupSummaryCard(summary = previewSummary)
+        BackupSummaryCard(summary = previewSummary, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -93,7 +94,7 @@ private fun BackupSummaryCardPreview() {
 @Composable
 private fun BackupSummaryCardDarkPreview() {
     BipSaleTheme {
-        BackupSummaryCard(summary = previewSummary)
+        BackupSummaryCard(summary = previewSummary, modifier = Modifier.fillMaxWidth())
     }
 }
 
@@ -119,7 +120,8 @@ private fun BackupSummaryCardEmptyPreview() {
                 saleItems = 0,
                 images = 0,
                 createdAt = 1_787_400_000_000
-            )
+            ),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }

@@ -25,12 +25,25 @@
     <string name="products_print_selected">Print selected</string>
     <string name="products_add_product">Add product</string>
     <string name="products_delete">Delete</string>
-    <string name="products_product_image">Product image</string>
     <string name="products_print_all_qr_codes">Print QR Codes</string>
     <string name="products_no_products_to_print">No products to print</string>
     <string name="products_qr_labels_title">QR Code Labels</string>
     <string name="products_image_save_failed">Could not save the image</string>
-    <string name="products_product_placeholder">No image</string>
     <string name="products_empty_state">No products yet. Tap + to add the first one.</string>
     <string name="products_generic_error">Something went wrong</string>
+    <string name="products_quantity_label">Stock quantity</string>
+    <string name="products_quantity_invalid">Enter a valid quantity</string>
+    <string name="products_stock_format">Stock: %1$d</string>
+    <string name="products_more_actions">More actions</string>
+    <string name="products_download_template">Download spreadsheet template</string>
+    <string name="products_import">Import products</string>
+    <string name="products_template_saved">Template saved</string>
+    <string name="products_template_failed">Could not save the template</string>
+    <string name="products_import_success">%1$d products imported</string>
+    <string name="products_import_partial">%1$d products imported, %2$d rows skipped</string>
+    <string name="products_import_empty">No valid products in the spreadsheet</string>
+    <string name="products_import_failed">Could not import the spreadsheet</string>
+    <string name="products_name_hint">How the product appears on the label and in the cart</string>
+    <string name="products_price_hint">Comma or dot accepted. E.g. 12.50</string>
+    <string name="products_quantity_hint">Units in stock. Also sets how many labels get printed</string>
 </resources>

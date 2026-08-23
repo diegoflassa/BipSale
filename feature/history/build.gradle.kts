@@ -12,6 +12,7 @@ android {
 
 dependencies {
     implementation(project(":core:ui"))
+    implementation(project(":core:qrcode"))
     implementation(project(":core:utils"))
     implementation(project(":core:domain"))
 

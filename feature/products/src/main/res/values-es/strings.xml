@@ -25,12 +25,25 @@
     <string name="products_print_selected">Imprimir seleccionados</string>
     <string name="products_add_product">Añadir producto</string>
     <string name="products_delete">Eliminar</string>
-    <string name="products_product_image">Imagen del producto</string>
     <string name="products_print_all_qr_codes">Imprimir códigos QR</string>
     <string name="products_no_products_to_print">No hay productos para imprimir</string>
     <string name="products_qr_labels_title">Etiquetas de código QR</string>
     <string name="products_image_save_failed">No se pudo guardar la imagen</string>
-    <string name="products_product_placeholder">Sin imagen</string>
     <string name="products_empty_state">Aún no hay productos. Toca + para añadir el primero.</string>
     <string name="products_generic_error">Se produjo un error inesperado</string>
+    <string name="products_quantity_label">Cantidad en stock</string>
+    <string name="products_quantity_invalid">Introduzca una cantidad válida</string>
+    <string name="products_stock_format">Stock: %1$d</string>
+    <string name="products_more_actions">Más acciones</string>
+    <string name="products_download_template">Descargar plantilla de hoja de cálculo</string>
+    <string name="products_import">Importar productos</string>
+    <string name="products_template_saved">Plantilla guardada</string>
+    <string name="products_template_failed">No se pudo guardar la plantilla</string>
+    <string name="products_import_success">%1$d productos importados</string>
+    <string name="products_import_partial">%1$d productos importados, %2$d filas omitidas</string>
+    <string name="products_import_empty">No hay productos válidos en la hoja</string>
+    <string name="products_import_failed">No se pudo importar la hoja de cálculo</string>
+    <string name="products_name_hint">Cómo aparece el producto en la etiqueta y en el carrito</string>
+    <string name="products_price_hint">Se acepta coma o punto. Ej.: 12,50</string>
+    <string name="products_quantity_hint">Unidades en stock. También define cuántas etiquetas se imprimen</string>
 </resources>

@@ -1,6 +1,10 @@
 package dev.diegoflassa.bipsale
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -16,7 +20,9 @@ import dev.diegoflassa.bipsale.feature.sales.CustomerInfoScreen
 import dev.diegoflassa.bipsale.feature.sales.SalesScreen
 import dev.diegoflassa.bipsale.ui.backup.BackupScreen
 import dev.diegoflassa.bipsale.ui.dashboard.DashboardScreen
+import dev.diegoflassa.bipsale.ui.dashboard.NewSaleEntryViewModel
 import dev.diegoflassa.bipsale.ui.export.ExportScreen
+import dev.diegoflassa.bipsale.ui.settings.SettingsScreen
 
 @Composable
 fun BipSaleNavHost() {
@@ -39,17 +45,35 @@ private fun NavGraphBuilder.salesGraph(navController: NavHostController) {
             onManageProducts = { navController.navigate(Screen.ManageProducts) },
             onHistory = { navController.navigate(Screen.History) },
             onExport = { navController.navigate(Screen.Export) },
-            onBackup = { navController.navigate(Screen.Backup) }
+            onBackup = { navController.navigate(Screen.Backup) },
+            onSettings = { navController.navigate(Screen.Settings) }
         )
     }
 
     composable<Screen.NewSale> {
-        CustomerInfoScreen(
-            onNext = { name, cpf, anon ->
-                navController.navigate("$SALES_MAIN_ROUTE/$name/$cpf/$anon")
-            },
-            onBack = { navController.popBackStack() }
-        )
+        val entryViewModel: NewSaleEntryViewModel = hiltViewModel()
+        val asksForCustomer by entryViewModel.asksForCustomer.collectAsStateWithLifecycle()
+
+        when (asksForCustomer) {
+            // Still reading the setting. Rendering nothing beats flashing the customer form and
+            // navigating off it a frame later.
+            null -> Unit
+
+            true -> CustomerInfoScreen(
+                onNext = { name, cpf, anon ->
+                    navController.navigate("$SALES_MAIN_ROUTE/$name/$cpf/$anon")
+                },
+                onBack = { navController.popBackStack() }
+            )
+
+            false -> LaunchedEffect(Unit) {
+                // popUpTo removes this hop from the back stack, so Back from the cart returns to
+                // the dashboard instead of bouncing through a screen the operator never saw.
+                navController.navigate("$SALES_MAIN_ROUTE/ / /true") {
+                    popUpTo(Screen.NewSale) { inclusive = true }
+                }
+            }
+        }
     }
 
     composable("$SALES_MAIN_ROUTE/{name}/{cpf}/{anon}") { backStackEntry ->
@@ -104,6 +128,10 @@ private fun NavGraphBuilder.historyGraph(navController: NavHostController) {
 
     composable<Screen.Backup> {
         BackupScreen(onBack = { navController.popBackStack() })
+    }
+
+    composable<Screen.Settings> {
+        SettingsScreen(onBack = { navController.popBackStack() })
     }
 }
 

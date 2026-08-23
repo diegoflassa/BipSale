@@ -31,13 +31,14 @@ class ProductListContentInstrumentedTest {
 
     private fun string(@StringRes id: Int): String = context.getString(id)
 
-    private fun product(code: String, name: String, price: String) =
+    private fun product(code: String, name: String, price: String, quantity: Int = 3) =
         ProductContract.ProductUiModel(
             code = code,
             name = name,
             priceFormatted = price,
             imagePath = null,
-            label = LabelData("bipsale://product?code=$code&price=1.0", name, price)
+            label = LabelData("bipsale://product?code=$code&price=1.0", name, price),
+            quantity = quantity
         )
 
     private val coturno = product("CT-A-RoS", "Coturno cano alto rosa", "R$ 130,00")

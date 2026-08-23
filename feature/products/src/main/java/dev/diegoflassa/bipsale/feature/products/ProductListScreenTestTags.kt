@@ -1,6 +1,9 @@
 package dev.diegoflassa.bipsale.feature.products
 
 object ProductListScreenTestTags {
+    const val OVERFLOW_BUTTON = "product_list_overflow_button"
+    const val DOWNLOAD_TEMPLATE_ITEM = "product_list_download_template"
+    const val IMPORT_ITEM = "product_list_import"
     const val ROOT = "product_list_screen"
     const val LIST = "product_list_items"
     const val EMPTY = "product_list_empty"

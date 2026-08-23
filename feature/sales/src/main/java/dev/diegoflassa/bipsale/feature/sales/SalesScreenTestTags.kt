@@ -17,5 +17,12 @@ object SalesScreenTestTags {
     const val PAYMENT_METHOD_DROPDOWN = "sales_payment_method_dropdown"
     const val SUBTOTAL_VALUE = "sales_subtotal_value"
     const val TOTAL_VALUE = "sales_total_value"
+    const val PIX_QR_CARD = "sales_pix_qr_card"
+    const val PIX_MISSING_CARD = "sales_pix_missing_card"
+    const val COMPLETED_PIX_DIALOG = "sales_completed_pix_dialog"
+    const val PRODUCT_DETAIL_SHEET = "sales_product_detail_sheet"
+    const val PRODUCT_DETAIL_DISCOUNT = "sales_product_detail_discount"
     const val FINALIZE_BUTTON = "sales_finalize_button"
+
+    fun catalogRow(code: String) = "sales_catalog_row_$code"
 }

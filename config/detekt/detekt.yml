@@ -17,7 +17,12 @@ complexity:
     # A stateless *ScreenContent takes its state, one callback per action, and a modifier.
     # INSTRUMENTED_TEST_STANDARD section 1 mandates exactly that shape, so counting those
     # parameters as a smell would flag the architecture the repo requires.
-    ignoreAnnotated: [ 'Composable' ]
+    #
+    # A @HiltViewModel constructor is the same case from the other side: every parameter is an
+    # injected collaborator the screen genuinely needs, and the count tracks how many use cases a
+    # screen drives rather than how tangled the class is. Splitting one to satisfy a threshold
+    # moves the wiring rather than removing it.
+    ignoreAnnotated: [ 'Composable', 'HiltViewModel' ]
   TooManyFunctions:
     active: true
     # A ViewModel decomposes its intents into one small private handler each, and previews are

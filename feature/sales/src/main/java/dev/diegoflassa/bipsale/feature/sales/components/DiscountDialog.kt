@@ -55,6 +55,8 @@ fun DiscountDialog(
                 supportingText = {
                     if (input.isNotBlank() && parsed == null) {
                         Text(stringResource(R.string.sales_discount_out_of_range))
+                    } else {
+                        Text(stringResource(R.string.sales_discount_percent_format))
                     }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)

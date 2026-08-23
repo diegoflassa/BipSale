@@ -19,6 +19,8 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -27,6 +29,8 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -42,6 +46,10 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material.icons.filled.MoreVert
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.core.ui.util.UiText
@@ -60,6 +68,23 @@ fun ProductListScreen(
     val context = LocalContext.current
     val printer = remember { QrLabelPrinter(QrLabelSheetRenderer(QrGenerator())) }
 
+    // The system document picker is what puts Drive, Downloads and the rest in reach, without the
+    // app holding storage permissions of its own.
+    val templateLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument(SPREADSHEET_MIME_TYPE)
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.onIntent(ProductContract.Intent.TemplateDestinationChosen(it.toString()))
+        }
+    }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri?.let {
+            viewModel.onIntent(ProductContract.Intent.ImportSourceChosen(it.toString()))
+        }
+    }
+
     LaunchedEffect(viewModel, context) {
         viewModel.effect.collect { effect ->
             when (effect) {
@@ -72,6 +97,12 @@ fun ProductListScreen(
                         documentName = context.getString(R.string.products_qr_labels_title),
                         labels = effect.labels
                     )
+
+                is ProductContract.Effect.PickTemplateDestination ->
+                    templateLauncher.launch(effect.suggestedFileName)
+
+                is ProductContract.Effect.PickImportSource ->
+                    importLauncher.launch(arrayOf(SPREADSHEET_MIME_TYPE, GOOGLE_SHEET_MIME_TYPE, ANY_MIME_TYPE))
 
                 is ProductContract.Effect.NavigationBack -> Unit
             }
@@ -218,6 +249,9 @@ private fun ProductListTopBar(
                     )
                 }
             }
+            if (!hasSelection) {
+                ProductListOverflowMenu(onIntent = onIntent)
+            }
         }
     )
 }
@@ -278,19 +312,60 @@ private fun ProductListMessage(text: String, modifier: Modifier = Modifier) {
     }
 }
 
+@Composable
+private fun ProductListOverflowMenu(onIntent: (ProductContract.Intent) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+
+    IconButton(
+        onClick = { expanded = true },
+        modifier = Modifier.testTag(ProductListScreenTestTags.OVERFLOW_BUTTON)
+    ) {
+        Icon(
+            Icons.Default.MoreVert,
+            contentDescription = stringResource(R.string.products_more_actions)
+        )
+    }
+    DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.products_download_template)) },
+            onClick = {
+                onIntent(ProductContract.Intent.DownloadTemplateRequested)
+                expanded = false
+            },
+            modifier = Modifier.testTag(ProductListScreenTestTags.DOWNLOAD_TEMPLATE_ITEM)
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.products_import)) },
+            onClick = {
+                onIntent(ProductContract.Intent.ImportRequested)
+                expanded = false
+            },
+            modifier = Modifier.testTag(ProductListScreenTestTags.IMPORT_ITEM)
+        )
+    }
+}
+
+private const val SPREADSHEET_MIME_TYPE =
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+/** A native Google Sheet in Drive; the importer exports it rather than reading raw bytes. */
+private const val GOOGLE_SHEET_MIME_TYPE = "application/vnd.google-apps.spreadsheet"
+private const val ANY_MIME_TYPE = "*/*"
+
 // region Previews
 
 private fun previewProduct(
     code: String,
     name: String,
     price: String,
-    imagePath: String? = null
+    imagePath: String? = null,
+    quantity: Int = 5
 ) = ProductContract.ProductUiModel(
     code = code,
     name = name,
     priceFormatted = price,
     imagePath = imagePath,
-    label = LabelData("bipsale://product?code=$code", name, price)
+    label = LabelData("bipsale://product?code=$code", name, price),
+    quantity = quantity
 )
 
 private val previewProducts = listOf(

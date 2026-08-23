@@ -155,7 +155,7 @@ internal fun BackupScreenContent(
                 )
             }
 
-            state.lastSummary?.let { BackupSummaryCard(it) }
+            state.lastSummary?.let { BackupSummaryCard(it, Modifier.fillMaxWidth()) }
         }
     }
 

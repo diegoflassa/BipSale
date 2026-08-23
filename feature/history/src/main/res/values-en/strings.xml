@@ -21,4 +21,7 @@
     <string name="history_export_success">File saved with %1$d sales</string>
     <string name="history_export_empty">No sales to export</string>
     <string name="history_export_cancelled">Export cancelled</string>
+    <string name="history_pix_title">Sale PIX QR code</string>
+    <string name="history_pix_close">Close</string>
+    <string name="history_pix_show">Show PIX QR code</string>
 </resources>

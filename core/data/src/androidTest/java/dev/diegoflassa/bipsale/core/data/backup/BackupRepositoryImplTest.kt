@@ -3,6 +3,10 @@ package dev.diegoflassa.bipsale.core.data.backup
 import android.content.Context
 import android.net.Uri
 import androidx.room.Room
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.common.truth.Truth.assertThat
@@ -25,6 +29,7 @@ class BackupRepositoryImplTest {
     private lateinit var database: BipSaleDatabase
     private lateinit var repository: BackupRepositoryImpl
     private lateinit var images: FakeImageStore
+    private lateinit var settings: FakeSettingsRepository
 
     /** In-memory so a test run never touches the installed app's sales. */
     private class FakeImageStore : ProductImageStore {
@@ -51,13 +56,28 @@ class BackupRepositoryImplTest {
             .allowMainThreadQueries()
             .build()
         images = FakeImageStore()
+        settings = FakeSettingsRepository()
         repository = BackupRepositoryImpl(
             context = context,
             database = database,
             productDao = database.productDao(),
             saleDao = database.saleDao(),
+            settingsRepository = settings,
             productImageStore = images
         )
+    }
+
+    /** Settings live in DataStore, so the archive's settings block is exercised through a fake. */
+    private class FakeSettingsRepository : SettingsRepository {
+        var saved: AppSettings? = null
+        var stored: AppSettings = AppSettings.EMPTY
+
+        override val settings: Flow<AppSettings> get() = flowOf(stored)
+        override suspend fun current(): AppSettings = stored
+        override suspend fun save(settings: AppSettings) {
+            saved = settings
+            stored = settings
+        }
     }
 
     @After

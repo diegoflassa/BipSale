@@ -1,5 +1,6 @@
 package dev.diegoflassa.bipsale.feature.products
 
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
@@ -9,6 +10,7 @@ import org.junit.rules.TestWatcher
 import org.junit.runner.Description
 
 /** viewModelScope runs on Dispatchers.Main, which has no implementation in a JVM test. */
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
     val dispatcher: TestDispatcher = StandardTestDispatcher()
 ) : TestWatcher() {

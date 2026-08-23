@@ -6,9 +6,15 @@ import dev.diegoflassa.bipsale.core.domain.model.Product
 import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.DeleteProductUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductUseCase
+import dev.diegoflassa.bipsale.core.domain.product.ImportedProduct
+import dev.diegoflassa.bipsale.core.domain.product.ProductImportRejection
+import dev.diegoflassa.bipsale.core.domain.product.ProductImportReport
+import dev.diegoflassa.bipsale.core.domain.product.ProductImportRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
+import dev.diegoflassa.bipsale.core.domain.usecase.ImportProductsUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductImageUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
@@ -17,6 +23,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ProductViewModelTest {
 
     @get:Rule
@@ -60,13 +67,29 @@ class ProductViewModelTest {
         }
     }
 
+    /** Stands in for the spreadsheet seam; the sheet parsing itself is pinned in `:core:utils`. */
+    private class FakeProductImportRepository(
+        private val report: ProductImportReport = ProductImportReport()
+    ) : ProductImportRepository {
+        var writtenTemplateTo: String? = null
+
+        override suspend fun writeTemplate(destinationUri: String) {
+            writtenTemplateTo = destinationUri
+        }
+
+        override suspend fun read(sourceUri: String): ProductImportReport = report
+        override fun suggestedTemplateName(): String = "modelo.xlsx"
+    }
+
     private fun viewModel(
         repository: FakeProductRepository = FakeProductRepository(),
-        imageStore: FakeProductImageStore = FakeProductImageStore()
+        imageStore: FakeProductImageStore = FakeProductImageStore(),
+        importRepository: FakeProductImportRepository = FakeProductImportRepository()
     ) = ProductViewModel(
         getProducts = GetProductsUseCase(repository),
         getProduct = GetProductUseCase(repository),
         saveProduct = SaveProductUseCase(repository),
+        importProducts = ImportProductsUseCase(importRepository, repository),
         deleteProduct = DeleteProductUseCase(repository, imageStore),
         saveProductImage = SaveProductImageUseCase(imageStore),
         productImageStore = imageStore
@@ -384,5 +407,135 @@ class ProductViewModelTest {
 
         vm.onIntent(ProductContract.Intent.HideLabelPreview)
         assertThat(vm.uiState.value.editor.isLabelPreviewVisible).isFalse()
+    }
+
+    @Test
+    fun `asking for the template asks for a destination before writing anything`() = runTest {
+        val importRepository = FakeProductImportRepository()
+        val vm = viewModel(importRepository = importRepository)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.DownloadTemplateRequested)
+            advanceUntilIdle()
+
+            val effect = awaitItem()
+            assertThat(effect)
+                .isInstanceOf(ProductContract.Effect.PickTemplateDestination::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(importRepository.writtenTemplateTo).isNull()
+    }
+
+    @Test
+    fun `a chosen destination is where the template is written`() = runTest {
+        val importRepository = FakeProductImportRepository()
+        val vm = viewModel(importRepository = importRepository)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(
+                ProductContract.Intent.TemplateDestinationChosen("content://docs/modelo.xlsx")
+            )
+            advanceUntilIdle()
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(importRepository.writtenTemplateTo).isEqualTo("content://docs/modelo.xlsx")
+    }
+
+    @Test
+    fun `an import registers every accepted row`() = runTest {
+        val repository = FakeProductRepository()
+        val vm = viewModel(
+            repository = repository,
+            importRepository = FakeProductImportRepository(
+                ProductImportReport(
+                    accepted = listOf(
+                        ImportedProduct("CF-200", "Cafe Premium 200ml", 12.50, 8),
+                        ImportedProduct("PR-100", "Prancheta oficio", 100.0, 3)
+                    )
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.ImportSourceChosen("content://docs/produtos.xlsx"))
+            advanceUntilIdle()
+            assertThat(awaitItem()).isInstanceOf(ProductContract.Effect.ShowSnackbar::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(vm.uiState.value.products.map { it.code })
+            .containsExactly("CF-200", "PR-100")
+        assertThat(vm.uiState.value.products.first { it.code == "CF-200" }.quantity).isEqualTo(8)
+    }
+
+    @Test
+    fun `an import with rejected rows still registers the good ones`() = runTest {
+        val repository = FakeProductRepository()
+        val vm = viewModel(
+            repository = repository,
+            importRepository = FakeProductImportRepository(
+                ProductImportReport(
+                    accepted = listOf(ImportedProduct("CF-200", "Cafe", 12.50, 1)),
+                    rejected = listOf(
+                        ProductImportRejection(
+                            3,
+                            "PR-100",
+                            ProductImportRejection.Reason.INVALID_PRICE
+                        )
+                    )
+                )
+            )
+        )
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.ImportSourceChosen("content://docs/produtos.xlsx"))
+            advanceUntilIdle()
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(vm.uiState.value.products.map { it.code }).containsExactly("CF-200")
+    }
+
+    @Test
+    fun `a sheet with nothing usable reports it rather than claiming a success`() = runTest {
+        val repository = FakeProductRepository()
+        val vm = viewModel(
+            repository = repository,
+            importRepository = FakeProductImportRepository(ProductImportReport())
+        )
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.ImportSourceChosen("content://docs/produtos.xlsx"))
+            advanceUntilIdle()
+            assertThat(awaitItem()).isInstanceOf(ProductContract.Effect.ShowSnackbar::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(vm.uiState.value.products).isEmpty()
+    }
+
+    @Test
+    fun `stock reaches the list and drives how many labels a print run makes`() = runTest {
+        val vm = viewModel(FakeProductRepository(listOf(coturno.copy(quantity = 3))))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.products.single().quantity).isEqualTo(3)
+        assertThat(vm.uiState.value.allLabels).hasSize(3)
+    }
+
+    @Test
+    fun `a product with no stock still gets one label rather than none`() = runTest {
+        val vm = viewModel(FakeProductRepository(listOf(coturno.copy(quantity = 0))))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.allLabels).hasSize(1)
     }
 }

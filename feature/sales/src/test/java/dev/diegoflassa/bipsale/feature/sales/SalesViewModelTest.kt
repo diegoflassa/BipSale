@@ -3,7 +3,11 @@ package dev.diegoflassa.bipsale.feature.sales
 import app.cash.turbine.test
 import com.google.common.truth.Truth.assertThat
 import dev.diegoflassa.bipsale.core.domain.model.ItemDiscount
+import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.PixField
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.model.Product
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.repository.ProductRepository
@@ -12,6 +16,7 @@ import dev.diegoflassa.bipsale.core.domain.usecase.AddProductByCodeUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.AddProductByQrUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.FinalizeSaleUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.TestScope
@@ -20,6 +25,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class SalesViewModelTest {
 
     @get:Rule
@@ -58,22 +64,49 @@ class SalesViewModelTest {
 
     private val saleRepository = FakeSaleRepository()
 
+    private class FakeSettingsRepository(private val stored: AppSettings) : SettingsRepository {
+        override val settings: Flow<AppSettings> = flowOf(stored)
+        override suspend fun current(): AppSettings = stored
+        override suspend fun save(settings: AppSettings) = Unit
+    }
+
+    private class FakeProductImageStore : ProductImageStore {
+        override suspend fun save(sourceUri: String, productCode: String): String = ""
+        override suspend fun delete(fileName: String) = Unit
+        override fun resolvePath(fileName: String): String = "/images/$fileName"
+        override suspend fun listFileNames(): List<String> = emptyList()
+        override suspend fun readBytes(fileName: String): ByteArray? = null
+        override suspend fun writeBytes(fileName: String, bytes: ByteArray) = Unit
+        override suspend fun deleteAll() = Unit
+    }
+
     private fun viewModel(
         products: List<Product> = catalog,
-        sales: FakeSaleRepository = saleRepository
+        sales: FakeSaleRepository = saleRepository,
+        settings: AppSettings = AppSettings.EMPTY
     ): SalesViewModel {
         val productRepository = FakeProductRepository(products)
         return SalesViewModel(
             finalizeSaleUseCase = FinalizeSaleUseCase(sales),
             addProductByQrUseCase = AddProductByQrUseCase(productRepository),
             addProductByCodeUseCase = AddProductByCodeUseCase(productRepository),
-            getProductsUseCase = GetProductsUseCase(productRepository)
+            getProductsUseCase = GetProductsUseCase(productRepository),
+            settingsRepository = FakeSettingsRepository(settings),
+            productImageStore = FakeProductImageStore()
         )
     }
 
-    /** Seeds the cart the way the screen does — one intent per line, no test-only entry point. */
-    private fun TestScope.cartOf(vm: SalesViewModel, vararg codes: String) {
+    /**
+     * Seeds the cart the way the screen does — one intent per line, no test-only entry point.
+     * A payment method comes with it, since without one the cart is deliberately not finalizable.
+     */
+    private fun TestScope.cartOf(
+        vm: SalesViewModel,
+        vararg codes: String,
+        method: PaymentMethod? = PaymentMethod.CASH
+    ) {
         codes.forEach { vm.onIntent(SalesContract.Intent.AddProductByCode(it)) }
+        method?.let { vm.onIntent(SalesContract.Intent.SelectPaymentMethod(it)) }
         advanceUntilIdle()
     }
 
@@ -99,7 +132,115 @@ class SalesViewModelTest {
         assertThat(vm.uiState.value.items).hasSize(1)
         assertThat(vm.uiState.value.totalAmount).isEqualTo(130.0)
         assertThat(vm.uiState.value.finalAmount).isEqualTo(130.0)
+    }
+
+    @Test
+    fun `a cart with no payment method chosen cannot be finalized`() = runTest {
+        val vm = viewModel()
+        cartOf(vm, "PR-100", method = null)
+
+        assertThat(vm.uiState.value.paymentMethod).isNull()
+        assertThat(vm.uiState.value.canFinalize).isFalse()
+
+        vm.onIntent(SalesContract.Intent.FinalizeSale)
+        advanceUntilIdle()
+
+        assertThat(saleRepository.inserted).isEmpty()
+    }
+
+    @Test
+    fun `choosing a payment method is what makes the cart finalizable`() = runTest {
+        val vm = viewModel()
+        cartOf(vm, "PR-100", method = null)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.CASH))
+        advanceUntilIdle()
+
         assertThat(vm.uiState.value.canFinalize).isTrue()
+    }
+
+    @Test
+    fun `picking PIX applies the configured default discount`() = runTest {
+        val vm = viewModel(
+            settings = AppSettings(
+                pixKey = "12345678909",
+                pixDiscount = ItemDiscount.Percentage(10.0)
+            )
+        )
+        cartOf(vm, "PR-100", method = null)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(10.0)
+        assertThat(vm.uiState.value.finalAmount).isEqualTo(90.0)
+    }
+
+    @Test
+    fun `a discount the operator typed is not overwritten by the PIX default`() = runTest {
+        val vm = viewModel(
+            settings = AppSettings(
+                pixKey = "12345678909",
+                pixDiscount = ItemDiscount.Percentage(10.0)
+            )
+        )
+        cartOf(vm, "PR-100", method = null)
+        vm.onIntent(SalesContract.Intent.UpdateDiscount(25.0))
+        advanceUntilIdle()
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(25.0)
+    }
+
+    @Test
+    fun `picking PIX with a key configured produces a payload carrying the total`() = runTest {
+        val vm = viewModel(settings = AppSettings(pixKey = "12345678909"))
+        cartOf(vm, "PR-100", method = null)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
+        advanceUntilIdle()
+
+        val payload = vm.uiState.value.pixPayload
+        assertThat(payload).isNotNull()
+        assertThat(payload).contains("br.gov.bcb.pix")
+        assertThat(payload).contains("100.00")
+        assertThat(vm.uiState.value.missingPixFields).doesNotContain(PixField.KEY)
+    }
+
+    @Test
+    fun `the PIX payload follows the total when the cart changes`() = runTest {
+        val vm = viewModel(settings = AppSettings(pixKey = "12345678909"))
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+
+        vm.onIntent(SalesContract.Intent.AddProductByCode("CF-200"))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.pixPayload).contains("112.50")
+    }
+
+    @Test
+    fun `picking PIX with no key configured says so instead of showing a dead QR`() = runTest {
+        val vm = viewModel(settings = AppSettings.EMPTY)
+        cartOf(vm, "PR-100", method = null)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.pixPayload).isNull()
+        assertThat(vm.uiState.value.missingPixFields).contains(PixField.KEY)
+    }
+
+    @Test
+    fun `leaving PIX clears the payload rather than leaving it on screen`() = runTest {
+        val vm = viewModel(settings = AppSettings(pixKey = "12345678909"))
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.CASH))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.pixPayload).isNull()
     }
 
     @Test

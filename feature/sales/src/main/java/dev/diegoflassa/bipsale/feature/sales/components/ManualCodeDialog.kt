@@ -45,7 +45,8 @@ fun ManualCodeDialog(
                 value = code,
                 onValueChange = { code = it },
                 singleLine = true,
-                label = { Text(stringResource(R.string.sales_manual_code_hint)) }
+                label = { Text(stringResource(R.string.sales_manual_code_hint)) },
+                supportingText = { Text(stringResource(R.string.sales_manual_code_format)) }
             )
         },
         confirmButton = {

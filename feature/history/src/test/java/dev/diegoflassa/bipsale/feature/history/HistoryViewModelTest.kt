@@ -7,7 +7,11 @@ import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
 import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.PixField
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.ExportSalesUseCase
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.flow
@@ -18,6 +22,7 @@ import org.junit.Rule
 import org.junit.Test
 import java.io.IOException
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class HistoryViewModelTest {
 
     @get:Rule
@@ -76,10 +81,17 @@ class HistoryViewModelTest {
         override fun suggestedFileName(): String = "vendas.xlsx"
     }
 
+    private class FakeSettingsRepository(private val stored: AppSettings) : SettingsRepository {
+        override val settings: Flow<AppSettings> = flowOf(stored)
+        override suspend fun current(): AppSettings = stored
+        override suspend fun save(settings: AppSettings) = Unit
+    }
+
     private fun viewModel(
         repo: FakeSaleRepository,
-        export: RecordingExportRepository = RecordingExportRepository()
-    ) = HistoryViewModel(repo, ExportSalesUseCase(export))
+        export: RecordingExportRepository = RecordingExportRepository(),
+        settings: AppSettings = AppSettings.EMPTY
+    ) = HistoryViewModel(repo, ExportSalesUseCase(export), FakeSettingsRepository(settings))
 
     @Test
     fun `loads every sale on creation`() = runTest {
@@ -356,5 +368,60 @@ class HistoryViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
         assertThat(vm.uiState.value.isExporting).isFalse()
+    }
+
+    @Test
+    fun `a recorded PIX sale can have its code shown again`() = runTest {
+        val vm = viewModel(
+            FakeSaleRepository(all = flowOf(listOf(ana))),
+            settings = AppSettings(pixKey = "12345678909")
+        )
+        advanceUntilIdle()
+
+        vm.onIntent(HistoryContract.Intent.ShowSalePix("sale-1"))
+
+        assertThat(vm.uiState.value.isShowingPix).isTrue()
+        assertThat(vm.uiState.value.pixPayload).contains("br.gov.bcb.pix")
+        // The code has to carry what the sale actually charged, not a fresh total.
+        assertThat(vm.uiState.value.pixPayload).contains("100.00")
+    }
+
+    @Test
+    fun `showing a recorded sale's code with no key names the missing fields`() = runTest {
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana))))
+        advanceUntilIdle()
+
+        vm.onIntent(HistoryContract.Intent.ShowSalePix("sale-1"))
+
+        assertThat(vm.uiState.value.pixPayload).isNull()
+        assertThat(vm.uiState.value.missingPixFields).contains(PixField.KEY)
+    }
+
+    @Test
+    fun `a code requested for a sale that is not listed changes nothing`() = runTest {
+        val vm = viewModel(
+            FakeSaleRepository(all = flowOf(listOf(ana))),
+            settings = AppSettings(pixKey = "12345678909")
+        )
+        advanceUntilIdle()
+
+        vm.onIntent(HistoryContract.Intent.ShowSalePix("missing"))
+
+        assertThat(vm.uiState.value.isShowingPix).isFalse()
+    }
+
+    @Test
+    fun `dismissing the code clears it`() = runTest {
+        val vm = viewModel(
+            FakeSaleRepository(all = flowOf(listOf(ana))),
+            settings = AppSettings(pixKey = "12345678909")
+        )
+        advanceUntilIdle()
+        vm.onIntent(HistoryContract.Intent.ShowSalePix("sale-1"))
+
+        vm.onIntent(HistoryContract.Intent.HideSalePix)
+
+        assertThat(vm.uiState.value.isShowingPix).isFalse()
+        assertThat(vm.uiState.value.pixPayload).isNull()
     }
 }

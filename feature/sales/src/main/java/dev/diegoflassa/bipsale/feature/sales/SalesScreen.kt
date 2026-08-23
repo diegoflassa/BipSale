@@ -24,11 +24,13 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,12 +54,16 @@ import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
 import dev.diegoflassa.bipsale.core.qrcode.QrScannerScreen
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
+import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.sales.components.DiscountDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ItemDiscountDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ManualCodeDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ProductPickerDialog
 import dev.diegoflassa.bipsale.feature.sales.components.SaleBottomBar
+import dev.diegoflassa.bipsale.core.qrcode.components.PixNotConfiguredCard
+import dev.diegoflassa.bipsale.core.qrcode.components.PixQrCard
+import dev.diegoflassa.bipsale.feature.sales.components.ProductDetailSheet
 import dev.diegoflassa.bipsale.feature.sales.components.SaleItemRow
 
 /** Which overlay the screen is currently showing. Stateless cases, so an enum. */
@@ -125,6 +131,7 @@ fun SalesScreen(
             onPaymentMethodChange = {
                 viewModel.onIntent(SalesContract.Intent.SelectPaymentMethod(it))
             },
+            onShowDetail = { viewModel.onIntent(SalesContract.Intent.ShowProductDetail(it)) },
             onFinalize = { viewModel.onIntent(SalesContract.Intent.FinalizeSale) }
         )
 
@@ -133,6 +140,12 @@ fun SalesScreen(
             state = uiState,
             onDismiss = { overlay = SalesOverlay.NONE },
             onIntent = viewModel::onIntent
+        )
+
+        SaleDialogs(
+            state = uiState,
+            onIntent = viewModel::onIntent,
+            onDiscountItem = { discountingItemId = it }
         )
 
         uiState.items.firstOrNull { it.id == discountingItemId }?.let { item ->
@@ -148,6 +161,63 @@ fun SalesScreen(
             )
         }
     }
+}
+
+/** The dialogs the sale screen raises from its own state, rather than from an overlay choice. */
+@Composable
+private fun SaleDialogs(
+    state: SalesContract.State,
+    onIntent: (SalesContract.Intent) -> Unit,
+    onDiscountItem: (String) -> Unit
+) {
+    if (state.isAwaitingPixPayment) {
+        CompletedPixDialog(
+            payload = state.pixPayload,
+            missingFields = state.missingPixFields,
+            onDone = { onIntent(SalesContract.Intent.PixPaymentAcknowledged) }
+        )
+    }
+
+    state.detailItem?.let { item ->
+        ProductDetailSheet(
+            item = item,
+            catalogEntry = state.catalogEntry(item.productCode),
+            onApplyDiscount = {
+                onIntent(SalesContract.Intent.HideProductDetail)
+                onDiscountItem(item.id)
+            },
+            onDismiss = { onIntent(SalesContract.Intent.HideProductDetail) }
+        )
+    }
+}
+
+/**
+ * Shown once a PIX sale is written. The screen used to navigate away the instant the sale landed,
+ * which took the QR with it before the customer had scanned anything.
+ */
+@Composable
+private fun CompletedPixDialog(
+    payload: String?,
+    missingFields: List<PixField>,
+    onDone: () -> Unit
+) {
+    AlertDialog(
+        modifier = Modifier.testTag(SalesScreenTestTags.COMPLETED_PIX_DIALOG),
+        onDismissRequest = onDone,
+        title = { Text(stringResource(R.string.sales_completed_pix_title)) },
+        text = {
+            if (payload != null) {
+                PixQrCard(payload = payload)
+            } else {
+                PixNotConfiguredCard(missingFields = missingFields)
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDone) {
+                Text(stringResource(R.string.sales_completed_pix_done))
+            }
+        }
+    )
 }
 
 @androidx.annotation.OptIn(ExperimentalGetImage::class)
@@ -217,6 +287,7 @@ internal fun SalesScreenContent(
     onDiscountItem: (String) -> Unit,
     onSaleDiscountClick: () -> Unit,
     onPaymentMethodChange: (PaymentMethod) -> Unit,
+    onShowDetail: (String) -> Unit,
     onFinalize: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -264,6 +335,17 @@ internal fun SalesScreenContent(
         }
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
+            val pixCardModifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            when {
+                state.pixPayload != null ->
+                    PixQrCard(payload = state.pixPayload, modifier = pixCardModifier)
+
+                state.missingPixFields.isNotEmpty() ->
+                    PixNotConfiguredCard(
+                        missingFields = state.missingPixFields,
+                        modifier = pixCardModifier
+                    )
+            }
             if (state.items.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     Text(
@@ -284,7 +366,9 @@ internal fun SalesScreenContent(
                         SaleItemRow(
                             item = item,
                             onDelete = { onRemoveItem(item.id) },
-                            onDiscount = { onDiscountItem(item.id) }
+                            onDiscount = { onDiscountItem(item.id) },
+                            imagePath = state.imagePathFor(item.productCode),
+                            onClick = { onShowDetail(item.id) }
                         )
                     }
                 }
@@ -380,6 +464,7 @@ private fun PreviewContent(state: SalesContract.State) {
             onDiscountItem = {},
             onSaleDiscountClick = {},
             onPaymentMethodChange = {},
+            onShowDetail = {},
             onFinalize = {}
         )
     }

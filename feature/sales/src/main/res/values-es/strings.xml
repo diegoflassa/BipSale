@@ -54,4 +54,22 @@
     <string name="sales_manual_code_confirm">Agregar</string>
     <string name="sales_item_discounts_label">Descuentos de artículos:</string>
     <string name="sales_quantity_format">%1$d x R$ %2$.2f</string>
+    <string name="sales_payment_method_required">Elija una forma de pago</string>
+    <string name="sales_payment_method_select">Seleccione</string>
+    <string name="sales_pix_not_configured">Configure la clave PIX en Configuración</string>
+    <string name="sales_product_detail_title">Detalles del producto</string>
+    <string name="sales_product_stock">Stock: %1$d</string>
+    <string name="sales_product_detail_close">Cerrar</string>
+    <string name="sales_product_detail_discount">Aplicar descuento</string>
+    <string name="sales_code_prefix">Código: %1$s</string>
+    <string name="sales_unit_price_label">Precio unitario</string>
+    <string name="sales_quantity_label">Cantidad</string>
+    <string name="sales_line_total_label">Total de la línea</string>
+    <string name="sales_currency">R$ %1$.2f</string>
+    <string name="sales_completed_pix_title">Venta registrada</string>
+    <string name="sales_completed_pix_done">Finalizar</string>
+    <string name="sales_customer_name_hint">Opcional. Nombre completo del cliente</string>
+    <string name="sales_customer_cpf_hint">Opcional. Solo números o 000.000.000-00</string>
+    <string name="sales_manual_code_format">El mismo código impreso en la etiqueta del producto</string>
+    <string name="sales_discount_percent_format">De 0 a 100. Ej.: 10 para un 10% de descuento</string>
 </resources>

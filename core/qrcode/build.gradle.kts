@@ -32,6 +32,7 @@ dependencies {
     implementation(libs.ax.lifecycle.viewmodel.compose)
     implementation(libs.ax.lifecycle.runtime.compose)
     implementation(project(":core:ui"))
+    implementation(project(":core:domain"))
 
     // Hilt
     implementation(libs.com.google.dagger.hilt.android)

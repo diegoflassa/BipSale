@@ -9,10 +9,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backup
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Inventory
@@ -41,7 +44,8 @@ fun DashboardScreen(
     onManageProducts: () -> Unit,
     onHistory: () -> Unit,
     onExport: () -> Unit,
-    onBackup: () -> Unit
+    onBackup: () -> Unit,
+    onSettings: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -53,7 +57,10 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(16.dp)
+                // Six entries overflow a phone in landscape, and a card the operator cannot
+                // reach is a feature that does not exist.
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -86,6 +93,12 @@ fun DashboardScreen(
                 stringResource(R.string.dashboard_backup_description),
                 Icons.Default.Backup,
                 onBackup
+            )
+            DashboardCard(
+                stringResource(R.string.dashboard_settings),
+                stringResource(R.string.dashboard_settings_description),
+                Icons.Default.Settings,
+                onSettings
             )
         }
     }
@@ -123,7 +136,14 @@ fun DashboardCard(
 @Composable
 private fun DashboardScreenPreview() {
     BipSaleTheme {
-        DashboardScreen(onNewSale = {}, onManageProducts = {}, onHistory = {}, onExport = {}, onBackup = {})
+        DashboardScreen(
+            onNewSale = {},
+            onManageProducts = {},
+            onHistory = {},
+            onExport = {},
+            onBackup = {},
+            onSettings = {}
+        )
     }
 }
 
@@ -131,7 +151,14 @@ private fun DashboardScreenPreview() {
 @Composable
 private fun DashboardScreenDarkPreview() {
     BipSaleTheme {
-        DashboardScreen(onNewSale = {}, onManageProducts = {}, onHistory = {}, onExport = {}, onBackup = {})
+        DashboardScreen(
+            onNewSale = {},
+            onManageProducts = {},
+            onHistory = {},
+            onExport = {},
+            onBackup = {},
+            onSettings = {}
+        )
     }
 }
 

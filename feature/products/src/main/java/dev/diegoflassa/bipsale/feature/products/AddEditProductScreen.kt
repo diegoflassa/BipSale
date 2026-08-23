@@ -82,6 +82,10 @@ fun AddEditProductScreen(
                         documentName = context.getString(R.string.products_qr_labels_title),
                         labels = effect.labels
                     )
+
+                // Both belong to the list screen's import flow; this screen never raises them.
+                is ProductContract.Effect.PickTemplateDestination,
+                is ProductContract.Effect.PickImportSource -> Unit
             }
         }
     }
@@ -209,6 +213,8 @@ private fun ProductEditorFields(
         value = editor.name,
         onValueChange = { onIntent(ProductContract.Intent.NameChanged(it)) },
         label = { Text(stringResource(R.string.products_name_label)) },
+        supportingText = { Text(stringResource(R.string.products_name_hint)) },
+        singleLine = true,
         modifier = Modifier
             .fillMaxWidth()
             .testTag(AddEditProductScreenTestTags.NAME_FIELD)
@@ -223,9 +229,24 @@ private fun ProductEditorFields(
         singleLine = true,
         isError = priceRejected,
         supportingText = {
-            if (priceRejected) Text(stringResource(R.string.products_price_invalid))
+            if (priceRejected) {
+                Text(stringResource(R.string.products_price_invalid))
+            } else {
+                Text(stringResource(R.string.products_price_hint))
+            }
         },
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal)
+    )
+    OutlinedTextField(
+        value = editor.quantityInput,
+        onValueChange = { onIntent(ProductContract.Intent.QuantityChanged(it)) },
+        label = { Text(stringResource(R.string.products_quantity_label)) },
+        supportingText = { Text(stringResource(R.string.products_quantity_hint)) },
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag(AddEditProductScreenTestTags.QUANTITY_FIELD),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
     )
 }
 

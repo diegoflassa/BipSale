@@ -54,4 +54,22 @@
     <string name="sales_manual_code_confirm">Add</string>
     <string name="sales_item_discounts_label">Item discounts:</string>
     <string name="sales_quantity_format">%1$d x R$ %2$.2f</string>
+    <string name="sales_payment_method_required">Choose a payment method</string>
+    <string name="sales_payment_method_select">Select</string>
+    <string name="sales_pix_not_configured">Set the PIX key in Settings</string>
+    <string name="sales_product_detail_title">Product details</string>
+    <string name="sales_product_stock">Stock: %1$d</string>
+    <string name="sales_product_detail_close">Close</string>
+    <string name="sales_product_detail_discount">Apply discount</string>
+    <string name="sales_code_prefix">Code: %1$s</string>
+    <string name="sales_unit_price_label">Unit price</string>
+    <string name="sales_quantity_label">Quantity</string>
+    <string name="sales_line_total_label">Line total</string>
+    <string name="sales_currency">R$ %1$.2f</string>
+    <string name="sales_completed_pix_title">Sale recorded</string>
+    <string name="sales_completed_pix_done">Done</string>
+    <string name="sales_customer_name_hint">Optional. The full name of the customer</string>
+    <string name="sales_customer_cpf_hint">Optional. Digits only or 000.000.000-00</string>
+    <string name="sales_manual_code_format">The same code printed on the product label</string>
+    <string name="sales_discount_percent_format">0 to 100. E.g. 10 for a 10% discount</string>
 </resources>

@@ -18,6 +18,11 @@ import dev.diegoflassa.bipsale.core.domain.backup.StagedBackup
 import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import dev.diegoflassa.bipsale.core.data.settings.readDiscount
+import dev.diegoflassa.bipsale.core.data.settings.storedType
+import dev.diegoflassa.bipsale.core.data.settings.storedValue
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import kotlinx.serialization.json.Json
 import timber.log.Timber
 import java.io.File
@@ -36,6 +41,7 @@ class BackupRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val database: BipSaleDatabase,
     private val productDao: ProductDao,
+    private val settingsRepository: SettingsRepository,
     private val saleDao: SaleDao,
     private val productImageStore: ProductImageStore
 ) : BackupRepository {
@@ -148,6 +154,13 @@ class BackupRepositoryImpl @Inject constructor(
             productImageStore.deleteAll()
             images.forEach { (name, bytes) -> productImageStore.writeBytes(name, bytes) }
 
+            // Restored outside the database transaction: settings live in DataStore, and a
+            // rollback there is not something the transaction could have covered anyway.
+            restored.settings?.let { settingsRepository.save(it.toDomain()) }
+            Timber.d(
+                "[BipSale][Backup] Settings restored=%b", restored.settings != null
+            )
+
             Timber.i(
                 "[BipSale][Backup] Restored products=%d sales=%d items=%d images=%d from %s",
                 restored.products.size, restored.sales.size, restored.saleItems.size,
@@ -182,7 +195,8 @@ class BackupRepositoryImpl @Inject constructor(
             products = products.map { it.toBackup() },
             sales = sales.map { it.toBackup() },
             saleItems = saleItems.map { it.toBackup() },
-            images = imageNames
+            images = imageNames,
+            settings = settingsRepository.current().toBackup()
         )
 
         var writtenImages = 0
@@ -231,13 +245,31 @@ class BackupRepositoryImpl @Inject constructor(
     }
 }
 
+private fun AppSettings.toBackup() = BackupSettings(
+    pixKey = pixKey,
+    pixMerchantName = pixMerchantName,
+    pixMerchantCity = pixMerchantCity,
+    pixDiscountType = pixDiscount.storedType(),
+    pixDiscountValue = pixDiscount.storedValue(),
+    askCustomerInfo = askCustomerInfo
+)
+
+private fun BackupSettings.toDomain() = AppSettings(
+    pixKey = pixKey,
+    pixMerchantName = pixMerchantName,
+    pixMerchantCity = pixMerchantCity,
+    pixDiscount = readDiscount(pixDiscountType, pixDiscountValue),
+    askCustomerInfo = askCustomerInfo
+)
+
 private fun ProductEntity.toBackup() = BackupProduct(
     productCode = productCode,
     productName = productName,
     price = price,
     qrCodeData = qrCodeData,
     imageFileName = imageFileName,
-    lastUpdated = lastUpdated
+    lastUpdated = lastUpdated,
+    quantity = quantity
 )
 
 private fun BackupProduct.toEntity() = ProductEntity(
@@ -246,7 +278,8 @@ private fun BackupProduct.toEntity() = ProductEntity(
     price = price,
     qrCodeData = qrCodeData,
     imageFileName = imageFileName,
-    lastUpdated = lastUpdated
+    lastUpdated = lastUpdated,
+    quantity = quantity
 )
 
 private fun SaleEntity.toBackup() = BackupSale(

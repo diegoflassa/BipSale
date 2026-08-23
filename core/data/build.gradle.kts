@@ -19,6 +19,7 @@ ksp {
 
 dependencies {
     // Room
+    implementation(libs.ax.datastore.preferences)
     implementation(libs.ax.room.runtime)
     implementation(libs.ax.room.ktx)
     ksp(libs.ax.room.compiler)

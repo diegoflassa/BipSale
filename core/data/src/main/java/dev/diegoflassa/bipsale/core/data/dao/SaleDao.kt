@@ -34,10 +34,19 @@ interface SaleDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSaleItems(items: List<SaleItemEntity>)
 
+    /**
+     * Stock lives on `products`, but it moves in the same transaction as the sale that moved it —
+     * a committed sale whose stock decrement was rolled back is inventory nobody can reconcile.
+     * That is why this query sits in the sale DAO rather than the product one.
+     */
+    @Query("UPDATE products SET quantity = MAX(0, quantity - :soldUnits) WHERE productCode = :code")
+    suspend fun decrementProductStock(code: String, soldUnits: Int)
+
     @Transaction
     suspend fun insertFullSale(sale: SaleEntity, items: List<SaleItemEntity>) {
         insertSale(sale)
         insertSaleItems(items)
+        items.forEach { decrementProductStock(it.productCode, it.quantity) }
     }
 
     @Query("SELECT * FROM sales")

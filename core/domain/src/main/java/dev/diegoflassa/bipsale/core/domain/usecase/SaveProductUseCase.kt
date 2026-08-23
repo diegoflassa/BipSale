@@ -11,18 +11,21 @@ class SaveProductUseCase @Inject constructor(
         code: String,
         name: String,
         price: Double,
-        imageFileName: String? = null
+        imageFileName: String? = null,
+        quantity: Int = 0
     ): Result<Product> =
         runCatching {
             require(code.isNotBlank()) { "Product code cannot be blank." }
             require(name.isNotBlank()) { "Product name cannot be blank." }
             require(price.isFinite() && price > 0.0) { "Product price must be greater than zero." }
+            require(quantity >= 0) { "Product quantity cannot be negative." }
             val product = Product(
                 code = code,
                 name = name,
                 price = price,
                 qrCode = buildQrPayload(code, price),
-                imageFileName = imageFileName
+                imageFileName = imageFileName,
+                quantity = quantity
             )
             productRepository.insertProduct(product)
             product

@@ -9,6 +9,8 @@ import dev.diegoflassa.bipsale.core.domain.usecase.DeleteProductUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductImageUseCase
+import dev.diegoflassa.bipsale.core.domain.usecase.ImportProductsUseCase
+import dev.diegoflassa.bipsale.core.domain.usecase.NoProductsToImport
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductUseCase
 import dev.diegoflassa.bipsale.core.domain.util.parsePriceInput
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
@@ -33,6 +35,7 @@ class ProductViewModel @Inject constructor(
     private val getProducts: GetProductsUseCase,
     private val getProduct: GetProductUseCase,
     private val saveProduct: SaveProductUseCase,
+    private val importProducts: ImportProductsUseCase,
     private val deleteProduct: DeleteProductUseCase,
     private val saveProductImage: SaveProductImageUseCase,
     private val productImageStore: ProductImageStore
@@ -62,6 +65,8 @@ class ProductViewModel @Inject constructor(
             is ProductContract.Intent.NameChanged -> updateEditor { it.copy(name = intent.value) }
             is ProductContract.Intent.PriceChanged ->
                 updateEditor { it.copy(priceInput = intent.value) }
+            is ProductContract.Intent.QuantityChanged ->
+                updateEditor { it.copy(quantityInput = intent.value.filter(Char::isDigit)) }
             is ProductContract.Intent.ImagePicked -> importImage(intent.uri)
             is ProductContract.Intent.SaveProduct -> persistEditor()
             is ProductContract.Intent.DeleteProduct -> removeProduct(intent.code)
@@ -75,6 +80,16 @@ class ProductViewModel @Inject constructor(
                 updateEditor { it.copy(isLabelPreviewVisible = true) }
             is ProductContract.Intent.HideLabelPreview ->
                 updateEditor { it.copy(isLabelPreviewVisible = false) }
+
+            is ProductContract.Intent.DownloadTemplateRequested -> requestTemplate()
+            is ProductContract.Intent.TemplateDestinationChosen ->
+                writeTemplate(intent.destinationUri)
+
+            is ProductContract.Intent.ImportRequested -> emitEffect(
+                ProductContract.Effect.PickImportSource
+            )
+
+            is ProductContract.Intent.ImportSourceChosen -> runImport(intent.sourceUri)
         }
     }
 
@@ -115,6 +130,7 @@ class ProductViewModel @Inject constructor(
                             code = product.code,
                             name = product.name,
                             priceInput = product.price.toString(),
+                            quantityInput = product.quantity.toString(),
                             imageFileName = product.imageFileName,
                             imagePath = product.imageFileName
                                 ?.let(productImageStore::resolvePath)
@@ -158,12 +174,24 @@ class ProductViewModel @Inject constructor(
             return
         }
 
+        val quantity = editor.quantityInput.trim().ifBlank { "0" }.toIntOrNull()
+        if (quantity == null || quantity < 0) {
+            Timber.w("[BipSale][Product] Rejected unusable quantity for code=%s", editor.code)
+            emitSnackbar(UiText.StringResource(R.string.products_quantity_invalid))
+            return
+        }
+
         updateEditor { it.copy(isSaving = true) }
         viewModelScope.launch {
-            Timber.d("[BipSale][Product] Saving product code=%s", editor.code)
-            saveProduct(editor.code, editor.name, price, editor.imageFileName)
+            Timber.d(
+                "[BipSale][Product] Saving product code=%s quantity=%d", editor.code, quantity
+            )
+            saveProduct(editor.code, editor.name, price, editor.imageFileName, quantity)
                 .onSuccess {
-                    Timber.d("[BipSale][Product] Product saved code=%s", editor.code)
+                    Timber.d(
+                        "[BipSale][Product] Product saved code=%s quantity=%d",
+                        editor.code, quantity
+                    )
                     _effect.send(ProductContract.Effect.NavigationBack)
                 }
                 .onFailure { throwable ->
@@ -225,6 +253,68 @@ class ProductViewModel @Inject constructor(
         }
     }
 
+    private fun requestTemplate() {
+        Timber.d("[BipSale][Import] Template requested")
+        emitEffect(
+            ProductContract.Effect.PickTemplateDestination(importProducts.suggestedTemplateName())
+        )
+    }
+
+    private fun writeTemplate(destinationUri: String) {
+        viewModelScope.launch {
+            importProducts.writeTemplate(destinationUri)
+                .onSuccess {
+                    Timber.i("[BipSale][Import] Template saved")
+                    emitSnackbar(UiText.StringResource(R.string.products_template_saved))
+                }
+                .onFailure { throwable ->
+                    if (throwable is CancellationException) throw throwable
+                    Timber.e(throwable, "[BipSale][Import] Writing the template failed")
+                    emitSnackbar(UiText.StringResource(R.string.products_template_failed))
+                }
+        }
+    }
+
+    private fun runImport(sourceUri: String) {
+        viewModelScope.launch {
+            Timber.d("[BipSale][Import] Importing products")
+            importProducts(sourceUri)
+                .onSuccess { report ->
+                    Timber.i(
+                        "[BipSale][Import] Import finished imported=%d rejected=%d",
+                        report.accepted.size, report.rejected.size
+                    )
+                    val message = if (report.rejected.isEmpty()) {
+                        UiText.StringResource(
+                            R.string.products_import_success,
+                            report.accepted.size
+                        )
+                    } else {
+                        UiText.StringResource(
+                            R.string.products_import_partial,
+                            report.accepted.size,
+                            report.rejected.size
+                        )
+                    }
+                    emitSnackbar(message)
+                }
+                .onFailure { throwable ->
+                    if (throwable is CancellationException) throw throwable
+                    Timber.e(throwable, "[BipSale][Import] Import failed")
+                    val message = if (throwable is NoProductsToImport) {
+                        R.string.products_import_empty
+                    } else {
+                        R.string.products_import_failed
+                    }
+                    emitSnackbar(UiText.StringResource(message))
+                }
+        }
+    }
+
+    private fun emitEffect(effect: ProductContract.Effect) {
+        viewModelScope.launch { _effect.send(effect) }
+    }
+
     private fun emitSnackbar(message: UiText) {
         viewModelScope.launch { _effect.send(ProductContract.Effect.ShowSnackbar(message)) }
     }
@@ -248,7 +338,8 @@ class ProductViewModel @Inject constructor(
             qrData = qrCode ?: SaveProductUseCase.buildQrPayload(code, price),
             productName = name,
             priceFormatted = currencyFormat.format(price)
-        )
+        ),
+        quantity = quantity
     )
 
     private fun Throwable.toUiText(): UiText =

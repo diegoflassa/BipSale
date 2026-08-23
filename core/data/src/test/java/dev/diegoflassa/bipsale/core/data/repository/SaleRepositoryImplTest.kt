@@ -114,6 +114,18 @@ class SaleRepositoryImplTest {
     }
 
     @Test
+    fun `stock moves in the same write as the sale that moved it`() = runTest {
+        // A committed sale whose stock decrement was rolled back is inventory nobody can
+        // reconcile, which is why the decrement rides the sale's own transaction.
+        val dao = FakeSaleDao()
+
+        repository(dao).insertFullSale(sale)
+
+        val line = sale.items.single()
+        assertThat(dao.stockTaken).containsEntry(line.productCode, line.quantity)
+    }
+
+    @Test
     fun `rethrows a write failure instead of reporting a sale that was never recorded`() = runTest {
         // The one failure the app must never swallow: the UI navigates away on success, and a
         // sale that silently did not land is money nobody can reconcile.

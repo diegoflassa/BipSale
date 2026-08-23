@@ -76,12 +76,20 @@ fun CustomerInfoScreen(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text(stringResource(R.string.sales_customer_name_label)) },
+                    supportingText = {
+                        Text(stringResource(R.string.sales_customer_name_hint))
+                    },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedTextField(
                     value = cpf,
                     onValueChange = { cpf = it },
                     label = { Text(stringResource(R.string.sales_customer_cpf_label)) },
+                    supportingText = {
+                        Text(stringResource(R.string.sales_customer_cpf_hint))
+                    },
+                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

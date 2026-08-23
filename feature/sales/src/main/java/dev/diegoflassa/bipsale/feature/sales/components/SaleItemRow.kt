@@ -4,13 +4,16 @@ import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocalOffer
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import dev.diegoflassa.bipsale.core.domain.model.ItemDiscount
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.ui.components.ProductThumbnail
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.sales.R
 
@@ -31,14 +35,21 @@ import dev.diegoflassa.bipsale.feature.sales.R
  * One cart line. When the line carries a discount, the original price is struck through next to
  * what is actually being charged — an operator reading the total back to a customer needs both.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SaleItemRow(
     item: SaleItem,
     onDelete: () -> Unit,
     onDiscount: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    imagePath: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        onClick = onClick ?: {},
+        enabled = onClick != null
+    ) {
         Row(
             modifier = Modifier
                 .padding(16.dp)
@@ -46,6 +57,10 @@ fun SaleItemRow(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            ProductThumbnail(imagePath = imagePath, size = 48.dp)
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             Column(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(4.dp)

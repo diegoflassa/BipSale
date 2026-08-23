@@ -21,4 +21,7 @@
     <string name="history_export_success">Datei mit %1$d Verkäufen gespeichert</string>
     <string name="history_export_empty">Keine Verkäufe zum Exportieren</string>
     <string name="history_export_cancelled">Export abgebrochen</string>
+    <string name="history_pix_title">PIX-QR-Code des Verkaufs</string>
+    <string name="history_pix_close">Schließen</string>
+    <string name="history_pix_show">PIX-QR-Code anzeigen</string>
 </resources>
