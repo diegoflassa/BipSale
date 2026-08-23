@@ -16,6 +16,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
 import org.junit.Test
+import java.io.IOException
 
 class HistoryViewModelTest {
 
@@ -58,15 +59,27 @@ class HistoryViewModelTest {
         override fun getSalesByDateRange(startDate: Long, endDate: Long): Flow<List<Sale>> = byDate
     }
 
-    private class NoOpExportRepository : SalesExportRepository {
-        override suspend fun exportSales(destinationUri: String, sales: List<Sale>) = Unit
-        override fun suggestedFileName(): String = "test.xlsx"
+    private class RecordingExportRepository(
+        private val failWith: Throwable? = null
+    ) : SalesExportRepository {
+        var destination: String? = null
+        var exported: List<Sale> = emptyList()
+        var calls = 0
+
+        override suspend fun exportSales(destinationUri: String, sales: List<Sale>) {
+            calls++
+            destination = destinationUri
+            exported = sales
+            failWith?.let { throw it }
+        }
+
+        override fun suggestedFileName(): String = "vendas.xlsx"
     }
 
-    private val noOpExport = ExportSalesUseCase(NoOpExportRepository())
-
-    private fun viewModel(repo: FakeSaleRepository) =
-        HistoryViewModel(repo, noOpExport)
+    private fun viewModel(
+        repo: FakeSaleRepository,
+        export: RecordingExportRepository = RecordingExportRepository()
+    ) = HistoryViewModel(repo, ExportSalesUseCase(export))
 
     @Test
     fun `loads every sale on creation`() = runTest {
@@ -206,5 +219,142 @@ class HistoryViewModelTest {
             assertThat(awaitItem()).isEmpty()
             cancelAndIgnoreRemainingEvents()
         }
+    }
+
+    @Test
+    fun `an export with nothing to write says so instead of opening the picker`() = runTest {
+        val export = RecordingExportRepository()
+        val vm = viewModel(FakeSaleRepository(all = flowOf(emptyList())), export)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.ALL))
+            advanceUntilIdle()
+
+            assertThat(awaitItem()).isInstanceOf(HistoryContract.Effect.ShowSnackbar::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(export.calls).isEqualTo(0)
+    }
+
+    @Test
+    fun `an export request asks for a destination before writing anything`() = runTest {
+        val export = RecordingExportRepository()
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana, bruno))), export)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.ALL))
+            advanceUntilIdle()
+
+            val effect = awaitItem()
+            assertThat(effect).isInstanceOf(HistoryContract.Effect.PickExportDestination::class.java)
+            assertThat((effect as HistoryContract.Effect.PickExportDestination).suggestedFileName)
+                .isEqualTo("vendas.xlsx")
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(export.calls).isEqualTo(0)
+    }
+
+    @Test
+    fun `a chosen destination writes every sale and reports the result`() = runTest {
+        val export = RecordingExportRepository()
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana, bruno))), export)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.ALL))
+            advanceUntilIdle()
+            awaitItem()
+
+            vm.onIntent(HistoryContract.Intent.ExportDestinationChosen("content://docs/v.xlsx"))
+            advanceUntilIdle()
+
+            assertThat(awaitItem()).isInstanceOf(HistoryContract.Effect.ShowSnackbar::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(export.destination).isEqualTo("content://docs/v.xlsx")
+        assertThat(export.exported).containsExactly(ana, bruno)
+        assertThat(vm.uiState.value.isExporting).isFalse()
+    }
+
+    @Test
+    fun `exporting the selection writes only those sales and clears it`() = runTest {
+        val export = RecordingExportRepository()
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana, bruno))), export)
+        advanceUntilIdle()
+        vm.onIntent(HistoryContract.Intent.ToggleSaleSelection("sale-2"))
+
+        vm.effect.test {
+            vm.onIntent(
+                HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.SELECTED)
+            )
+            advanceUntilIdle()
+            awaitItem()
+
+            vm.onIntent(HistoryContract.Intent.ExportDestinationChosen("content://docs/v.xlsx"))
+            advanceUntilIdle()
+            awaitItem()
+            cancelAndIgnoreRemainingEvents()
+        }
+
+        assertThat(export.exported).containsExactly(bruno)
+        assertThat(vm.uiState.value.selectedSaleIds).isEmpty()
+    }
+
+    @Test
+    fun `a destination arriving with no export pending writes nothing`() = runTest {
+        val export = RecordingExportRepository()
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana, bruno))), export)
+        advanceUntilIdle()
+
+        vm.onIntent(HistoryContract.Intent.ExportDestinationChosen("content://docs/v.xlsx"))
+        advanceUntilIdle()
+
+        assertThat(export.calls).isEqualTo(0)
+        assertThat(vm.uiState.value.isExporting).isFalse()
+    }
+
+    @Test
+    fun `cancelling the picker reports it and drops the pending export`() = runTest {
+        val export = RecordingExportRepository()
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana, bruno))), export)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.ALL))
+            advanceUntilIdle()
+            awaitItem()
+
+            vm.onIntent(HistoryContract.Intent.ExportCancelled)
+            advanceUntilIdle()
+            assertThat(awaitItem()).isInstanceOf(HistoryContract.Effect.ShowSnackbar::class.java)
+
+            // A destination that arrives after a cancel belongs to nothing.
+            vm.onIntent(HistoryContract.Intent.ExportDestinationChosen("content://docs/v.xlsx"))
+            advanceUntilIdle()
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(export.calls).isEqualTo(0)
+    }
+
+    @Test
+    fun `a write failure surfaces an error instead of looking like a success`() = runTest {
+        val export = RecordingExportRepository(failWith = IOException("no space left on device"))
+        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana, bruno))), export)
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(HistoryContract.Intent.ExportRequested(HistoryContract.ExportScope.ALL))
+            advanceUntilIdle()
+            awaitItem()
+
+            vm.onIntent(HistoryContract.Intent.ExportDestinationChosen("content://docs/v.xlsx"))
+            advanceUntilIdle()
+
+            assertThat(awaitItem()).isInstanceOf(HistoryContract.Effect.ShowSnackbar::class.java)
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(vm.uiState.value.isExporting).isFalse()
     }
 }

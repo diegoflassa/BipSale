@@ -157,8 +157,9 @@ Relatório: `build/reports/kover/html/index.html`
 ### Exportação de Dados
 1. Selecione vendas no histórico ou exporte todas pela tela de exportação
 2. O sistema abre o seletor de documentos do Android para escolher o destino
-3. Geração de relatório em Excel (Apache POI) com colunas: Data, Produto, Quantidade, Preço, Desconto, Total
-4. Feedback via Snackbar: sucesso (com contagem), falha, dados vazios ou cancelamento
+3. Geração de relatório em Excel (Apache POI) com uma linha por item vendido e as colunas: Data, ID Venda, Cliente, CPF, Código Produto, Produto, Qtd, Valor Unit., Desconto Item, Total Item, Desconto Venda (%), Total Venda
+4. As colunas de venda (Desconto Venda e Total Venda) aparecem apenas na primeira linha de cada venda, para que somar a coluna não conte a mesma venda duas vezes
+5. Feedback via Snackbar: sucesso (com contagem), falha, dados vazios ou cancelamento
 
 ## 🛠️ Desenvolvimento
 

@@ -152,7 +152,7 @@ class HistoryViewModel @Inject constructor(
             Timber.d("[BipSale][Export] Writing scope=%s sales=%d", scope, sales.size)
             exportSales(destinationUri, sales)
                 .onSuccess { count ->
-                    Timber.i("[BipSale][Export] Wrote sales=%d", count)
+                    Timber.i("[BipSale][Export] Export finished scope=%s sales=%d", scope, count)
                     _uiState.update {
                         val selection = if (scope == HistoryContract.ExportScope.SELECTED) {
                             emptySet()

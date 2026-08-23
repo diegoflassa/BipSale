@@ -12,6 +12,12 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 ## Unreleased
 
+- The Excel export now carries the sale date, the sale id, the quantity sold, the per-line discount and the line total, none of which it exported before
+- Fixed the Excel export repeating the whole-sale total on every item row, which made summing that column count a multi-item sale once per item; it is now written once per sale
+- Fixed an export of sales that carry no lines being reported as a success, which handed the operator a header-only spreadsheet
+- Fixed the workbook leaking when a write failed part-way through
+- Pinned the export flow in `HistoryViewModel` with seven tests covering nothing-to-write, destination-before-write, scope filtering, an orphan destination, cancellation and a write failure
+- Catalogued the `[BipSale][History]` log filter, which was emitted but missing from KI-04, and logged the export destination so a file the operator cannot find is diagnosable
 - Cart and checkout now derive every total from one domain function, rounded to cents, so the amount displayed and the amount persisted cannot disagree
 - Sale-level discount is editable: the bottom bar opens a dialog that refuses anything outside 0-100 instead of accepting it silently
 - Per-item discounts, by percentage of the line or by a fixed amount off it, shown on the line with the original price struck through

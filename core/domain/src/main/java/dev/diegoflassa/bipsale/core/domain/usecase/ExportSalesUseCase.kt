@@ -12,7 +12,9 @@ class ExportSalesUseCase @Inject constructor(
 ) {
     /** Returns how many sales reached the file. */
     suspend operator fun invoke(destinationUri: String, sales: List<Sale>): Result<Int> {
-        if (sales.isEmpty()) return Result.failure(NoSalesToExport())
+        // Sales that carry no lines produce no rows, so writing them lands a header-only file the
+        // operator is told was a successful export.
+        if (sales.none { it.items.isNotEmpty() }) return Result.failure(NoSalesToExport())
         return runCatching {
             salesExportRepository.exportSales(destinationUri, sales)
             sales.size

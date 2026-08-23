@@ -23,6 +23,11 @@ class SalesExportRepositoryImpl @Inject constructor(
 
     override suspend fun exportSales(destinationUri: String, sales: List<Sale>) =
         withContext(Dispatchers.IO) {
+            // The destination is the first thing to check when an operator cannot find the file
+            // they just saved; it names a provider and a document, never a person.
+            Timber.d(
+                "[BipSale][Export] Writing to %s sales=%d", destinationUri, sales.size
+            )
             val output = context.contentResolver.openOutputStream(Uri.parse(destinationUri))
                 ?: error("Could not open $destinationUri for writing")
             output.use { excelExporter.exportSalesToExcel(it, sales) }

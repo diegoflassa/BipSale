@@ -2,7 +2,7 @@
 
 **Scope:** Whole project — aggregates every known deferred item, backlog item, and not-yet-implemented rule
 **Status:** TBD — planning reference only, no code here
-**Last verified:** 2026-08-22
+**Last verified:** 2026-08-23
 
 ## Purpose
 
@@ -13,28 +13,24 @@ Single landing page for "what's left." Each row points to where the authoritativ
 | # | Item | Detail lives in | Source location | Executable? | Blocker(s) |
 |---|---|---|---|---|---|
 | 4 | No Room migration harness | [CORE_RULES §13](../rules/CORE_RULES.md) | `core/data/` | ⏸️ Deferred | App not yet released — no users to migrate. Required before **first release** so post-release schema changes don't wipe sales data |
-| 5 | `:core:qrcode` bitmap rendering untested — grid maths now covered | [TEST_COVERAGE.md](TEST_COVERAGE.md) | `core/qrcode/` | ⏸️ Partially blocked | `QrGenerator` / `QrLabelSheetRenderer` need real Android graphics, so instrumented only |
-| 6 | Compose UI tests | [TEST_COVERAGE.md](TEST_COVERAGE.md) | all `feature/*/` | ⏸️ Partially blocked | `:feature:sales`, `:feature:products` and `:feature:history` now have `ScreenContent` instrumented suites. The remaining gap is screens in `:app` (`BackupScreen`, `ExportScreen`, `DashboardScreen`) which still lack the two-layer split |
+| 6 | Compose UI tests for the `:app` screens | [TEST_COVERAGE.md](TEST_COVERAGE.md) | `app/ui/` | ✅ Executable | Every `feature/*` module has a `ScreenContent` instrumented suite. `BackupScreen`, `ExportScreen` and `DashboardScreen` are the gap: they carry no test tags, and their `ScreenContent` halves are `private` rather than `internal` |
 | 8 | No `CHANGELOG.md` history before 2026-07-21 | [CORE_RULES §14](../rules/CORE_RULES.md) | `CHANGELOG.md` | ⏸️ Won't fix | Pre-existing work predates the rule; start from Unreleased |
 | 11 | `android:allowBackup` is on for release without migrations | [CORE_RULES §13](../rules/CORE_RULES.md) | `app/src/main/AndroidManifest.xml` | ⏸️ Deferred | Blocked on #4; both deferred until pre-release. No users to migrate yet |
 
 ## Proposed Execution Order
 
-**Nothing executable is left.** Every remaining row is gated on a release, a device, or a rule change.
-
-### Phase 1 — Pre-Release
+### Phase 1 — Executable now
 
 | Order | Item | Rationale |
 |-------|------|-----------|
-| 1st | **#4** Room migration harness | No users yet — required before first release so post-release schema changes are safe |
-| 2nd | **#11** `allowBackup` safety | One-liner once #4 lands; same pre-release gate |
+| 1st | **#6** `:app` screen UI tests | Needs only a device; the pattern is already established in all three `feature/*` modules |
 
-### Phase 2 — Needs a device
+### Phase 2 — Pre-Release
 
 | Order | Item | Rationale |
 |-------|------|-----------|
-| 3rd | **#6** Compose UI tests | `:feature:sales` is now unblocked — `SalesScreenContent` is split out and tagged. The products and history screens still need the same treatment |
-| 4th | **#5** QR bitmap rendering tests | Instrumented-only; schedule when a device/CI runner is available |
+| 2nd | **#4** Room migration harness | No users yet — required before first release so post-release schema changes are safe |
+| 3rd | **#11** `allowBackup` safety | One-liner once #4 lands; same pre-release gate |
 
 ### Won't fix
 

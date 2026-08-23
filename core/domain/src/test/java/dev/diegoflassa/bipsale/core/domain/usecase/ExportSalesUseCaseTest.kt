@@ -72,6 +72,18 @@ class ExportSalesUseCaseTest {
     }
 
     @Test
+    fun `refuses sales that carry no lines, which would write a header-only file`() = runTest {
+        val repository = FakeSalesExportRepository()
+        val lineless = sale("s1").copy(items = emptyList())
+
+        val result = ExportSalesUseCase(repository)("content://docs/vendas.xlsx", listOf(lineless))
+
+        assertThat(result.isFailure).isTrue()
+        assertThat(result.exceptionOrNull()).isInstanceOf(NoSalesToExport::class.java)
+        assertThat(repository.calls).isEqualTo(0)
+    }
+
+    @Test
     fun `a write failure is reported rather than looking like a success`() = runTest {
         val repository = FakeSalesExportRepository(failWith = IOException("no space left on device"))
 
