@@ -30,9 +30,24 @@ class SalesExportRepositoryImpl @Inject constructor(
             )
             val output = context.contentResolver.openOutputStream(Uri.parse(destinationUri))
                 ?: error("Could not open $destinationUri for writing")
-            output.use { excelExporter.exportSalesToExcel(it, sales) }
-            val lines = sales.sumOf { it.items.size }
-            Timber.i("[BipSale][Export] Wrote sales=%d lines=%d", sales.size, lines)
+            val summary = output.use { excelExporter.exportSalesToExcel(it, sales) }
+            // The totals are what an operator disputes a report against, and none of them
+            // identify anybody (CORE_RULES section 8.3).
+            Timber.i(
+                "[BipSale][Export] Wrote sales=%d lines=%d units=%d gross=%.2f discounts=%.2f net=%.2f",
+                summary.saleCount,
+                sales.sumOf { it.items.size },
+                summary.unitCount,
+                summary.money.grossAmount,
+                summary.money.totalDiscountAmount,
+                summary.money.netAmount
+            )
+            Timber.d(
+                "[BipSale][Export] Take by method %s",
+                summary.byPaymentMethod.joinToString { total ->
+                    "${total.method.serializedName}=${total.saleCount}/${total.netAmount}"
+                }
+            )
         }
 
     override fun suggestedFileName(): String {

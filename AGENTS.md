@@ -18,6 +18,7 @@ Single bootstrap file for all AI agents working on this repo.
 - [KI-05: Product Images & QR Label Printing](conductor/knowledge/KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md)
 - [KI-06: Backup & Restore](conductor/knowledge/KI-06-BACKUP-AND-RESTORE.md)
 - [KI-07: Sales Cart & Discounts](conductor/knowledge/KI-07-SALES-CART-AND-DISCOUNTS.md)
+- [KI-08: Sales Export Report](conductor/knowledge/KI-08-SALES-EXPORT-REPORT.md)
 - [KI-TBD: Future Work Index](conductor/knowledge/KI-TBD.md)
 
 Full index (read this first, not the list above): [conductor/knowledge/INDEX.md](conductor/knowledge/INDEX.md)

@@ -10,7 +10,7 @@ BipSale é um aplicativo Android modularizado projetado para facilitar vendas r�
 - **Desconto por Item** — Desconto percentual ou fixo por linha do carrinho, com preço original riscado
 - **Desconto PIX Configurável** — Aplicar descontos dinâmicos por operação de venda
 - **Histórico de Transações** — Rastreabilidade completa com busca e filtros
-- **Exportação para Excel** — Relatórios em `.xlsx` via Apache POI, salvos onde o usuário escolher (Google Drive, Downloads, etc.)
+- **Exportação para Excel** — Relatórios em `.xlsx` via Apache POI com linha de totais e aba de resumo por forma de pagamento, salvos onde o usuário escolher (Google Drive, Downloads, etc.)
 - **Backup e Restauração** — Salvar produtos, vendas e imagens em um único arquivo .zip no Google Drive ou no aparelho, compartilhar, e restaurar com confirmação que mostra o conteúdo do arquivo antes de substituir os dados
 - **Funcionamento 100% Offline** — Operação completa sem conexão, com sincronização posterior
 - **Geração de QR Code** — Criar e imprimir QR codes com nome do produto e preço
@@ -159,7 +159,9 @@ Relatório: `build/reports/kover/html/index.html`
 2. O sistema abre o seletor de documentos do Android para escolher o destino
 3. Geração de relatório em Excel (Apache POI) com uma linha por item vendido e as colunas: Data, ID Venda, Cliente, CPF, Código Produto, Produto, Qtd, Valor Unit., Desconto Item, Total Item, Desconto Venda (%), Total Venda
 4. As colunas de venda (Desconto Venda e Total Venda) aparecem apenas na primeira linha de cada venda, para que somar a coluna não conte a mesma venda duas vezes
-5. Feedback via Snackbar: sucesso (com contagem), falha, dados vazios ou cancelamento
+5. Linha **TOTAIS** ao final da planilha, somando apenas Qtd, Desconto Item, Total Item e Total Venda — somar preço unitário ou percentual de desconto produziria um número sem significado
+6. Aba **Resumo**: período, número de vendas, itens vendidos, ticket médio, subtotal bruto, descontos por item, descontos por venda, total de descontos, receita líquida e o total por forma de pagamento
+7. Feedback via Snackbar: sucesso (com contagem), falha, dados vazios ou cancelamento
 
 ## 🛠️ Desenvolvimento
 

@@ -5,6 +5,7 @@ import dev.diegoflassa.bipsale.core.domain.model.ItemDiscount
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import org.apache.poi.ss.usermodel.CellType
 import org.apache.poi.ss.usermodel.DateUtil
 import org.apache.poi.ss.usermodel.Row
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -63,11 +64,37 @@ class ExcelExporterTest {
         items = items
     )
 
-    private fun export(sales: List<Sale>): List<Row> {
+    private fun workbook(sales: List<Sale>): XSSFWorkbook {
         val out = ByteArrayOutputStream()
         exporter.exportSalesToExcel(out, sales)
-        val sheet = XSSFWorkbook(ByteArrayInputStream(out.toByteArray())).getSheetAt(0)
-        return (0..sheet.lastRowNum).map { sheet.getRow(it) }
+        return XSSFWorkbook(ByteArrayInputStream(out.toByteArray()))
+    }
+
+    private fun allRows(sales: List<Sale>): List<Row> {
+        val sheet = workbook(sales).getSheet("Vendas")
+        return (0..sheet.lastRowNum).mapNotNull { sheet.getRow(it) }
+    }
+
+    /** Header plus one row per sale item — the totals block below the blank separator is left out. */
+    private fun export(sales: List<Sale>): List<Row> = allRows(sales).filterNot { it.isTotalsRow() }
+
+    private fun totalsRow(sales: List<Sale>): Row = allRows(sales).single { it.isTotalsRow() }
+
+    private fun Row.isTotalsRow(): Boolean {
+        val cell = getCell(COL_DATE) ?: return false
+        return cell.cellType == CellType.STRING && cell.stringCellValue == "TOTAIS"
+    }
+
+    /** The label/value pairs on the Resumo sheet, keyed by label. */
+    private fun summaryOf(sales: List<Sale>): Map<String, Row> {
+        val sheet = workbook(sales).getSheet("Resumo")
+        return (0..sheet.lastRowNum)
+            .mapNotNull { sheet.getRow(it) }
+            .mapNotNull { row ->
+                val label = row.getCell(0)?.takeIf { it.cellType == CellType.STRING }
+                label?.let { it.stringCellValue to row }
+            }
+            .toMap()
     }
 
     @Test
@@ -244,5 +271,78 @@ class ExcelExporterTest {
 
         assertThat(rows[1].getCell(COL_CUSTOMER).stringCellValue).isEmpty()
         assertThat(rows[1].getCell(COL_CPF).stringCellValue).isEmpty()
+    }
+
+    @Test
+    fun `a totals row sums only the columns whose sum means something`() {
+        val totals = totalsRow(
+            listOf(
+                sale(
+                    items = listOf(
+                        item("CF-200", "Cafe Premium 200ml", 10.0, quantity = 2),
+                        item("CH-064", "Chocolate meio amargo 90g", 30.0)
+                    ),
+                    finalAmount = 50.0
+                )
+            )
+        )
+
+        assertThat(totals.getCell(COL_QUANTITY).numericCellValue).isEqualTo(3.0)
+        assertThat(totals.getCell(COL_ITEM_TOTAL).numericCellValue).isEqualTo(50.0)
+        assertThat(totals.getCell(COL_SALE_TOTAL).numericCellValue).isEqualTo(50.0)
+        // Adding up unit prices or discount percentages produces a number that is not money.
+        assertThat(totals.getCell(COL_UNIT_PRICE)).isNull()
+        assertThat(totals.getCell(COL_SALE_DISCOUNT_PERCENT)).isNull()
+    }
+
+    @Test
+    fun `the totals row counts a multi-sale export once per sale`() {
+        val totals = totalsRow(
+            listOf(
+                sale(id = "sale-1", items = listOf(item("CF-200", "Cafe", 12.50)), finalAmount = 12.50),
+                sale(id = "sale-2", items = listOf(item("PR-100", "Prancheta", 100.0)), finalAmount = 100.0)
+            )
+        )
+
+        assertThat(totals.getCell(COL_SALE_TOTAL).numericCellValue).isEqualTo(112.50)
+    }
+
+    @Test
+    fun `an empty export gets no totals row`() {
+        assertThat(allRows(emptyList())).hasSize(1)
+    }
+
+    @Test
+    fun `the summary sheet reports the period, the counts and the money`() {
+        val summary = summaryOf(
+            listOf(
+                sale(
+                    items = listOf(item("CF-200", "Cafe Premium 200ml", 10.0, quantity = 4)),
+                    finalAmount = 40.0
+                )
+            )
+        )
+
+        assertThat(summary["Vendas"]!!.getCell(1).numericCellValue).isEqualTo(1.0)
+        assertThat(summary["Itens vendidos"]!!.getCell(1).numericCellValue).isEqualTo(4.0)
+        assertThat(summary["Receita líquida"]!!.getCell(1).numericCellValue).isEqualTo(40.0)
+        assertThat(summary["Ticket médio"]!!.getCell(1).numericCellValue).isEqualTo(40.0)
+        assertThat(summary["Primeira venda"]!!.getCell(1).dateCellValue.time).isEqualTo(SALE_DATE)
+    }
+
+    @Test
+    fun `the summary sheet breaks the take down by payment method`() {
+        val summary = summaryOf(
+            listOf(
+                sale(id = "sale-1", items = listOf(item("CF-200", "Cafe", 10.0)), finalAmount = 10.0),
+                sale(id = "sale-2", items = listOf(item("PR-100", "Prancheta", 40.0)), finalAmount = 40.0)
+                    .copy(paymentMethod = PaymentMethod.CASH)
+            )
+        )
+
+        assertThat(summary["PIX"]!!.getCell(1).numericCellValue).isEqualTo(1.0)
+        assertThat(summary["PIX"]!!.getCell(2).numericCellValue).isEqualTo(10.0)
+        assertThat(summary["Dinheiro"]!!.getCell(1).numericCellValue).isEqualTo(1.0)
+        assertThat(summary["Dinheiro"]!!.getCell(2).numericCellValue).isEqualTo(40.0)
     }
 }

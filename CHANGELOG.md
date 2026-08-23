@@ -12,6 +12,8 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 ## Unreleased
 
+- The exported report now ends in a TOTAIS row and carries a Resumo sheet: period, sale count, units sold, average ticket, gross, discounts, net revenue and the take per payment method
+- The export logs the totals it wrote and the take per payment method, so a report an operator disputes can be checked against a log capture
 - The Excel export now carries the sale date, the sale id, the quantity sold, the per-line discount and the line total, none of which it exported before
 - Fixed the Excel export repeating the whole-sale total on every item row, which made summing that column count a multi-item sale once per item; it is now written once per sale
 - Fixed an export of sales that carry no lines being reported as a success, which handed the operator a header-only spreadsheet

@@ -15,6 +15,7 @@ Checkout moves money. Every number the operator sees and every number Room store
 | `core/domain/model/ItemDiscount.kt` | `None` / `Percentage(percent)` / `Amount(amount)`, validated at construction |
 | `core/domain/model/SaleItem.kt` | A cart line: stable `id`, `discount`, and the derived `grossAmount` / `discountAmount` / `netAmount` |
 | `core/domain/model/SaleTotals.kt` | `saleTotals(items, discountPercentage)` — **the** money maths |
+| `core/domain/model/SalesSummary.kt` | `salesSummary(sales)` — totals over already-persisted sales, for the report ([KI-08](KI-08-SALES-EXPORT-REPORT.md)) |
 | `core/domain/usecase/FinalizeSaleUseCase.kt` | Builds and persists the `Sale` from `saleTotals` |
 | `core/domain/usecase/AddProductByCodeUseCase.kt` | Cart entry by code — catalogue pick and typed code |
 | `core/domain/usecase/AddProductByQrUseCase.kt` | Cart entry by scan |

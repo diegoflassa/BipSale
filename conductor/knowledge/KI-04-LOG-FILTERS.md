@@ -1,7 +1,7 @@
 # KI-04: App Log Filters Catalogue
 
 **Scope:** all modules (cross-cutting)
-**Last verified:** 2026-08-22
+**Last verified:** 2026-08-23
 
 ## Problem
 
@@ -27,7 +27,7 @@ This KI is the **single source of truth** for every runtime log filter the app e
 | `[BipSale][Sale]` | `core/data/repository/SaleRepositoryImpl.kt`, `feature/sales/SalesViewModel.kt` | Sale reads outside the checkout path — a `getSaleById` failure reports the sale id that failed to load, and the sales screen logs the product catalogue size it loaded for the picker, or the failure that left the picker empty. | `Timber.d` (catalogue size), `Timber.e` (failure) |
 | `[BipSale][Sale][CHECKOUT]` | `feature/sales/SalesViewModel.kt`, `core/data/repository/SaleRepositoryImpl.kt` | The money path end to end — every line added (and whether it arrived by scan or by code), every line removed, every per-line and sale-level discount applied, the payment method chosen, and finalize requested → persisted → confirmed, with the sale id on the persisted and confirmed legs. A rejected scan, an unknown code, an out-of-range discount and a failed write each log their own branch. **No customer field is ever emitted** — line counts, the gross and the final total carry the diagnosis, and none of them identify anybody (`CORE_RULES.md` §8.3). | `Timber.d` (cart changes), `Timber.i` (finalize requested / persisted / confirmed), `Timber.w` (rejected input), `Timber.e` (failure) |
 | `[BipSale][History]` | `feature/history/HistoryViewModel.kt` | The sales list feeding the history and export screens — which query is running (full list, search, date range), the size of every emission, and the failure that left the list empty. The query text itself is never emitted, only its length, since an operator searches by customer name and CPF (`CORE_RULES.md` §8.3). | `Timber.d` (query issued / emission size), `Timber.e` (load failure) |
-| `[BipSale][Export]` | `feature/history/HistoryViewModel.kt`, `core/data/export/SalesExportRepositoryImpl.kt` | Export-to-Excel flow — logs the scope and sale count on export start, the destination URI and the sale/line counts actually written, the finished export, a dismissed picker, and the failure branches (nothing to write, a destination with no export pending, write error). `ExportScreen` delegates to `HistoryViewModel` → `ExportSalesUseCase` → `SalesExportRepositoryImpl`. | `Timber.d` (progress), `Timber.i` (written/finished), `Timber.w` (empty/orphan destination), `Timber.e` (failure) |
+| `[BipSale][Export]` | `feature/history/HistoryViewModel.kt`, `core/data/export/SalesExportRepositoryImpl.kt` | Export-to-Excel flow — logs the scope and sale count on export start, the destination URI, then the sale/line/unit counts and the gross, discount and net totals actually written with the take per payment method behind them, the finished export, a dismissed picker, and the failure branches (nothing to write, a destination with no export pending, write error). `ExportScreen` delegates to `HistoryViewModel` → `ExportSalesUseCase` → `SalesExportRepositoryImpl`. | `Timber.d` (progress), `Timber.i` (written/finished), `Timber.w` (empty/orphan destination), `Timber.e` (failure) |
 
 The codebase now includes both error-level (`Timber.e`) and debug-level (`Timber.d`) filters. All filters are **Protected**.
 
@@ -43,8 +43,9 @@ Filter names are **public string contracts**. Renaming or removing any one requi
 One-turn change or none.
 
 ## Validation
-- [x] All 8 distinct filter tags catalogued across 9 rows — `[BipSale][Product]` and `[BipSale][Sale]` are each emitted from both a repository and a ViewModel (verified 2026-08-22)
+- [x] All 9 distinct filter tags catalogued across 10 rows — `[BipSale][Product]` and `[BipSale][Sale]` are each emitted from both a repository and a ViewModel
 - [x] No `android.util.Log` usage anywhere in the codebase
 - [x] 3-segment tags `[BipSale][Product][IMAGE]`, `[BipSale][Product][QR_EXPORT]` and `[BipSale][Sale][CHECKOUT]` used for step-level granularity within their flows
 - [x] Print path logs the media size and grid it resolved, so a wrong-looking sheet can be diagnosed from a capture alone
 - [x] The checkout path logs every cart mutation and every finalize leg, so a sale that failed at a terminal can be reconstructed from a capture without the customer's identity appearing in it
+- [x] The export path logs the destination and the totals it wrote, so a report an operator disputes can be checked against the capture without re-running the export
