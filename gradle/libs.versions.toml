@@ -53,7 +53,7 @@ ax-constraintlayout-compose = "1.1.2"
 ax-activity-compose = "1.13.0"
 lifecycle-viewmodel-compose = "2.11.0"
 lifecycle-runtime-compose = "2.11.0"
-ax-navigation-compose = "2.9.8"
+ax-navigation-compose = "2.10.0"
 kotlinx-serialization-json = "1.11.0"
 ax-paging-runtime-ktx = "3.5.1"
 ax-paging-compose = "3.5.1"
@@ -62,8 +62,8 @@ ax-paging-compose = "3.5.1"
 org-mockito-android = "5.23.0"
 
 #Compose Navigation 3
-ax-navigation3-runtime = "1.1.6"
-ax-navigation3-ui = "1.1.6"
+ax-navigation3-runtime = "1.1.7"
+ax-navigation3-ui = "1.1.7"
 ax-navigation3-viewmodel = "2.11.0"
 #ax-navigation3-adaptive = "1.0.0-SNAPSHOT"
 
@@ -154,7 +154,7 @@ com-google-auto-value = "1.11.1"
 io-coil-kt-coil-compose = "2.7.0"
 
 # CameraX
-androidx-camera = "1.6.1"
+androidx-camera = "1.6.2"
 
 # QR Code
 zxing-core = "3.5.4"

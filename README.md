@@ -268,9 +268,92 @@ powershell -File ./appDistributionUploadDebug.ps1
 powershell -File ./appDistributionUploadRelease.ps1
 ```
 
+## ⚙️ Configuração de Build
+
+Todos os níveis de SDK, versões e o application id ficam em **um único objeto Kotlin**, não nos
+`build.gradle.kts` dos módulos: `build-logic/src/main/java/dev/diegoflassa/buildLogic/Configuracoes.kt`.
+Altere lá, não no módulo.
+
+| Configuração | Valor |
+|---|---|
+| `APPLICATION_ID` | `dev.diegoflassa.bipsale` |
+| `MINIMUM_SDK` | 29 (Android 10) |
+| `COMPILE_SDK` / `TARGET_SDK` | 37 |
+| Java / JVM target | 21 |
+| Kotlin | 2.4.10 |
+| Room | 2.8.4 |
+| Compose BOM | 2026.08.00 |
+
+**O `VERSION_CODE` é incrementado automaticamente a cada build** e gravado em um arquivo de
+properties — não é uma constante para editar à mão, e um build vai alterá-la sem aviso. Os convention
+plugins em `build-logic/` (`android-application-convention`, `android-library-convention`,
+`detekt-convention`) aplicam isso a todos os módulos, e é por isso que os arquivos de build individuais
+são quase vazios.
+
+## 📚 Documentação (`conductor/`)
+
+A documentação viva do projeto está em `conductor/`, e ela é **index-first por design** — não leia tudo.
+
+1. [`AGENTS.md`](AGENTS.md) — identidade do projeto, stack, restrições inegociáveis
+2. [`conductor/index.md`](conductor/index.md) — o mapa da documentação
+3. [`conductor/rules/ai_behavior.md`](conductor/rules/ai_behavior.md) +
+   [`CORE_RULES.md`](conductor/rules/CORE_RULES.md) — carregue os dois para qualquer mudança não trivial
+4. [`conductor/rules/architecture.md`](conductor/rules/architecture.md) — só quando a tarefa mexe em estrutura
+5. [`conductor/knowledge/INDEX.md`](conductor/knowledge/INDEX.md) — case a tarefa e carregue **apenas** os
+   KIs indicados
+
+### Knowledge Items
+
+| KI | Assunto |
+|---|---|
+| [KI-03](conductor/knowledge/KI-03-TOKEN-AUDIT-AND-PRUNING.md) | Auditoria e poda de contexto |
+| [KI-04](conductor/knowledge/KI-04-LOG-FILTERS.md) | Catálogo de **todos** os filtros de log — todo filtro novo entra aqui no mesmo turno |
+| [KI-05](conductor/knowledge/KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md) | Imagens de produto e etiquetas QR |
+| [KI-06](conductor/knowledge/KI-06-BACKUP-AND-RESTORE.md) | Backup e restauração |
+| [KI-07](conductor/knowledge/KI-07-SALES-CART-AND-DISCOUNTS.md) | Carrinho de vendas e descontos |
+| [KI-08](conductor/knowledge/KI-08-SALES-EXPORT-REPORT.md) | Exportação e relatório de vendas |
+| [KI-09](conductor/knowledge/KI-09-STOCK-SETTINGS-AND-PIX.md) | Estoque, configurações e PIX |
+
+Também em `conductor/knowledge/`: [`KI-TBD.md`](conductor/knowledge/KI-TBD.md) (tudo que está adiado ou
+não construído), [`TEST_COVERAGE.md`](conductor/knowledge/TEST_COVERAGE.md) (inventário por módulo e
+lacunas conhecidas) e [`KI-AUTHORING.md`](conductor/knowledge/KI-AUTHORING.md) (o template — um KI é uma
+especificação em tempo presente, nunca um changelog).
+
+Planejamentos ficam em `conductor/plannings/`; os concluídos vão para `archived/` e **nunca** são
+apagados.
+
+## 🧭 Família de Projetos
+
+BipSale, **Slotify** e **Comiqueta** são mantidos pelo mesmo desenvolvedor e compartilham **um único
+conjunto de regras de workflow**. O [`conductor/rules/CORE_RULES.md`](conductor/rules/CORE_RULES.md) §14
+é obrigatório: quando uma regra **compartilhada** muda em um repositório, a mesma mudança entra nos
+outros dois no mesmo turno. As três árvores são estruturalmente idênticas, então o mesmo caminho
+relativo é o equivalente em cada uma.
+
+| Projeto | O que é | Plataforma | Pacote |
+|---|---|---|---|
+| **Slotify** | Agendamento para salões/clínicas — agenda, clientes, pacotes, estoque | Kotlin Multiplatform (Android + iOS) | `br.com.slotify` |
+| **Comiqueta** | Leitor de quadrinhos com suporte a múltiplos formatos de arquivo | Android | `dev.diegoflassa.comiqueta` |
+| **BipSale** | PDV por QR Code, offline-first com exportação em Excel | Android | `dev.diegoflassa.bipsale` |
+
+**Compartilhado** — muda em um, muda nos três: estabilidade, segurança no git, economia de tokens,
+estilo de código, disciplina de sync de KI, protocolo de planejamento, formato dos filtros de log,
+extração de composables, propriedade das strings, a regra de teste de regressão, a regra do changelog, e
+tudo em `ai_behavior.md` e `GRADLE_RULES.md`.
+
+**Não compartilhado** — adapte ou omita, nunca copie: grafo de módulos, framework de DI, API de log,
+persistência, build types, conjuntos de locale, e tudo em `architecture.md`. O Slotify é Kotlin
+Multiplatform com Koin; Comiqueta e BipSale são Android puro com Hilt.
+
 ## 📄 Licença
 
-Este projeto está sob a licença MIT.
+> ⚠️ **Divergência a resolver.** Esta seção dizia **MIT**, mas o arquivo [`LICENSE`](LICENSE) na raiz do
+> repositório é a **Apache License 2.0**. As duas não são intercambiáveis — a Apache 2.0 exige aviso de
+> alterações e concede patentes explicitamente, a MIT não faz nenhum dos dois. **O arquivo `LICENSE` é o
+> que vale juridicamente**, então o texto abaixo reflete o arquivo. Se a intenção era MIT, troque o
+> arquivo; se era Apache 2.0, esta linha já está correta.
+
+Este projeto está sob a **Apache License 2.0** — veja [`LICENSE`](LICENSE).
 
 ## 👨‍💻 Contribuindo
 
