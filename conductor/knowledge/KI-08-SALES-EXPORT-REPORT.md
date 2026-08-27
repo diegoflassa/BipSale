@@ -53,7 +53,7 @@ Then a blank separator row and a bold **TOTAIS** row.
 7. **An export with nothing to write is refused**, not written. `sales.none { it.items.isNotEmpty() }` covers both an empty list and sales that carry no lines — the latter would otherwise produce a header-only file reported to the operator as a success.
 8. **Never call POI's `autoSizeColumn`.** It measures text through `java.awt`, which does not exist on Android and throws at runtime. Widths are declared on the `SalesColumn` enum.
 9. **The workbook is written inside `use`**, so a failure part-way through does not leak it.
-10. **Sheet content is Portuguese literals, not string resources.** The workbook is a document with a fixed layout, not UI; `:core:utils` pulls in no resources. This is the one deliberate carve-out from [`CORE_RULES §10`](../rules/CORE_RULES.md), which scopes to Compose.
+10. **Sheet content is Portuguese literals, not string resources.** The workbook is a document with a fixed layout, not UI; `:core:utils` pulls in no resources. This is the one deliberate carve-out from [`UI_RULES §10`](../rules/UI_RULES.md), which scopes to Compose.
 
 ## The flow
 
@@ -67,7 +67,7 @@ Then a blank separator row and a bold **TOTAIS** row.
 
 ## Logging
 
-`[BipSale][Export]` — see [KI-04](KI-04-LOG-FILTERS.md). The boundary log carries the destination URI, then the sale/line/unit counts and the gross, discount and net totals, with the take per payment method behind it. Those totals are what an operator disputes a report against, and none of them identify anybody ([`CORE_RULES §8.3`](../rules/CORE_RULES.md)).
+`[BipSale][Export]` — see [KI-04](KI-04-LOG-FILTERS.md). The boundary log carries the destination URI, then the sale/line/unit counts and the gross, discount and net totals, with the take per payment method behind it. Those totals are what an operator disputes a report against, and none of them identify anybody ([`LOGGING_RULES §8.3`](../rules/LOGGING_RULES.md)).
 
 ## Test targets
 

@@ -97,7 +97,7 @@ runCatching { saleRepository.persist(sale) }
 
 For any generic `catch` that does survive — inside a `runCatching` lambda, or in a CameraX / Retrofit adapter — the guard is either a `catch (e: CancellationException) { throw e }` clause placed **before** the generic one, or `currentCoroutineContext().ensureActive()` as its first statement (a no-op on the genuine failure path).
 
-- **Not optional on the checkout path.** `FinalizeSale` moves money. A swallowed cancellation there lets the UI report a completed sale for a write whose scope died mid-flight — the receipt says paid and Room has no row, which is exactly the sale nobody can reconstruct that [CORE_RULES §8.2](CORE_RULES.md) is written to prevent.
+- **Not optional on the checkout path.** `FinalizeSale` moves money. A swallowed cancellation there lets the UI report a completed sale for a write whose scope died mid-flight — the receipt says paid and Room has no row, which is exactly the sale nobody can reconstruct that [LOGGING_RULES §8.2](LOGGING_RULES.md) is written to prevent.
 - **Cancellation is not an error to report.** Never log it at `Timber.e` level, never send it to Crashlytics, never map it to a user-facing failure state — the user navigating away from a screen is not a failed sale.
 - **Exception:** a `catch` that only releases a resource and re-throws is already correct. A `catch` inside a `suspendCancellableCoroutine` callback body is not in the suspending context and is out of scope.
 

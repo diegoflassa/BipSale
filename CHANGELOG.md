@@ -12,6 +12,12 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 ## Unreleased
 
+- **A shipped build emitted no log line at all.** `BipSaleApp` planted a Timber tree only under `isDebug()`, so every filter in `KI-04-LOG-FILTERS.md` was debug-only in practice and a sale that failed at a point of sale left nothing to reconstruct it from. `ReleaseTree` forwards `i`/`w`/`e`/`wtf` and drops `d`/`v` — the gate `LOGGING_RULES.md` §8.6 always described
+- Long log messages are split rather than silently truncated at the ~4 KB logcat byte cap, and every piece repeats its `[BipSale][…]` filter so a `grep` returns the whole message (`LogChunker`, §8.7). Applied inside the planted trees, so the `Timber.*` call sites §8.1 mandates are untouched
+- `LogRedaction` for CPF, names, contacts and paths (§8.8). Deliberately **no money helper**: §8.3 keeps totals, because a total identifies nobody and is exactly what reconciling a failed sale needs
+- New `[BipSale][App]` filter, so a capture says up front whether it is a debug log or a redacted release one
+- `Project.getProperties()` in `app/build.gradle.kts` — deprecated, and scheduled to fail outright in Gradle 10 — replaced with `providers.gradleProperty`
+- Rule set restructured — split `CORE_RULES.md` by topic into `PLANNING_RULES.md`, `LOGGING_RULES.md`, `UI_RULES.md` and `DOC_GOVERNANCE.md` behind a master numeric index; added log-level policy, reference-document ownership, rule placement, agent-surface parity and single-activation rules; added `.agent/` rule pointers and workflows for Antigravity; `plannings/archived/` is now version-controlled
 - Product photos expand to full size on tap, everywhere they appear — product list, product form, cart lines and the product sheet
 - The PIX QR code expands to full screen on tap, for a phone that will not read the inline one across a counter
 - Fixed the PIX QR disappearing the instant a sale was finalized: the screen now holds the code until the operator confirms the payment came through

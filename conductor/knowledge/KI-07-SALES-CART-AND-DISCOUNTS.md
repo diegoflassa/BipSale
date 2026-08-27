@@ -60,11 +60,11 @@ Checkout moves money. Every number the operator sees and every number Room store
 
 `sale_items` carries `discountType` (`NONE` / `PERCENTAGE` / `AMOUNT`) + `discountValue`. The sealed `ItemDiscount` is flattened at the mapper seam — entities stay Room-only, per [`architecture.md`](../rules/architecture.md). `BackupSaleItem` carries both fields with defaults, so an archive written before per-line discounts still restores.
 
-> **No migration ships for the column addition.** The app is unreleased, so dev-time schema churn is reset by clearing app data ([`CORE_RULES §13.4`](../rules/CORE_RULES.md)) — which is why the debug install is a clean one. `fallbackToDestructiveMigration()` stays forbidden. The migration harness is KI-TBD #4, required before the first release.
+> **No migration ships for the column addition.** The app is unreleased, so dev-time schema churn is reset by clearing app data ([`CORE_RULES §13`](../rules/CORE_RULES.md) item 4) — which is why the debug install is a clean one. `fallbackToDestructiveMigration()` stays forbidden. The migration harness is KI-TBD #4, required before the first release.
 
 ## Logging
 
-`[BipSale][Sale][CHECKOUT]` covers every cart mutation and every finalize leg — see [KI-04](KI-04-LOG-FILTERS.md). **No customer field is ever logged**; line counts and totals carry the diagnosis and identify nobody ([`CORE_RULES §8.3`](../rules/CORE_RULES.md)).
+`[BipSale][Sale][CHECKOUT]` covers every cart mutation and every finalize leg — see [KI-04](KI-04-LOG-FILTERS.md). **No customer field is ever logged**; line counts and totals carry the diagnosis and identify nobody ([`LOGGING_RULES §8.3`](../rules/LOGGING_RULES.md)).
 
 ## Test targets
 
