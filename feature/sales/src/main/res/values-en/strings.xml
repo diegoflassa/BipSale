@@ -72,6 +72,5 @@
     <string name="sales_customer_cpf_hint">Optional. Digits only or 000.000.000-00</string>
     <string name="sales_manual_code_format">The same code printed on the product label</string>
     <string name="sales_discount_percent_format">0 to 100. E.g. 10 for a 10% discount</string>
-    <string name="sales_pix_amount_with_value">QR with sale amount</string>
-    <string name="sales_pix_amount_customer_types">QR without amount — customer types the value</string>
+
 </resources>

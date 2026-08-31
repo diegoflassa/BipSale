@@ -50,6 +50,7 @@ import dev.diegoflassa.bipsale.core.qrcode.components.PixQrCard
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.history.components.SaleHistoryItem
+import dev.diegoflassa.bipsale.core.qrcode.components.PixAmountToggle
 
 @Composable
 fun HistoryScreen(
@@ -89,6 +90,8 @@ fun HistoryScreen(
     if (uiState.isShowingPix) {
         SalePixDialog(
             payload = uiState.pixPayload,
+            carriesAmount = uiState.pixCarriesAmount,
+            onToggleAmount = { viewModel.onIntent(HistoryContract.Intent.TogglePixAmount(it)) },
             onDismiss = { viewModel.onIntent(HistoryContract.Intent.HideSalePix) }
         )
     }
@@ -211,6 +214,8 @@ internal fun HistoryScreenContent(
 @Composable
 private fun SalePixDialog(
     payload: String?,
+    carriesAmount: Boolean,
+    onToggleAmount: (Boolean) -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -218,10 +223,19 @@ private fun SalePixDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.history_pix_title)) },
         text = {
-            if (payload != null) {
-                PixQrCard(payload = payload)
-            } else {
-                Text(stringResource(R.string.history_pix_title))
+            Column {
+                if (payload != null) {
+                    PixQrCard(
+                        payload = payload, 
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    PixAmountToggle(
+                        carriesAmount = carriesAmount,
+                        onToggle = onToggleAmount
+                    )
+                } else {
+                    Text(stringResource(R.string.history_pix_title))
+                }
             }
         },
         confirmButton = {

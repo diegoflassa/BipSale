@@ -12,7 +12,8 @@ class HistoryContract {
         val isExporting: Boolean = false,
         /** The sale whose PIX code is on screen, so a customer can pay one that was already rung up. */
         val pixSaleId: String? = null,
-        val pixPayload: String? = null
+        val pixPayload: String? = null,
+        val pixCarriesAmount: Boolean = true
     ) {
         val isShowingPix: Boolean get() = pixSaleId != null
     }
@@ -35,6 +36,7 @@ class HistoryContract {
         /** Rebuilds the PIX code for a sale that is already recorded. */
         data class ShowSalePix(val saleId: String) : Intent
         data object HideSalePix : Intent
+        data class TogglePixAmount(val carriesAmount: Boolean) : Intent
     }
 
     sealed interface Effect {

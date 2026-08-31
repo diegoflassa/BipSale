@@ -13,4 +13,6 @@
 
     <string name="common_pix_qr_expand">QR-Code vergrößern</string>
     <string name="common_pix_qr_expand_hint">Zum Vergrößern auf den Code tippen</string>
+    <string name="common_pix_amount_with_value">QR mit Verkaufsbetrag</string>
+    <string name="common_pix_amount_customer_types">QR ohne Betrag — Kunde tippt den Wert ein</string>
 </resources>

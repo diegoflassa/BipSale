@@ -1,4 +1,4 @@
-package dev.diegoflassa.bipsale.feature.sales.components
+package dev.diegoflassa.bipsale.core.qrcode.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
-import dev.diegoflassa.bipsale.feature.sales.R
+import dev.diegoflassa.bipsale.core.ui.R
 
 /**
  * Lets the operator choose whether the QR carries the sale amount or leaves it for the customer to
@@ -35,8 +35,8 @@ fun PixAmountToggle(
     ) {
         Text(
             text = stringResource(
-                if (carriesAmount) R.string.sales_pix_amount_with_value
-                else R.string.sales_pix_amount_customer_types
+                if (carriesAmount) R.string.common_pix_amount_with_value
+                else R.string.common_pix_amount_customer_types
             ),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

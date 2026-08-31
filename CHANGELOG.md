@@ -12,6 +12,7 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 ## Unreleased
 
+- The PIX QR code can now be displayed from the History screen with or without the total value to be paid
 - PIX key, merchant name and city are now hardcoded build constants in `PixDefaults` (from the shop's Nubank poster); the Settings screen no longer edits them. A per-sale toggle switches between an amount-carrying QR (default) and a "customer types the amount" mode
 - Fixed the auto-applied PIX discount staying when switching to another payment method; it is now stripped unless the operator typed a different value
 - The number of columns for printing product QR labels can now be configured in the Settings screen (1 to 6 columns per page)

@@ -13,4 +13,8 @@
 
     <string name="common_pix_qr_expand">Ampliar código QR</string>
     <string name="common_pix_qr_expand_hint">Toque el código para ampliarlo</string>
+    <string name="common_save_failed_title">No se pudo guardar</string>
+    <string name="common_empty_list">Aún no hay registros para mostrar.</string>
+    <string name="common_pix_amount_with_value">QR con el monto de la venta</string>
+    <string name="common_pix_amount_customer_types">QR sin monto — el cliente ingresa el valor</string>
 </resources>

@@ -409,4 +409,27 @@ class HistoryViewModelTest {
         assertThat(vm.uiState.value.isShowingPix).isFalse()
         assertThat(vm.uiState.value.pixPayload).isNull()
     }
+
+    @Test
+    fun `toggling the pix amount reconstructs the payload with or without the value`() = runTest {
+        val vm = viewModel(
+            FakeSaleRepository(all = flowOf(listOf(ana)))
+        )
+        advanceUntilIdle()
+        vm.onIntent(HistoryContract.Intent.ShowSalePix("sale-1"))
+
+        // Default is to carry the amount
+        assertThat(vm.uiState.value.pixCarriesAmount).isTrue()
+        assertThat(vm.uiState.value.pixPayload).contains("100.00")
+
+        // Toggle to not carry amount
+        vm.onIntent(HistoryContract.Intent.TogglePixAmount(false))
+        assertThat(vm.uiState.value.pixCarriesAmount).isFalse()
+        assertThat(vm.uiState.value.pixPayload).doesNotContain("100.00")
+
+        // Toggle back to carry amount
+        vm.onIntent(HistoryContract.Intent.TogglePixAmount(true))
+        assertThat(vm.uiState.value.pixCarriesAmount).isTrue()
+        assertThat(vm.uiState.value.pixPayload).contains("100.00")
+    }
 }

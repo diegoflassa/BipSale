@@ -78,6 +78,7 @@ class HistoryViewModel @Inject constructor(
                 _uiState.update {
                     it.copy(pixSaleId = null, pixPayload = null)
                 }
+            is HistoryContract.Intent.TogglePixAmount -> togglePixAmount(intent.carriesAmount)
         }
     }
 
@@ -128,16 +129,7 @@ class HistoryViewModel @Inject constructor(
             Timber.w("[BipSale][History] PIX requested for a sale not in the list")
             return
         }
-        val payload = runCatching {
-            PixPayload.build(
-                pixKey = PixDefaults.KEY,
-                merchantName = PixDefaults.MERCHANT_NAME,
-                merchantCity = PixDefaults.MERCHANT_CITY,
-                amount = sale.finalAmount
-            )
-        }.onFailure {
-            Timber.e(it, "[BipSale][History] Rebuilding the PIX payload failed")
-        }.getOrNull()
+        val payload = buildPixPayload(sale, _uiState.value.pixCarriesAmount)
         Timber.d(
             "[BipSale][History] Showing PIX for a recorded sale total=%.2f ready=%b",
             sale.finalAmount, payload != null
@@ -145,6 +137,35 @@ class HistoryViewModel @Inject constructor(
         _uiState.update {
             it.copy(pixSaleId = saleId, pixPayload = payload)
         }
+    }
+
+    private fun togglePixAmount(carriesAmount: Boolean) {
+        val state = _uiState.value
+        val sale = state.sales.firstOrNull { it.id == state.pixSaleId }
+        val payload = if (sale != null) buildPixPayload(sale, carriesAmount) else null
+        
+        _uiState.update { 
+            it.copy(pixCarriesAmount = carriesAmount, pixPayload = payload)
+        }
+        
+        Timber.d(
+            "[BipSale][History] PIX amount mode toggled carriesAmount=%b",
+            carriesAmount
+        )
+    }
+
+    private fun buildPixPayload(sale: Sale, carriesAmount: Boolean): String? {
+        val amount = if (carriesAmount) sale.finalAmount else null
+        return runCatching {
+            PixPayload.build(
+                pixKey = PixDefaults.KEY,
+                merchantName = PixDefaults.MERCHANT_NAME,
+                merchantCity = PixDefaults.MERCHANT_CITY,
+                amount = amount
+            )
+        }.onFailure {
+            Timber.e(it, "[BipSale][History] Rebuilding the PIX payload failed")
+        }.getOrNull()
     }
 
     private fun toggleSelection(id: String) {

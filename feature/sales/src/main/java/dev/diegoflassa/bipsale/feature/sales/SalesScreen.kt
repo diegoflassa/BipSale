@@ -60,8 +60,8 @@ import dev.diegoflassa.bipsale.feature.sales.components.ItemDiscountDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ManualCodeDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ProductPickerDialog
 import dev.diegoflassa.bipsale.feature.sales.components.SaleBottomBar
+import dev.diegoflassa.bipsale.core.qrcode.components.PixAmountToggle
 import dev.diegoflassa.bipsale.core.qrcode.components.PixQrCard
-import dev.diegoflassa.bipsale.feature.sales.components.PixAmountToggle
 import dev.diegoflassa.bipsale.feature.sales.components.ProductDetailSheet
 import dev.diegoflassa.bipsale.feature.sales.components.SaleItemRow
 
