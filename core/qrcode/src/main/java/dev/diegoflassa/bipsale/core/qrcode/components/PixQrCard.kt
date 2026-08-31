@@ -5,15 +5,10 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +25,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.core.ui.R
@@ -103,76 +97,8 @@ fun PixQrCard(
     }
 }
 
-/**
- * Stands in for the QR when PIX is picked but not fully configured.
- *
- * It names the fields that are still empty rather than saying "not configured": the operator is at
- * a counter with a customer waiting, and "which one?" is the only question that matters then.
- */
-@Composable
-fun PixNotConfiguredCard(
-    missingFields: List<PixField>,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(PixCardTestTags.MISSING_CARD),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    Icons.Default.Warning,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onErrorContainer
-                )
-                Text(
-                    text = stringResource(R.string.common_pix_missing_title),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-
-            missingFields.forEach { field ->
-                Text(
-                    text = stringResource(
-                        R.string.common_pix_missing_item,
-                        stringResource(field.labelRes())
-                    ),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-
-            Text(
-                text = stringResource(R.string.common_pix_missing_hint),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onErrorContainer
-            )
-        }
-    }
-}
-
-private fun PixField.labelRes(): Int = when (this) {
-    PixField.KEY -> R.string.common_pix_field_key
-    PixField.MERCHANT_NAME -> R.string.common_pix_field_merchant_name
-    PixField.MERCHANT_CITY -> R.string.common_pix_field_merchant_city
-}
-
 object PixCardTestTags {
     const val QR_CARD = "pix_qr_card"
-    const val MISSING_CARD = "pix_missing_card"
 }
 
 private const val QR_SIZE_PX = 600
@@ -201,21 +127,5 @@ private fun PixQrCardDarkPreview() {
     }
 }
 
-@Preview(name = "PixNotConfiguredCard · Tudo faltando · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "PixNotConfiguredCard · Tudo faltando · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
-@Composable
-private fun PixNotConfiguredCardPreview() {
-    BipSaleTheme {
-        PixNotConfiguredCard(missingFields = PixField.entries)
-    }
-}
-
-@Preview(name = "PixNotConfiguredCard · Só a cidade · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
-@Composable
-private fun PixNotConfiguredCardOneFieldPreview() {
-    BipSaleTheme {
-        PixNotConfiguredCard(missingFields = listOf(PixField.MERCHANT_CITY))
-    }
-}
-
 // endregion
+

@@ -45,8 +45,7 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.Sale
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
-import dev.diegoflassa.bipsale.core.qrcode.components.PixNotConfiguredCard
+
 import dev.diegoflassa.bipsale.core.qrcode.components.PixQrCard
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
@@ -90,7 +89,6 @@ fun HistoryScreen(
     if (uiState.isShowingPix) {
         SalePixDialog(
             payload = uiState.pixPayload,
-            missingFields = uiState.missingPixFields,
             onDismiss = { viewModel.onIntent(HistoryContract.Intent.HideSalePix) }
         )
     }
@@ -213,7 +211,6 @@ internal fun HistoryScreenContent(
 @Composable
 private fun SalePixDialog(
     payload: String?,
-    missingFields: List<PixField>,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -224,7 +221,7 @@ private fun SalePixDialog(
             if (payload != null) {
                 PixQrCard(payload = payload)
             } else {
-                PixNotConfiguredCard(missingFields = missingFields)
+                Text(stringResource(R.string.history_pix_title))
             }
         },
         confirmButton = {

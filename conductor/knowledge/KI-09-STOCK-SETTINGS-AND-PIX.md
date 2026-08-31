@@ -1,11 +1,13 @@
 # KI-09: Stock, App Settings & PIX Payment
 
 **Scope:** `products.quantity`, `core/domain/settings/`, `core/data/settings/`, `core/domain/pix/`, `app/ui/settings/`, the PIX half of `feature/sales/`, the import half of `feature/products/`
-**Last verified:** 2026-08-23
+**Last verified:** 2026-08-30
 
 ## Problem
 
 Three things a counter needs that the app used to leave to the operator's memory: how many units are on the shelf, which PIX key the shop is paid on, and what the customer actually scans to pay. Getting any of them wrong costs money at the till rather than in a log.
+
+The PIX identity (key, payee name and city) is hardcoded in `PixDefaults` — the shop has a fixed Nubank poster. The Settings screen no longer edits PIX fields; only `pixDiscount` and `askCustomerInfo` remain user-configurable.
 
 ## Files
 
@@ -13,13 +15,14 @@ Three things a counter needs that the app used to leave to the operator's memory
 |---|---|
 | `core/domain/model/Product.kt` | `quantity` — units on hand |
 | `core/data/dao/SaleDao.kt` | `decrementProductStock` + the `@Transaction` that runs it with the sale |
-| `core/domain/settings/AppSettings.kt` | PIX key, payee name/city, default PIX discount |
+| `core/domain/pix/PixDefaults.kt` | Fixed PIX key, merchant name/city — build constants from the Nubank poster |
+| `core/domain/settings/AppSettings.kt` | Default PIX discount, customer-info toggle, QR label columns |
 | `core/domain/settings/SettingsRepository.kt` | Observe, snapshot, save |
 | `core/data/settings/SettingsRepositoryImpl.kt` | DataStore Preferences, plus the discount flattening shared with the backup |
 | `core/domain/pix/PixPayload.kt` | Builds the "PIX Copia e Cola" string |
 | `app/ui/settings/` | The settings screen |
 | `app/ui/dashboard/NewSaleEntryViewModel.kt` | Decides whether a sale opens on the customer form |
-| `core/qrcode/components/PixQrCard.kt` | Renders the payload as a QR, or names the fields still missing |
+| `core/qrcode/components/PixQrCard.kt` | Renders the payload as a QR |
 | `core/qrcode/components/QrCodeDialog.kt` | The code at full screen, on a white plate |
 | `feature/sales/components/ProductDetailSheet.kt` | Read-only product info from a cart line |
 | `core/utils/ProductSheet.kt` | Writes the import template, reads a filled one |
@@ -39,6 +42,7 @@ Three things a counter needs that the app used to leave to the operator's memory
 4. **The customer screen is optional.** With `askCustomerInfo` off, a new sale navigates straight
    to the cart and is recorded as anonymous; the hop is removed from the back stack so Back returns
    to the dashboard rather than bouncing through a screen nobody saw.
+4a. **QR label printing is configurable.** The operator can choose how many columns to print per page (1 to 6) via the Settings screen. Less columns = larger labels.
 5. **Settings live in DataStore, not Room.** They are per-install configuration, not transactional data, and they must survive a restore that replaces every table.
 6. **A corrupt preferences file falls back to defaults** rather than taking the sale screen down.
 7. **A stored discount out of range is coerced, never thrown** — same rule as the `sale_items` mapper in [KI-07](KI-07-SALES-CART-AND-DISCOUNTS.md).
@@ -48,15 +52,13 @@ Three things a counter needs that the app used to leave to the operator's memory
 
 9. **No payment method is preselected.** `SalesContract.State.paymentMethod` is null until the operator picks one, and `canFinalize` requires it. A pre-picked method is the one nobody looks at, and a sale filed under the wrong one cannot be reconciled against the drawer or the card statement.
 10. **Picking PIX applies the configured default discount**, but only into an empty sale discount — a percentage the operator typed is never overwritten.
-11. **The PIX payload carries the amount** (EMV tag 54), so the customer confirms a pre-filled value instead of typing one. With no key configured the screen says so rather than showing a QR nobody can pay.
+11. **The PIX payload carries the amount by default** (EMV tag 54), so the customer confirms a pre-filled value instead of typing one. A per-sale toggle lets the operator switch to "customer types the amount" mode, which builds the payload without tag 54.
 12. **A PIX sale holds the screen until the operator acknowledges payment.** Finalizing used to
     navigate straight back, which took the QR with it before the customer had scanned anything.
     The sale is written either way — the dialog is about the customer paying, not about the record.
 13. **A recorded PIX sale can be shown again** from the history list, rebuilt from that sale's own
     `finalAmount` so a customer who left without paying scans what was actually rung up.
-14. **An incomplete PIX configuration names the empty fields.** `AppSettings.missingPixFields()`
-    drives a card in the QR's place; only `KEY` blocks a payload, but the other two appear in the
-    customer's bank app, so an unset one is reported rather than hidden.
+14. **PIX is always configured.** The key, merchant name and city are build constants in `PixDefaults`; a payload is always available when PIX is selected.
 15. **The code expands to full screen on tap**, drawn on a white plate — a dark background inverts
     a code's quiet zone and many scanners refuse to read that.
 16. **Any cart change rebuilds the payload.** This happens inside `recalculate()`, not at the call sites: a QR still showing the pre-change total is a customer underpaying by exactly the difference.
@@ -86,4 +88,4 @@ The archive carries an optional `settings` block (including `askCustomerInfo`) a
 
 ## Test targets
 
-`PixPayloadTest` (15) · `ProductSheetTest` (11) · `AppSettingsTest` (4) · `SalesViewModelTest` PIX and payment-method cases (8) · `HistoryViewModelTest` recorded-sale PIX cases (4) · `ProductViewModelTest` import and stock cases (7) · `SaleRepositoryImplTest` stock transaction (1).
+`PixPayloadTest` (15) · `PixDefaultsTest` (1) · `ProductSheetTest` (11) · `SalesViewModelTest` PIX and payment-method cases (9) · `HistoryViewModelTest` recorded-sale PIX cases (3) · `ProductViewModelTest` import and stock cases (7) · `SaleRepositoryImplTest` stock transaction (1).

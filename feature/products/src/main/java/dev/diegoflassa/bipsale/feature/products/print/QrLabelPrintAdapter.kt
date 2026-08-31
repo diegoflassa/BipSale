@@ -28,13 +28,15 @@ class QrLabelPrintAdapter(
     private val context: Context,
     private val documentName: String,
     private val labels: List<LabelData>,
-    private val renderer: QrLabelSheetRenderer
+    private val renderer: QrLabelSheetRenderer,
+    private val requestedColumns: Int? = null
 ) : PrintDocumentAdapter() {
 
     private var pdfDocument: PdfDocument? = null
     private var layout: QrLabelSheetLayout = QrLabelSheetLayout.forPage(
         QrLabelSheetLayout.A4_WIDTH_PT,
-        QrLabelSheetLayout.A4_HEIGHT_PT
+        QrLabelSheetLayout.A4_HEIGHT_PT,
+        requestedColumns = requestedColumns
     )
     private var pageCount: Int = 0
     private var pageWidthPt: Int = QrLabelSheetLayout.A4_WIDTH_PT.toInt()
@@ -57,7 +59,10 @@ class QrLabelPrintAdapter(
         pageWidthPt = milsToPoints(mediaSize.widthMils)
         pageHeightPt = milsToPoints(mediaSize.heightMils)
 
-        layout = QrLabelSheetLayout.forPage(pageWidthPt.toFloat(), pageHeightPt.toFloat())
+        layout = QrLabelSheetLayout.forPage(
+            pageWidthPt.toFloat(), pageHeightPt.toFloat(),
+            requestedColumns = requestedColumns
+        )
         pageCount = layout.pageCount(labels.size)
 
         if (pageCount == 0) {

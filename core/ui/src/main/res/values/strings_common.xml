@@ -10,12 +10,7 @@
     <string name="common_pix_qr_title">Pague com PIX</string>
     <string name="common_pix_qr_hint">Aponte a câmera do banco para o código</string>
     <string name="common_pix_qr_failed">Não foi possível gerar o QR Code</string>
-    <string name="common_pix_missing_title">PIX não configurado</string>
-    <string name="common_pix_missing_item">• %1$s</string>
-    <string name="common_pix_missing_hint">Preencha em Configurações para gerar o QR Code</string>
-    <string name="common_pix_field_key">Chave PIX</string>
-    <string name="common_pix_field_merchant_name">Nome do recebedor</string>
-    <string name="common_pix_field_merchant_city">Cidade do recebedor</string>
+
     <string name="common_pix_qr_expand">Ampliar QR Code</string>
     <string name="common_pix_qr_expand_hint">Toque no código para ampliar</string>
 </resources>

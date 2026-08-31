@@ -1,5 +1,6 @@
 package dev.diegoflassa.bipsale.ui.settings
 
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -97,13 +98,6 @@ internal fun SettingsScreenContent(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             SectionHeader(
-                title = stringResource(R.string.settings_pix_section),
-                explainer = stringResource(R.string.settings_pix_explainer)
-            )
-
-            PixFields(state = state, onIntent = onIntent)
-
-            SectionHeader(
                 title = stringResource(R.string.settings_discount_section),
                 explainer = stringResource(R.string.settings_discount_explainer)
             )
@@ -140,6 +134,16 @@ internal fun SettingsScreenContent(
                 onChange = { onIntent(SettingsContract.Intent.AskCustomerInfoChanged(it)) }
             )
 
+            SectionHeader(
+                title = stringResource(R.string.settings_qr_columns_section),
+                explainer = stringResource(R.string.settings_qr_columns_explainer)
+            )
+
+            QrColumnsSelector(
+                columns = state.qrLabelColumns,
+                onChange = { onIntent(SettingsContract.Intent.QrColumnsChanged(it)) }
+            )
+
             Button(
                 onClick = { onIntent(SettingsContract.Intent.Save) },
                 enabled = state.canSave,
@@ -153,44 +157,7 @@ internal fun SettingsScreenContent(
     }
 }
 
-@Composable
-private fun PixFields(
-    state: SettingsContract.State,
-    onIntent: (SettingsContract.Intent) -> Unit
-) {
-    OutlinedTextField(
-        value = state.pixKey,
-        onValueChange = { onIntent(SettingsContract.Intent.PixKeyChanged(it)) },
-        label = { Text(stringResource(R.string.settings_pix_key_label)) },
-        supportingText = { Text(stringResource(R.string.settings_pix_key_hint)) },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(SettingsScreenTestTags.PIX_KEY_FIELD)
-    )
 
-    OutlinedTextField(
-        value = state.merchantName,
-        onValueChange = { onIntent(SettingsContract.Intent.MerchantNameChanged(it)) },
-        label = { Text(stringResource(R.string.settings_merchant_name_label)) },
-        supportingText = { Text(stringResource(R.string.settings_merchant_name_hint)) },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(SettingsScreenTestTags.MERCHANT_NAME_FIELD)
-    )
-
-    OutlinedTextField(
-        value = state.merchantCity,
-        onValueChange = { onIntent(SettingsContract.Intent.MerchantCityChanged(it)) },
-        label = { Text(stringResource(R.string.settings_merchant_city_label)) },
-        supportingText = { Text(stringResource(R.string.settings_merchant_city_hint)) },
-        singleLine = true,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag(SettingsScreenTestTags.MERCHANT_CITY_FIELD)
-    )
-}
 
 @Composable
 private fun AskCustomerRow(
@@ -255,6 +222,39 @@ private fun ItemDiscountKind.labelRes(): Int = when (this) {
     ItemDiscountKind.AMOUNT -> R.string.settings_discount_amount
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun QrColumnsSelector(
+    columns: Int,
+    onChange: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.settings_qr_columns_label),
+            style = MaterialTheme.typography.bodyLarge
+        )
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.weight(1f)) {
+            val range = AppSettings.MIN_QR_LABEL_COLUMNS..AppSettings.MAX_QR_LABEL_COLUMNS
+            range.forEachIndexed { index, option ->
+                SegmentedButton(
+                    selected = columns == option,
+                    onClick = { onChange(option) },
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = range.count()
+                    )
+                ) {
+                    Text(option.toString())
+                }
+            }
+        }
+    }
+}
+
 // region Previews
 
 @Preview(name = "SettingsScreenContent · Vazio · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
@@ -278,17 +278,24 @@ private fun SettingsScreenContentFilledPreview() {
     BipSaleTheme {
         SettingsScreenContent(
             state = SettingsContract.State(
-                pixKey = "123.456.789-00",
-                merchantName = "Padaria do Centro",
-                merchantCity = "Sao Paulo",
                 discountKind = ItemDiscountKind.PERCENTAGE,
                 discountInput = "5",
+                askCustomerInfo = false,
+                qrLabelColumns = 3,
                 isLoading = false
             ),
             snackbarHostState = SnackbarHostState(),
             onBack = {},
             onIntent = {}
         )
+    }
+}
+
+@Preview(name = "QrColumnsSelector")
+@Composable
+private fun QrColumnsSelectorPreview() {
+    BipSaleTheme {
+        QrColumnsSelector(columns = 4, onChange = {})
     }
 }
 

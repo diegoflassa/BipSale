@@ -2,12 +2,6 @@
 <!-- Owner package: dev.diegoflassa.bipsale.ui.settings -->
 <resources>
     <string name="settings_title">Settings</string>
-    <string name="settings_pix_section">PIX</string>
-    <string name="settings_pix_explainer">The key configured here generates the QR code the customer scans to pay.</string>
-    <string name="settings_pix_key_label">PIX key</string>
-    <string name="settings_pix_key_hint">CPF, CNPJ, phone (+5519999999999), e-mail or random key</string>
-    <string name="settings_merchant_name_label">Payee name</string>
-    <string name="settings_merchant_city_label">Payee city</string>
     <string name="settings_discount_section">Default PIX discount</string>
     <string name="settings_discount_explainer">Applied automatically when PIX is chosen as the payment method.</string>
     <string name="settings_discount_percentage">Percentage</string>
@@ -18,12 +12,13 @@
     <string name="settings_saved">Settings saved</string>
     <string name="settings_save_failed">Could not save the settings</string>
     <string name="dashboard_settings">Settings</string>
-    <string name="dashboard_settings_description">PIX key, default discount and app preferences</string>
+    <string name="dashboard_settings_description">Default discount and app preferences</string>
     <string name="settings_sale_section">Sale</string>
     <string name="settings_ask_customer_label">Ask for customer details</string>
     <string name="settings_ask_customer_hint">Off: a sale opens straight on product selection and is recorded as anonymous</string>
-    <string name="settings_merchant_name_hint">Max. 25 characters, accents removed in the QR code. E.g. Padaria do Centro</string>
-    <string name="settings_merchant_city_hint">City only, max. 15 characters. E.g. Campinas</string>
     <string name="settings_discount_percentage_hint">E.g. 5 for a 5% discount</string>
     <string name="settings_discount_amount_hint">E.g. 2.50 for a R$ 2.50 discount</string>
+    <string name="settings_qr_columns_section">QR Code labels</string>
+    <string name="settings_qr_columns_explainer">How many columns to print per page. Fewer columns = larger labels.</string>
+    <string name="settings_qr_columns_label">Columns per page</string>
 </resources>

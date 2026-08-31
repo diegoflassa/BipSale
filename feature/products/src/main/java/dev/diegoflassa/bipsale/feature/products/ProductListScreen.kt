@@ -93,9 +93,10 @@ fun ProductListScreen(
 
                 is ProductContract.Effect.PrintLabels ->
                     printer.print(
-                        context = context,
-                        documentName = context.getString(R.string.products_qr_labels_title),
-                        labels = effect.labels
+                        context,
+                        context.getString(R.string.products_qr_labels_title),
+                        effect.labels,
+                        effect.requestedColumns
                     )
 
                 is ProductContract.Effect.PickTemplateDestination ->

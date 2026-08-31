@@ -78,9 +78,10 @@ fun AddEditProductScreen(
 
                 is ProductContract.Effect.PrintLabels ->
                     printer.print(
-                        context = context,
-                        documentName = context.getString(R.string.products_qr_labels_title),
-                        labels = effect.labels
+                        context,
+                        context.getString(R.string.products_qr_labels_title),
+                        effect.labels,
+                        effect.requestedColumns
                     )
 
                 // Both belong to the list screen's import flow; this screen never raises them.

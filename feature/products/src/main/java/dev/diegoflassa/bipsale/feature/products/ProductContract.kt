@@ -88,7 +88,7 @@ class ProductContract {
     sealed interface Effect {
         data object NavigationBack : Effect
         data class ShowSnackbar(val message: UiText) : Effect
-        data class PrintLabels(val labels: List<LabelData>) : Effect
+        data class PrintLabels(val labels: List<LabelData>, val requestedColumns: Int) : Effect
         data class PickTemplateDestination(val suggestedFileName: String) : Effect
         data object PickImportSource : Effect
     }

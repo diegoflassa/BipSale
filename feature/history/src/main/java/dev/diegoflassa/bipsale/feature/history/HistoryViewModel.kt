@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
+import dev.diegoflassa.bipsale.core.domain.pix.PixDefaults
 import dev.diegoflassa.bipsale.core.domain.pix.PixPayload
 import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
 import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
@@ -75,7 +76,7 @@ class HistoryViewModel @Inject constructor(
             is HistoryContract.Intent.ShowSalePix -> showSalePix(intent.saleId)
             is HistoryContract.Intent.HideSalePix ->
                 _uiState.update {
-                    it.copy(pixSaleId = null, pixPayload = null, missingPixFields = emptyList())
+                    it.copy(pixSaleId = null, pixPayload = null)
                 }
         }
     }
@@ -127,27 +128,22 @@ class HistoryViewModel @Inject constructor(
             Timber.w("[BipSale][History] PIX requested for a sale not in the list")
             return
         }
-        val missing = settings.missingPixFields()
-        val payload = if (settings.isPixConfigured) {
-            runCatching {
-                PixPayload.build(
-                    pixKey = settings.pixKey,
-                    merchantName = settings.pixMerchantName,
-                    merchantCity = settings.pixMerchantCity,
-                    amount = sale.finalAmount
-                )
-            }.onFailure {
-                Timber.e(it, "[BipSale][History] Rebuilding the PIX payload failed")
-            }.getOrNull()
-        } else {
-            null
-        }
+        val payload = runCatching {
+            PixPayload.build(
+                pixKey = PixDefaults.KEY,
+                merchantName = PixDefaults.MERCHANT_NAME,
+                merchantCity = PixDefaults.MERCHANT_CITY,
+                amount = sale.finalAmount
+            )
+        }.onFailure {
+            Timber.e(it, "[BipSale][History] Rebuilding the PIX payload failed")
+        }.getOrNull()
         Timber.d(
             "[BipSale][History] Showing PIX for a recorded sale total=%.2f ready=%b",
             sale.finalAmount, payload != null
         )
         _uiState.update {
-            it.copy(pixSaleId = saleId, pixPayload = payload, missingPixFields = missing)
+            it.copy(pixSaleId = saleId, pixPayload = payload)
         }
     }
 

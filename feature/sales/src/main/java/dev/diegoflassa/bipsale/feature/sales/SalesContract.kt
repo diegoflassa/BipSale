@@ -4,7 +4,6 @@ import androidx.compose.runtime.Immutable
 import dev.diegoflassa.bipsale.core.domain.model.ItemDiscount
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.ui.util.UiText
 
 class SalesContract {
@@ -38,8 +37,10 @@ class SalesContract {
         val paymentMethod: PaymentMethod? = null,
         /** The PIX "copia e cola" string for the current total, once PIX is picked and configured. */
         val pixPayload: String? = null,
-        /** Which PIX fields are still empty, so the screen can name them instead of guessing. */
-        val missingPixFields: List<PixField> = emptyList(),
+        /** Whether the QR carries the sale amount (default) or leaves it for the customer to type. */
+        val pixCarriesAmount: Boolean = true,
+        /** True when the current sale discount was auto-applied by selecting PIX. */
+        val pixDiscountAutoApplied: Boolean = false,
         /**
          * Set once a PIX sale is written. The screen keeps the code on display until the operator
          * dismisses it — navigating away the moment the sale lands takes the QR with it, before
@@ -78,6 +79,7 @@ class SalesContract {
         data class SelectPaymentMethod(val method: PaymentMethod) : Intent
         data class ShowProductDetail(val itemId: String) : Intent
         data object HideProductDetail : Intent
+        data class TogglePixAmount(val carriesAmount: Boolean) : Intent
         data object PixPaymentAcknowledged : Intent
         data object FinalizeSale : Intent
     }

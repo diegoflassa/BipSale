@@ -1,10 +1,12 @@
 package dev.diegoflassa.bipsale.feature.products
 
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
 import dev.diegoflassa.bipsale.core.domain.model.Product
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.DeleteProductUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
@@ -38,7 +40,8 @@ class ProductViewModel @Inject constructor(
     private val importProducts: ImportProductsUseCase,
     private val deleteProduct: DeleteProductUseCase,
     private val saveProductImage: SaveProductImageUseCase,
-    private val productImageStore: ProductImageStore
+    private val productImageStore: ProductImageStore,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ProductContract.State())
@@ -243,7 +246,11 @@ class ProductViewModel @Inject constructor(
             return
         }
         Timber.d("[BipSale][Product][QR_EXPORT] Requesting print of %d labels", labels.size)
-        viewModelScope.launch { _effect.send(ProductContract.Effect.PrintLabels(labels)) }
+        viewModelScope.launch {
+            val columns = runCatching { settingsRepository.current().qrLabelColumns }
+                .getOrDefault(AppSettings.DEFAULT_QR_LABEL_COLUMNS)
+            _effect.send(ProductContract.Effect.PrintLabels(labels, columns))
+        }
     }
 
     private fun updateEditor(transform: (ProductContract.Editor) -> ProductContract.Editor) {

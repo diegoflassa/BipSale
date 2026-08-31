@@ -54,15 +54,14 @@ import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
 import dev.diegoflassa.bipsale.core.qrcode.QrScannerScreen
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.sales.components.DiscountDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ItemDiscountDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ManualCodeDialog
 import dev.diegoflassa.bipsale.feature.sales.components.ProductPickerDialog
 import dev.diegoflassa.bipsale.feature.sales.components.SaleBottomBar
-import dev.diegoflassa.bipsale.core.qrcode.components.PixNotConfiguredCard
 import dev.diegoflassa.bipsale.core.qrcode.components.PixQrCard
+import dev.diegoflassa.bipsale.feature.sales.components.PixAmountToggle
 import dev.diegoflassa.bipsale.feature.sales.components.ProductDetailSheet
 import dev.diegoflassa.bipsale.feature.sales.components.SaleItemRow
 
@@ -132,6 +131,7 @@ fun SalesScreen(
                 viewModel.onIntent(SalesContract.Intent.SelectPaymentMethod(it))
             },
             onShowDetail = { viewModel.onIntent(SalesContract.Intent.ShowProductDetail(it)) },
+            onTogglePixAmount = { viewModel.onIntent(SalesContract.Intent.TogglePixAmount(it)) },
             onFinalize = { viewModel.onIntent(SalesContract.Intent.FinalizeSale) }
         )
 
@@ -173,7 +173,6 @@ private fun SaleDialogs(
     if (state.isAwaitingPixPayment) {
         CompletedPixDialog(
             payload = state.pixPayload,
-            missingFields = state.missingPixFields,
             onDone = { onIntent(SalesContract.Intent.PixPaymentAcknowledged) }
         )
     }
@@ -198,7 +197,6 @@ private fun SaleDialogs(
 @Composable
 private fun CompletedPixDialog(
     payload: String?,
-    missingFields: List<PixField>,
     onDone: () -> Unit
 ) {
     AlertDialog(
@@ -209,7 +207,7 @@ private fun CompletedPixDialog(
             if (payload != null) {
                 PixQrCard(payload = payload)
             } else {
-                PixNotConfiguredCard(missingFields = missingFields)
+                Text(stringResource(R.string.sales_completed_pix_title))
             }
         },
         confirmButton = {
@@ -288,6 +286,7 @@ internal fun SalesScreenContent(
     onSaleDiscountClick: () -> Unit,
     onPaymentMethodChange: (PaymentMethod) -> Unit,
     onShowDetail: (String) -> Unit,
+    onTogglePixAmount: (Boolean) -> Unit,
     onFinalize: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -336,15 +335,13 @@ internal fun SalesScreenContent(
     ) { padding ->
         Column(modifier = Modifier.padding(padding)) {
             val pixCardModifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            when {
-                state.pixPayload != null ->
-                    PixQrCard(payload = state.pixPayload, modifier = pixCardModifier)
-
-                state.missingPixFields.isNotEmpty() ->
-                    PixNotConfiguredCard(
-                        missingFields = state.missingPixFields,
-                        modifier = pixCardModifier
-                    )
+            if (state.pixPayload != null) {
+                PixQrCard(payload = state.pixPayload, modifier = pixCardModifier)
+                PixAmountToggle(
+                    carriesAmount = state.pixCarriesAmount,
+                    onToggle = onTogglePixAmount,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
             }
             if (state.items.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -465,6 +462,7 @@ private fun PreviewContent(state: SalesContract.State) {
             onSaleDiscountClick = {},
             onPaymentMethodChange = {},
             onShowDetail = {},
+            onTogglePixAmount = {},
             onFinalize = {}
         )
     }

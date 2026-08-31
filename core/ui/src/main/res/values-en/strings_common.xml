@@ -10,12 +10,7 @@
     <string name="common_pix_qr_title">Pay with PIX</string>
     <string name="common_pix_qr_hint">Point your bank app camera at the code</string>
     <string name="common_pix_qr_failed">Could not generate the QR code</string>
-    <string name="common_pix_missing_title">PIX is not configured</string>
-    <string name="common_pix_missing_item">• %1$s</string>
-    <string name="common_pix_missing_hint">Fill these in under Settings to generate the QR code</string>
-    <string name="common_pix_field_key">PIX key</string>
-    <string name="common_pix_field_merchant_name">Payee name</string>
-    <string name="common_pix_field_merchant_city">Payee city</string>
+
     <string name="common_pix_qr_expand">Expand QR code</string>
     <string name="common_pix_qr_expand_hint">Tap the code to enlarge it</string>
 </resources>

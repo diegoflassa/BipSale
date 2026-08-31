@@ -14,6 +14,7 @@ import dev.diegoflassa.bipsale.core.domain.usecase.AddProductByQrUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.FinalizeSaleUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
 import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
+import dev.diegoflassa.bipsale.core.domain.pix.PixDefaults
 import dev.diegoflassa.bipsale.core.domain.pix.PixPayload
 import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
@@ -74,6 +75,7 @@ class SalesViewModel @Inject constructor(
             is SalesContract.Intent.HideProductDetail ->
                 _uiState.update { it.copy(detailItemId = null) }
 
+            is SalesContract.Intent.TogglePixAmount -> togglePixAmount(intent.carriesAmount)
             is SalesContract.Intent.PixPaymentAcknowledged -> acknowledgePixPayment()
             is SalesContract.Intent.FinalizeSale -> finalizeSale()
         }
@@ -85,8 +87,8 @@ class SalesViewModel @Inject constructor(
                 .onFailure { Timber.e(it, "[BipSale][Sale] Loading settings failed") }
                 .getOrDefault(AppSettings.EMPTY)
             Timber.d(
-                "[BipSale][Sale] Settings loaded pixConfigured=%b",
-                settings.isPixConfigured
+                "[BipSale][Sale] Settings loaded discount=%s",
+                settings.pixDiscount::class.simpleName
             )
             // A method picked before the settings landed still gets its discount and its QR.
             _uiState.value.paymentMethod?.let(::selectPaymentMethod)
@@ -184,7 +186,7 @@ class SalesViewModel @Inject constructor(
             emitError(UiText.StringResource(R.string.sales_discount_out_of_range))
             return
         }
-        _uiState.update { it.copy(discountPercentage = percentage).recalculate() }
+        _uiState.update { it.copy(discountPercentage = percentage, pixDiscountAutoApplied = false).recalculate() }
         Timber.d(
             "[BipSale][Sale][CHECKOUT] Sale discount applied percent=%.2f total=%.2f",
             percentage, _uiState.value.finalAmount
@@ -202,7 +204,7 @@ class SalesViewModel @Inject constructor(
             val discounted = if (isPix) {
                 state.copy(paymentMethod = method).applyPixDiscount()
             } else {
-                state.copy(paymentMethod = method, pixPayload = null, missingPixFields = emptyList())
+                state.copy(paymentMethod = method, pixPayload = null).stripAutoPixDiscount()
             }
             discounted.withPixPayload(isPix)
         }
@@ -212,9 +214,6 @@ class SalesViewModel @Inject constructor(
             _uiState.value.finalAmount,
             _uiState.value.pixPayload != null
         )
-        if (isPix && !settings.isPixConfigured) {
-            Timber.w("[BipSale][Sale][CHECKOUT] PIX chosen with no key configured")
-        }
     }
 
     /** The configured default only fills an empty sale discount; a typed one is never overwritten. */
@@ -222,24 +221,41 @@ class SalesViewModel @Inject constructor(
         val percent = (settings.pixDiscount as? ItemDiscount.Percentage)?.percent
         if (percent == null || discountPercentage > 0.0) return this
         Timber.d("[BipSale][Sale][CHECKOUT] Applying configured PIX discount percent=%.2f", percent)
-        return copy(discountPercentage = percent).recalculate()
+        return copy(discountPercentage = percent, pixDiscountAutoApplied = true).recalculate()
+    }
+
+    /** Removes the discount only if it was auto-applied by PIX; a typed one is left alone. */
+    private fun SalesContract.State.stripAutoPixDiscount(): SalesContract.State {
+        if (!pixDiscountAutoApplied) return this
+        Timber.d("[BipSale][Sale][CHECKOUT] Stripping auto-applied PIX discount")
+        return copy(discountPercentage = 0.0, pixDiscountAutoApplied = false).recalculate()
     }
 
     private fun SalesContract.State.withPixPayload(isPix: Boolean): SalesContract.State {
         if (!isPix) return this
-        val missing = settings.missingPixFields()
-        if (!settings.isPixConfigured) return copy(pixPayload = null, missingPixFields = missing)
+        val amount = if (pixCarriesAmount) finalAmount else null
         val payload = runCatching {
             PixPayload.build(
-                pixKey = settings.pixKey,
-                merchantName = settings.pixMerchantName,
-                merchantCity = settings.pixMerchantCity,
-                amount = finalAmount
+                pixKey = PixDefaults.KEY,
+                merchantName = PixDefaults.MERCHANT_NAME,
+                merchantCity = PixDefaults.MERCHANT_CITY,
+                amount = amount
             )
         }.onFailure {
             Timber.e(it, "[BipSale][Sale][CHECKOUT] Building the PIX payload failed")
         }.getOrNull()
-        return copy(pixPayload = payload, missingPixFields = missing)
+        return copy(pixPayload = payload)
+    }
+
+    private fun togglePixAmount(carriesAmount: Boolean) {
+        _uiState.update { state ->
+            state.copy(pixCarriesAmount = carriesAmount)
+                .withPixPayload(state.paymentMethod == PaymentMethod.PIX)
+        }
+        Timber.d(
+            "[BipSale][Sale][CHECKOUT] PIX amount mode toggled carriesAmount=%b",
+            carriesAmount
+        )
     }
 
     /**
@@ -297,9 +313,8 @@ class SalesViewModel @Inject constructor(
                 }
                 if (awaitingPix) {
                     Timber.i(
-                        "[BipSale][Sale][CHECKOUT] Holding for PIX payment pixReady=%b missing=%d",
-                        _uiState.value.pixPayload != null,
-                        _uiState.value.missingPixFields.size
+                        "[BipSale][Sale][CHECKOUT] Holding for PIX payment pixReady=%b",
+                        _uiState.value.pixPayload != null
                     )
                 } else {
                     _effect.send(SalesContract.Effect.NavigateBack)

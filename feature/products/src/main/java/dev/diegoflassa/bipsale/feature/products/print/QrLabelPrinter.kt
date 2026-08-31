@@ -14,7 +14,12 @@ import timber.log.Timber
 class QrLabelPrinter(
     private val renderer: QrLabelSheetRenderer
 ) {
-    fun print(context: Context, documentName: String, labels: List<LabelData>): Boolean {
+    fun print(
+        context: Context,
+        documentName: String,
+        labels: List<LabelData>,
+        requestedColumns: Int? = null
+    ): Boolean {
         if (labels.isEmpty()) {
             Timber.w("[BipSale][Product][QR_EXPORT] Print requested with no labels")
             return false
@@ -31,12 +36,13 @@ class QrLabelPrinter(
         // rotated. The dialog can still be changed by hand — the layout re-fits whatever it gets.
         val requested = PrintAttributes.MediaSize.ISO_A4.asPortrait()
         Timber.d(
-            "[BipSale][Product][QR_EXPORT] Print dialog opened for %d labels, requesting %s (%dx%d mils)",
-            labels.size, requested.id, requested.widthMils, requested.heightMils
+            "[BipSale][Product][QR_EXPORT] Print dialog opened for %d labels, requesting %s (%dx%d mils) columns=%s",
+            labels.size, requested.id, requested.widthMils, requested.heightMils,
+            requestedColumns?.toString() ?: "auto"
         )
         printManager.print(
             documentName,
-            QrLabelPrintAdapter(context, documentName, labels, renderer),
+            QrLabelPrintAdapter(context, documentName, labels, renderer, requestedColumns),
             PrintAttributes.Builder()
                 .setMediaSize(requested)
                 .setResolution(PrintAttributes.Resolution("default", "default", DPI, DPI))

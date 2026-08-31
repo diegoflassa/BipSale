@@ -13,6 +13,8 @@ import dev.diegoflassa.bipsale.core.domain.product.ProductImportRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.GetProductsUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.ImportProductsUseCase
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductImageUseCase
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
+import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -67,7 +69,6 @@ class ProductViewModelTest {
         }
     }
 
-    /** Stands in for the spreadsheet seam; the sheet parsing itself is pinned in `:core:utils`. */
     private class FakeProductImportRepository(
         private val report: ProductImportReport = ProductImportReport()
     ) : ProductImportRepository {
@@ -81,10 +82,17 @@ class ProductViewModelTest {
         override fun suggestedTemplateName(): String = "modelo.xlsx"
     }
 
+    private class FakeSettingsRepository : SettingsRepository {
+        override val settings: Flow<AppSettings> = flow { emit(AppSettings.EMPTY) }
+        override suspend fun current(): AppSettings = AppSettings.EMPTY
+        override suspend fun save(settings: AppSettings) = Unit
+    }
+
     private fun viewModel(
         repository: FakeProductRepository = FakeProductRepository(),
         imageStore: FakeProductImageStore = FakeProductImageStore(),
-        importRepository: FakeProductImportRepository = FakeProductImportRepository()
+        importRepository: FakeProductImportRepository = FakeProductImportRepository(),
+        settingsRepository: FakeSettingsRepository = FakeSettingsRepository()
     ) = ProductViewModel(
         getProducts = GetProductsUseCase(repository),
         getProduct = GetProductUseCase(repository),
@@ -92,7 +100,8 @@ class ProductViewModelTest {
         importProducts = ImportProductsUseCase(importRepository, repository),
         deleteProduct = DeleteProductUseCase(repository, imageStore),
         saveProductImage = SaveProductImageUseCase(imageStore),
-        productImageStore = imageStore
+        productImageStore = imageStore,
+        settingsRepository = settingsRepository
     )
 
     @Test
@@ -342,6 +351,7 @@ class ProductViewModelTest {
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(ProductContract.Effect.PrintLabels::class.java)
             assertThat((effect as ProductContract.Effect.PrintLabels).labels).hasSize(2)
+            assertThat(effect.requestedColumns).isEqualTo(4)
         }
     }
 

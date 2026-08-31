@@ -1,7 +1,7 @@
 # KI-06: Backup & Restore
 
 **Scope:** `core/domain/backup/`, `core/data/backup/`, `app/ui/backup/`
-**Last verified:** 2026-08-22
+**Last verified:** 2026-08-30
 
 ## Problem
 
@@ -41,6 +41,7 @@ images/<fileName>    one entry per product image, names matching Product.imageFi
 7. **The image store is cleared before restored images are written,** so images the archive does not carry do not survive it.
 8. **Entry names are flattened with `File(name).name` before writing.** A crafted archive entry would otherwise escape the images folder.
 9. **Sharing stages into `cacheDir/backup_share`, wiped each time,** and hands out a `FileProvider` URI. One file per share keeps the cache bounded.
+10. **The archive carries an optional `settings` block** (including `askCustomerInfo` and `pixDiscount`) and `quantity` on every product, both defaulted so an archive written before either existed still restores. Settings are restored outside the database transaction — DataStore is not covered by it. PIX key/name/city fields in old archives are ignored on restore — those values now come from `PixDefaults` constants. See [KI-09](KI-09-STOCK-SETTINGS-AND-PIX.md).
 
 ## Storage and Drive
 

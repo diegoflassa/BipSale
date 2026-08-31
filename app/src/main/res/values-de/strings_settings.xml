@@ -2,12 +2,6 @@
 <!-- Owner package: dev.diegoflassa.bipsale.ui.settings -->
 <resources>
     <string name="settings_title">Einstellungen</string>
-    <string name="settings_pix_section">PIX</string>
-    <string name="settings_pix_explainer">Der hier hinterlegte Schlüssel erzeugt den QR-Code, den der Kunde zum Bezahlen scannt.</string>
-    <string name="settings_pix_key_label">PIX-Schlüssel</string>
-    <string name="settings_pix_key_hint">CPF, CNPJ, Telefon (+5519999999999), E-Mail oder Zufallsschlüssel</string>
-    <string name="settings_merchant_name_label">Name des Empfängers</string>
-    <string name="settings_merchant_city_label">Stadt des Empfängers</string>
     <string name="settings_discount_section">Standardrabatt für PIX</string>
     <string name="settings_discount_explainer">Wird automatisch angewendet, wenn PIX als Zahlungsart gewählt wird.</string>
     <string name="settings_discount_percentage">Prozentsatz</string>
@@ -18,12 +12,13 @@
     <string name="settings_saved">Einstellungen gespeichert</string>
     <string name="settings_save_failed">Einstellungen konnten nicht gespeichert werden</string>
     <string name="dashboard_settings">Einstellungen</string>
-    <string name="dashboard_settings_description">PIX-Schlüssel, Standardrabatt und App-Einstellungen</string>
+    <string name="dashboard_settings_description">Standardrabatt und App-Einstellungen</string>
     <string name="settings_sale_section">Verkauf</string>
     <string name="settings_ask_customer_label">Kundendaten abfragen</string>
     <string name="settings_ask_customer_hint">Aus: Der Verkauf startet direkt bei der Produktauswahl und wird anonym erfasst</string>
-    <string name="settings_merchant_name_hint">Max. 25 Zeichen, ohne Akzente im QR-Code. Z. B. Padaria do Centro</string>
-    <string name="settings_merchant_city_hint">Nur die Stadt, max. 15 Zeichen. Z. B. Campinas</string>
     <string name="settings_discount_percentage_hint">Z. B. 5 für 5 % Rabatt</string>
     <string name="settings_discount_amount_hint">Z. B. 2,50 für R$ 2,50 Rabatt</string>
+    <string name="settings_qr_columns_section">QR-Code-Etiketten</string>
+    <string name="settings_qr_columns_explainer">Wie viele Spalten pro Seite gedruckt werden sollen. Weniger Spalten = größere Etiketten.</string>
+    <string name="settings_qr_columns_label">Spalten pro Seite</string>
 </resources>

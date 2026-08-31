@@ -50,7 +50,7 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 13. **Print through `PrintDocumentAdapter` + `PdfDocument`, never a single composed bitmap.** A full-page ARGB_8888 bitmap at print resolution is ~33 MB, so allocating one per page and concatenating them exhausts the heap past a single page. A printed bitmap is also always *one* page, so that route squashes an entire batch onto a single sheet at unscannable size.
 14. **The grid is derived from `PrintAttributes.mediaSize`,** so any paper the operator picks re-fits. Portrait A4 is what `QrLabelPrinter` requests as the default.
 14a. **Media is pinned portrait with `asPortrait()`** at both the request and in `onLayout`. `ISO_A4` on its own inherits whatever orientation the print service last used, and a landscape page lays the grid out rotated.
-15. **A4 yields a 4x5 grid, 20 labels per sheet,** ~47x55 mm per cell with a ~30 mm QR — dense enough to save paper, large enough to scan.
+15. **A4 yields a 4x5 grid (by default), 20 labels per sheet,** ~47x55 mm per cell with a ~30 mm QR — dense enough to save paper, large enough to scan. The operator can override the number of columns (1 to 6) in the Settings screen, which scales the label size accordingly.
 16. **`forPage` never returns a zero-cell grid.** Columns and rows are floored to at least 1; a zero would make the page loop spin without advancing.
 17. **Cut borders are dashed vectors** drawn at page resolution, not raster.
 18. **QR bitmaps are drawn unfiltered** (`isFilterBitmap = false`) — smoothing the modules costs scan reliability at label size.

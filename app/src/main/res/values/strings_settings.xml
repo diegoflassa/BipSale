@@ -2,12 +2,6 @@
 <!-- Owner package: dev.diegoflassa.bipsale.ui.settings -->
 <resources>
     <string name="settings_title">Configurações</string>
-    <string name="settings_pix_section">PIX</string>
-    <string name="settings_pix_explainer">A chave configurada aqui gera o QR Code que o cliente lê para pagar.</string>
-    <string name="settings_pix_key_label">Chave PIX</string>
-    <string name="settings_pix_key_hint">CPF, CNPJ, telefone (+5519999999999), e-mail ou chave aleatória</string>
-    <string name="settings_merchant_name_label">Nome do recebedor</string>
-    <string name="settings_merchant_city_label">Cidade do recebedor</string>
     <string name="settings_discount_section">Desconto padrão do PIX</string>
     <string name="settings_discount_explainer">Aplicado automaticamente quando o pagamento PIX é escolhido.</string>
     <string name="settings_discount_percentage">Percentual</string>
@@ -18,12 +12,13 @@
     <string name="settings_saved">Configurações salvas</string>
     <string name="settings_save_failed">Não foi possível salvar as configurações</string>
     <string name="dashboard_settings">Configurações</string>
-    <string name="dashboard_settings_description">Chave PIX, desconto padrão e preferências do aplicativo</string>
+    <string name="dashboard_settings_description">Desconto padrão e preferências do aplicativo</string>
     <string name="settings_sale_section">Venda</string>
     <string name="settings_ask_customer_label">Pedir dados do cliente</string>
     <string name="settings_ask_customer_hint">Desligado: a venda abre direto na seleção de produtos e é registrada como anônima</string>
-    <string name="settings_merchant_name_hint">Máx. 25 caracteres, sem acentos no QR Code. Ex.: Padaria do Centro</string>
-    <string name="settings_merchant_city_hint">Somente a cidade, máx. 15 caracteres. Ex.: Campinas</string>
     <string name="settings_discount_percentage_hint">Ex.: 5 para 5% de desconto</string>
     <string name="settings_discount_amount_hint">Ex.: 2,50 para R$ 2,50 de desconto</string>
+    <string name="settings_qr_columns_section">Etiquetas QR Code</string>
+    <string name="settings_qr_columns_explainer">Quantas colunas imprimir por página. Menos colunas = etiquetas maiores.</string>
+    <string name="settings_qr_columns_label">Colunas na página</string>
 </resources>

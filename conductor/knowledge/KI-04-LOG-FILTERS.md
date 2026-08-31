@@ -1,7 +1,7 @@
 # KI-04: App Log Filters Catalogue
 
 **Scope:** all modules (cross-cutting)
-**Last verified:** 2026-08-27
+**Last verified:** 2026-08-30
 
 ## Problem
 
@@ -33,7 +33,7 @@ This KI is the **single source of truth** for every runtime log filter the app e
 | `[BipSale][History]` | `feature/history/HistoryViewModel.kt` | The sales list feeding the history and export screens — which query is running (full list, search, date range), the size of every emission, the failure that left the list empty, and the PIX code rebuilt for a recorded sale. The query text itself is never emitted, only its length, since an operator searches by customer name and CPF (`LOGGING_RULES.md` §8.3). | `Timber.d` (query issued / emission size), `Timber.e` (load failure) |
 | `[BipSale][Export]` | `feature/history/HistoryViewModel.kt`, `core/data/export/SalesExportRepositoryImpl.kt` | Export-to-Excel flow — logs the scope and sale count on export start, the destination URI, then the sale/line/unit counts and the gross, discount and net totals actually written with the take per payment method behind them, the finished export, a dismissed picker, and the failure branches (nothing to write, a destination with no export pending, write error). `ExportScreen` delegates to `HistoryViewModel` → `ExportSalesUseCase` → `SalesExportRepositoryImpl`. | `Timber.d` (progress), `Timber.i` (written/finished), `Timber.w` (empty/orphan destination), `Timber.e` (failure) |
 
-| `[BipSale][Settings]` | `core/data/settings/SettingsRepositoryImpl.kt`, `app/ui/settings/SettingsViewModel.kt` | The configured PIX key, payee and default discount — logs a load, a save and the read failure that fell back to defaults. **The key itself is never emitted**, only whether one is set and how long it is: it identifies the seller (`LOGGING_RULES.md` §8.3). | `Timber.d` (load/save), `Timber.i` (saved), `Timber.w` (rejected input), `Timber.e` (failure) |
+| `[BipSale][Settings]` | `core/data/settings/SettingsRepositoryImpl.kt`, `app/ui/settings/SettingsViewModel.kt` | The configured default PIX discount and customer-info toggle — logs a load, a save and the read failure that fell back to defaults. PIX key, merchant name and city are no longer user-configurable (they live in `PixDefaults`), so the filter no longer monitors them. | `Timber.d` (load/save), `Timber.i` (saved), `Timber.w` (rejected input), `Timber.e` (failure) |
 | `[BipSale][Import]` | `core/data/product/ProductImportRepositoryImpl.kt`, `feature/products/ProductViewModel.kt` | Product spreadsheet template and import — logs the destination the template was written to, the accepted and rejected row counts, and one line per rejected row naming its one-based row number, its code and why it was left out. | `Timber.d` (progress), `Timber.i` (written/imported), `Timber.w` (rejected row), `Timber.e` (failure) |
 The codebase now includes both error-level (`Timber.e`) and debug-level (`Timber.d`) filters. All filters are **Protected**.
 

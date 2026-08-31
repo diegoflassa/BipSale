@@ -62,6 +62,32 @@ class QrLabelSheetLayoutTest {
     }
 
     @Test
+    fun `requestedColumns overrides auto-calculation but rows are still calculated to fill the page`() {
+        val layout = QrLabelSheetLayout.forPage(
+            QrLabelSheetLayout.A4_WIDTH_PT,
+            QrLabelSheetLayout.A4_HEIGHT_PT,
+            requestedColumns = 2
+        )
+
+        assertThat(layout.columns).isEqualTo(2)
+        // With 2 columns, cells are twice as wide, but still constrained by TARGET_CELL_HEIGHT_PT for rows
+        // So rows remain 5.
+        assertThat(layout.rows).isEqualTo(5)
+        assertThat(layout.labelsPerPage).isEqualTo(10)
+    }
+
+    @Test
+    fun `requestedColumns enforces at least 1 column`() {
+        val layout = QrLabelSheetLayout.forPage(
+            QrLabelSheetLayout.A4_WIDTH_PT,
+            QrLabelSheetLayout.A4_HEIGHT_PT,
+            requestedColumns = 0
+        )
+
+        assertThat(layout.columns).isEqualTo(1)
+    }
+
+    @Test
     fun `paginates without dropping or duplicating labels`() {
         val layout = a4()
 

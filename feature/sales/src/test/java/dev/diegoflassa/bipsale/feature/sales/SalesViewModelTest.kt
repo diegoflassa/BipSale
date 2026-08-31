@@ -6,7 +6,6 @@ import dev.diegoflassa.bipsale.core.domain.model.ItemDiscount
 import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
 import dev.diegoflassa.bipsale.core.domain.model.PaymentMethod
 import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.model.Product
 import dev.diegoflassa.bipsale.core.domain.model.Sale
@@ -163,7 +162,6 @@ class SalesViewModelTest {
     fun `picking PIX applies the configured default discount`() = runTest {
         val vm = viewModel(
             settings = AppSettings(
-                pixKey = "12345678909",
                 pixDiscount = ItemDiscount.Percentage(10.0)
             )
         )
@@ -180,7 +178,6 @@ class SalesViewModelTest {
     fun `a discount the operator typed is not overwritten by the PIX default`() = runTest {
         val vm = viewModel(
             settings = AppSettings(
-                pixKey = "12345678909",
                 pixDiscount = ItemDiscount.Percentage(10.0)
             )
         )
@@ -195,8 +192,8 @@ class SalesViewModelTest {
     }
 
     @Test
-    fun `picking PIX with a key configured produces a payload carrying the total`() = runTest {
-        val vm = viewModel(settings = AppSettings(pixKey = "12345678909"))
+    fun `picking PIX produces a payload carrying the total`() = runTest {
+        val vm = viewModel()
         cartOf(vm, "PR-100", method = null)
 
         vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
@@ -206,12 +203,11 @@ class SalesViewModelTest {
         assertThat(payload).isNotNull()
         assertThat(payload).contains("br.gov.bcb.pix")
         assertThat(payload).contains("100.00")
-        assertThat(vm.uiState.value.missingPixFields).doesNotContain(PixField.KEY)
     }
 
     @Test
     fun `the PIX payload follows the total when the cart changes`() = runTest {
-        val vm = viewModel(settings = AppSettings(pixKey = "12345678909"))
+        val vm = viewModel()
         cartOf(vm, "PR-100", method = PaymentMethod.PIX)
 
         vm.onIntent(SalesContract.Intent.AddProductByCode("CF-200"))
@@ -221,26 +217,89 @@ class SalesViewModelTest {
     }
 
     @Test
-    fun `picking PIX with no key configured says so instead of showing a dead QR`() = runTest {
-        val vm = viewModel(settings = AppSettings.EMPTY)
-        cartOf(vm, "PR-100", method = null)
-
-        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
-        advanceUntilIdle()
-
-        assertThat(vm.uiState.value.pixPayload).isNull()
-        assertThat(vm.uiState.value.missingPixFields).contains(PixField.KEY)
-    }
-
-    @Test
     fun `leaving PIX clears the payload rather than leaving it on screen`() = runTest {
-        val vm = viewModel(settings = AppSettings(pixKey = "12345678909"))
+        val vm = viewModel()
         cartOf(vm, "PR-100", method = PaymentMethod.PIX)
 
         vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.CASH))
         advanceUntilIdle()
 
         assertThat(vm.uiState.value.pixPayload).isNull()
+    }
+
+    @Test
+    fun `toggling to no-fixed-value produces a payload without an amount`() = runTest {
+        val vm = viewModel()
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+
+        vm.onIntent(SalesContract.Intent.TogglePixAmount(carriesAmount = false))
+        advanceUntilIdle()
+
+        val payload = vm.uiState.value.pixPayload
+        assertThat(payload).isNotNull()
+        assertThat(payload).contains("br.gov.bcb.pix")
+        assertThat(payload).doesNotContain("100.00")
+    }
+
+    @Test
+    fun `toggling back to fixed-value restores the amount in the payload`() = runTest {
+        val vm = viewModel()
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+
+        vm.onIntent(SalesContract.Intent.TogglePixAmount(carriesAmount = false))
+        advanceUntilIdle()
+        vm.onIntent(SalesContract.Intent.TogglePixAmount(carriesAmount = true))
+        advanceUntilIdle()
+
+        val payload = vm.uiState.value.pixPayload
+        assertThat(payload).isNotNull()
+        assertThat(payload).contains("100.00")
+    }
+
+    @Test
+    fun `leaving PIX strips the auto-applied discount`() = runTest {
+        val vm = viewModel(
+            settings = AppSettings(pixDiscount = ItemDiscount.Percentage(10.0))
+        )
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(10.0)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.CASH))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(0.0)
+        assertThat(vm.uiState.value.finalAmount).isEqualTo(100.0)
+    }
+
+    @Test
+    fun `a manually typed discount survives switching away from PIX`() = runTest {
+        val vm = viewModel(
+            settings = AppSettings(pixDiscount = ItemDiscount.Percentage(10.0))
+        )
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+        vm.onIntent(SalesContract.Intent.UpdateDiscount(25.0))
+        advanceUntilIdle()
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.CASH))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(25.0)
+    }
+
+    @Test
+    fun `re-selecting PIX reapplies the default discount after it was stripped`() = runTest {
+        val vm = viewModel(
+            settings = AppSettings(pixDiscount = ItemDiscount.Percentage(10.0))
+        )
+        cartOf(vm, "PR-100", method = PaymentMethod.PIX)
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.CASH))
+        advanceUntilIdle()
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(0.0)
+
+        vm.onIntent(SalesContract.Intent.SelectPaymentMethod(PaymentMethod.PIX))
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.discountPercentage).isEqualTo(10.0)
     }
 
     @Test

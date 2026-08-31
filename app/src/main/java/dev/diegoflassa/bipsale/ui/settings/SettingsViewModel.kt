@@ -39,15 +39,6 @@ class SettingsViewModel @Inject constructor(
 
     fun onIntent(intent: SettingsContract.Intent) {
         when (intent) {
-            is SettingsContract.Intent.PixKeyChanged ->
-                _uiState.update { it.copy(pixKey = intent.value) }
-
-            is SettingsContract.Intent.MerchantNameChanged ->
-                _uiState.update { it.copy(merchantName = intent.value) }
-
-            is SettingsContract.Intent.MerchantCityChanged ->
-                _uiState.update { it.copy(merchantCity = intent.value) }
-
             is SettingsContract.Intent.DiscountKindChanged ->
                 _uiState.update { it.copy(discountKind = intent.kind) }
 
@@ -56,6 +47,9 @@ class SettingsViewModel @Inject constructor(
 
             is SettingsContract.Intent.AskCustomerInfoChanged ->
                 _uiState.update { it.copy(askCustomerInfo = intent.enabled) }
+
+            is SettingsContract.Intent.QrColumnsChanged ->
+                _uiState.update { it.copy(qrLabelColumns = intent.columns) }
 
             is SettingsContract.Intent.Save -> save()
         }
@@ -69,18 +63,15 @@ class SettingsViewModel @Inject constructor(
                 .getOrDefault(AppSettings.EMPTY)
 
             Timber.d(
-                "[BipSale][Settings] Settings loaded pixConfigured=%b discount=%s",
-                settings.isPixConfigured,
+                "[BipSale][Settings] Settings loaded discount=%s",
                 settings.pixDiscount::class.simpleName
             )
             _uiState.update {
                 it.copy(
-                    pixKey = settings.pixKey,
-                    merchantName = settings.pixMerchantName,
-                    merchantCity = settings.pixMerchantCity,
                     discountKind = settings.pixDiscount.toKind(),
                     discountInput = settings.pixDiscount.toInput(),
                     askCustomerInfo = settings.askCustomerInfo,
+                    qrLabelColumns = settings.qrLabelColumns,
                     isLoading = false
                 )
             }
@@ -101,11 +92,9 @@ class SettingsViewModel @Inject constructor(
             runCatching {
                 settingsRepository.save(
                     AppSettings(
-                        pixKey = state.pixKey.trim(),
-                        pixMerchantName = state.merchantName.trim(),
-                        pixMerchantCity = state.merchantCity.trim(),
                         pixDiscount = discount,
-                        askCustomerInfo = state.askCustomerInfo
+                        askCustomerInfo = state.askCustomerInfo,
+                        qrLabelColumns = state.qrLabelColumns
                     )
                 )
             }.onSuccess {

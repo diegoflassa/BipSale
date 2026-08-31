@@ -1,7 +1,6 @@
 package dev.diegoflassa.bipsale.feature.history
 
 import dev.diegoflassa.bipsale.core.domain.model.Sale
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.ui.util.UiText
 
 class HistoryContract {
@@ -13,8 +12,7 @@ class HistoryContract {
         val isExporting: Boolean = false,
         /** The sale whose PIX code is on screen, so a customer can pay one that was already rung up. */
         val pixSaleId: String? = null,
-        val pixPayload: String? = null,
-        val missingPixFields: List<PixField> = emptyList()
+        val pixPayload: String? = null
     ) {
         val isShowingPix: Boolean get() = pixSaleId != null
     }

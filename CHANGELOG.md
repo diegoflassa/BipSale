@@ -12,6 +12,10 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 ## Unreleased
 
+- PIX key, merchant name and city are now hardcoded build constants in `PixDefaults` (from the shop's Nubank poster); the Settings screen no longer edits them. A per-sale toggle switches between an amount-carrying QR (default) and a "customer types the amount" mode
+- Fixed the auto-applied PIX discount staying when switching to another payment method; it is now stripped unless the operator typed a different value
+- The number of columns for printing product QR labels can now be configured in the Settings screen (1 to 6 columns per page)
+
 - **A shipped build emitted no log line at all.** `BipSaleApp` planted a Timber tree only under `isDebug()`, so every filter in `KI-04-LOG-FILTERS.md` was debug-only in practice and a sale that failed at a point of sale left nothing to reconstruct it from. `ReleaseTree` forwards `i`/`w`/`e`/`wtf` and drops `d`/`v` — the gate `LOGGING_RULES.md` §8.6 always described
 - Long log messages are split rather than silently truncated at the ~4 KB logcat byte cap, and every piece repeats its `[BipSale][…]` filter so a `grep` returns the whole message (`LogChunker`, §8.7). Applied inside the planted trees, so the `Timber.*` call sites §8.1 mandates are untouched
 - `LogRedaction` for CPF, names, contacts and paths (§8.8). Deliberately **no money helper**: §8.3 keeps totals, because a total identifies nobody and is exactly what reconciling a failed sale needs

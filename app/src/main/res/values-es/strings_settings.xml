@@ -2,12 +2,6 @@
 <!-- Owner package: dev.diegoflassa.bipsale.ui.settings -->
 <resources>
     <string name="settings_title">Configuración</string>
-    <string name="settings_pix_section">PIX</string>
-    <string name="settings_pix_explainer">La clave configurada aquí genera el código QR que el cliente escanea para pagar.</string>
-    <string name="settings_pix_key_label">Clave PIX</string>
-    <string name="settings_pix_key_hint">CPF, CNPJ, teléfono (+5519999999999), correo o clave aleatoria</string>
-    <string name="settings_merchant_name_label">Nombre del beneficiario</string>
-    <string name="settings_merchant_city_label">Ciudad del beneficiario</string>
     <string name="settings_discount_section">Descuento predeterminado de PIX</string>
     <string name="settings_discount_explainer">Se aplica automáticamente cuando se elige PIX como forma de pago.</string>
     <string name="settings_discount_percentage">Porcentaje</string>
@@ -18,12 +12,13 @@
     <string name="settings_saved">Configuración guardada</string>
     <string name="settings_save_failed">No se pudo guardar la configuración</string>
     <string name="dashboard_settings">Configuración</string>
-    <string name="dashboard_settings_description">Clave PIX, descuento predeterminado y preferencias de la aplicación</string>
+    <string name="dashboard_settings_description">Descuento predeterminado y preferencias de la aplicación</string>
     <string name="settings_sale_section">Venta</string>
     <string name="settings_ask_customer_label">Pedir datos del cliente</string>
     <string name="settings_ask_customer_hint">Desactivado: la venta abre directamente en la selección de productos y se registra como anónima</string>
-    <string name="settings_merchant_name_hint">Máx. 25 caracteres, sin acentos en el código QR. Ej.: Padaria do Centro</string>
-    <string name="settings_merchant_city_hint">Solo la ciudad, máx. 15 caracteres. Ej.: Campinas</string>
     <string name="settings_discount_percentage_hint">Ej.: 5 para un 5% de descuento</string>
     <string name="settings_discount_amount_hint">Ej.: 2,50 para R$ 2,50 de descuento</string>
+    <string name="settings_qr_columns_section">Etiquetas de código QR</string>
+    <string name="settings_qr_columns_explainer">Cuántas columnas imprimir por página. Menos columnas = etiquetas más grandes.</string>
+    <string name="settings_qr_columns_label">Columnas por página</string>
 </resources>

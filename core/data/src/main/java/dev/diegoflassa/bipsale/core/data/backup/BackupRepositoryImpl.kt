@@ -16,6 +16,7 @@ import dev.diegoflassa.bipsale.core.domain.backup.BackupRepository
 import dev.diegoflassa.bipsale.core.domain.backup.BackupSummary
 import dev.diegoflassa.bipsale.core.domain.backup.StagedBackup
 import dev.diegoflassa.bipsale.core.domain.image.ProductImageStore
+import dev.diegoflassa.bipsale.core.domain.pix.PixDefaults
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import dev.diegoflassa.bipsale.core.data.settings.readDiscount
@@ -246,18 +247,15 @@ class BackupRepositoryImpl @Inject constructor(
 }
 
 private fun AppSettings.toBackup() = BackupSettings(
-    pixKey = pixKey,
-    pixMerchantName = pixMerchantName,
-    pixMerchantCity = pixMerchantCity,
+    pixKey = PixDefaults.KEY,
+    pixMerchantName = PixDefaults.MERCHANT_NAME,
+    pixMerchantCity = PixDefaults.MERCHANT_CITY,
     pixDiscountType = pixDiscount.storedType(),
     pixDiscountValue = pixDiscount.storedValue(),
     askCustomerInfo = askCustomerInfo
 )
 
 private fun BackupSettings.toDomain() = AppSettings(
-    pixKey = pixKey,
-    pixMerchantName = pixMerchantName,
-    pixMerchantCity = pixMerchantCity,
     pixDiscount = readDiscount(pixDiscountType, pixDiscountValue),
     askCustomerInfo = askCustomerInfo
 )

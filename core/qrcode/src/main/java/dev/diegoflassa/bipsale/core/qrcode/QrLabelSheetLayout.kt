@@ -53,16 +53,20 @@ data class QrLabelSheetLayout(
         /**
          * Fits as many whole cells as the page allows, then grows the cells to consume the
          * leftover strip so the sheet stays edge-to-edge on any paper size.
+         *
+         * @param requestedColumns if non-null, overrides the auto-calculated column count.
          */
         fun forPage(
             pageWidthPt: Float,
             pageHeightPt: Float,
-            marginPt: Float = DEFAULT_MARGIN_PT
+            marginPt: Float = DEFAULT_MARGIN_PT,
+            requestedColumns: Int? = null
         ): QrLabelSheetLayout {
             val usableWidth = (pageWidthPt - 2 * marginPt).coerceAtLeast(1f)
             val usableHeight = (pageHeightPt - 2 * marginPt).coerceAtLeast(1f)
 
-            val columns = (usableWidth / TARGET_CELL_WIDTH_PT).toInt().coerceAtLeast(1)
+            val columns = (requestedColumns
+                ?: (usableWidth / TARGET_CELL_WIDTH_PT).toInt()).coerceAtLeast(1)
             val rows = (usableHeight / TARGET_CELL_HEIGHT_PT).toInt().coerceAtLeast(1)
 
             return QrLabelSheetLayout(

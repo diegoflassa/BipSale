@@ -8,7 +8,6 @@ import dev.diegoflassa.bipsale.core.domain.model.Sale
 import dev.diegoflassa.bipsale.core.domain.model.SaleItem
 import dev.diegoflassa.bipsale.core.domain.repository.SaleRepository
 import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
-import dev.diegoflassa.bipsale.core.domain.settings.PixField
 import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import dev.diegoflassa.bipsale.core.domain.usecase.ExportSalesUseCase
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -373,8 +372,7 @@ class HistoryViewModelTest {
     @Test
     fun `a recorded PIX sale can have its code shown again`() = runTest {
         val vm = viewModel(
-            FakeSaleRepository(all = flowOf(listOf(ana))),
-            settings = AppSettings(pixKey = "12345678909")
+            FakeSaleRepository(all = flowOf(listOf(ana)))
         )
         advanceUntilIdle()
 
@@ -387,21 +385,9 @@ class HistoryViewModelTest {
     }
 
     @Test
-    fun `showing a recorded sale's code with no key names the missing fields`() = runTest {
-        val vm = viewModel(FakeSaleRepository(all = flowOf(listOf(ana))))
-        advanceUntilIdle()
-
-        vm.onIntent(HistoryContract.Intent.ShowSalePix("sale-1"))
-
-        assertThat(vm.uiState.value.pixPayload).isNull()
-        assertThat(vm.uiState.value.missingPixFields).contains(PixField.KEY)
-    }
-
-    @Test
     fun `a code requested for a sale that is not listed changes nothing`() = runTest {
         val vm = viewModel(
-            FakeSaleRepository(all = flowOf(listOf(ana))),
-            settings = AppSettings(pixKey = "12345678909")
+            FakeSaleRepository(all = flowOf(listOf(ana)))
         )
         advanceUntilIdle()
 
@@ -413,8 +399,7 @@ class HistoryViewModelTest {
     @Test
     fun `dismissing the code clears it`() = runTest {
         val vm = viewModel(
-            FakeSaleRepository(all = flowOf(listOf(ana))),
-            settings = AppSettings(pixKey = "12345678909")
+            FakeSaleRepository(all = flowOf(listOf(ana)))
         )
         advanceUntilIdle()
         vm.onIntent(HistoryContract.Intent.ShowSalePix("sale-1"))
