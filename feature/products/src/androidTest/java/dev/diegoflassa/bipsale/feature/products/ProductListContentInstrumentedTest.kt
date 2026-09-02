@@ -228,4 +228,49 @@ class ProductListContentInstrumentedTest {
 
         assertThat(recorder.intents).contains(ProductContract.Intent.PrintAllQrCodes)
     }
+
+    @Test
+    fun noOverwriteWarningIsShownUntilAnImportIsAskedFor() {
+        render(ProductContract.State(isLoading = false, products = listOf(coturno)))
+
+        composeRule.onNodeWithTag(ProductListScreenTestTags.IMPORT_CONFIRM_DIALOG)
+            .assertDoesNotExist()
+    }
+
+    @Test
+    fun theOverwriteWarningIsShownBeforeTheFilePicker() {
+        render(
+            ProductContract.State(
+                isLoading = false,
+                products = listOf(coturno),
+                isImportConfirmVisible = true
+            )
+        )
+
+        composeRule.onNodeWithTag(ProductListScreenTestTags.IMPORT_CONFIRM_DIALOG)
+            .assertIsDisplayed()
+    }
+
+    @Test
+    fun confirmingTheWarningIsWhatRequestsTheFile() {
+        val recorder = render(
+            ProductContract.State(isLoading = false, isImportConfirmVisible = true)
+        )
+
+        composeRule.onNodeWithTag(ProductListScreenTestTags.IMPORT_CONFIRM_ACCEPT).performClick()
+
+        assertThat(recorder.intents).contains(ProductContract.Intent.ImportConfirmed)
+    }
+
+    @Test
+    fun cancellingTheWarningImportsNothing() {
+        val recorder = render(
+            ProductContract.State(isLoading = false, isImportConfirmVisible = true)
+        )
+
+        composeRule.onNodeWithTag(ProductListScreenTestTags.IMPORT_CONFIRM_CANCEL).performClick()
+
+        assertThat(recorder.intents).contains(ProductContract.Intent.ImportDismissed)
+        assertThat(recorder.intents).doesNotContain(ProductContract.Intent.ImportConfirmed)
+    }
 }

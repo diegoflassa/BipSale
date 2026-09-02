@@ -14,6 +14,8 @@ class SettingsContract {
         val discountInput: String = "",
         val askCustomerInfo: Boolean = true,
         val qrLabelColumns: Int = AppSettings.DEFAULT_QR_LABEL_COLUMNS,
+        val qrLabelNameTextSizePt: Int = AppSettings.DEFAULT_QR_LABEL_NAME_TEXT_SIZE_PT,
+        val qrLabelPriceTextSizePt: Int = AppSettings.DEFAULT_QR_LABEL_PRICE_TEXT_SIZE_PT,
         val isLoading: Boolean = true,
         val isSaving: Boolean = false
     ) {
@@ -25,6 +27,8 @@ class SettingsContract {
         data class DiscountValueChanged(val value: String) : Intent
         data class AskCustomerInfoChanged(val enabled: Boolean) : Intent
         data class QrColumnsChanged(val columns: Int) : Intent
+        data class QrLabelNameTextSizeChanged(val sizePt: Int) : Intent
+        data class QrLabelPriceTextSizeChanged(val sizePt: Int) : Intent
         data object Save : Intent
     }
 

@@ -16,6 +16,7 @@ import dev.diegoflassa.bipsale.core.domain.usecase.NoProductsToImport
 import dev.diegoflassa.bipsale.core.domain.usecase.SaveProductUseCase
 import dev.diegoflassa.bipsale.core.domain.util.parsePriceInput
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
+import dev.diegoflassa.bipsale.core.qrcode.toQrLabelTypography
 import dev.diegoflassa.bipsale.core.ui.util.UiText
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
@@ -58,6 +59,29 @@ class ProductViewModel @Inject constructor(
 
     init {
         onIntent(ProductContract.Intent.LoadProducts)
+        observeLabelSettings()
+    }
+
+    /**
+     * Kept in step with settings rather than read once, so changing a type size or the column count
+     * and coming straight back to a product shows the new preview, not the one the screen opened
+     * with.
+     */
+    private fun observeLabelSettings() {
+        viewModelScope.launch {
+            settingsRepository.settings
+                .catch { throwable ->
+                    Timber.e(throwable, "[BipSale][Product] Reading label settings failed")
+                }
+                .collect { settings ->
+                    _uiState.update {
+                        it.copy(
+                            labelTypography = settings.toQrLabelTypography(),
+                            labelColumns = settings.qrLabelColumns
+                        )
+                    }
+                }
+        }
     }
 
     fun onIntent(intent: ProductContract.Intent) {
@@ -88,9 +112,19 @@ class ProductViewModel @Inject constructor(
             is ProductContract.Intent.TemplateDestinationChosen ->
                 writeTemplate(intent.destinationUri)
 
-            is ProductContract.Intent.ImportRequested -> emitEffect(
-                ProductContract.Effect.PickImportSource
-            )
+            is ProductContract.Intent.ImportRequested ->
+                _uiState.update { it.copy(isImportConfirmVisible = true) }
+
+            is ProductContract.Intent.ImportConfirmed -> {
+                _uiState.update { it.copy(isImportConfirmVisible = false) }
+                Timber.d("[BipSale][Import] Overwrite confirmed, asking for a file")
+                emitEffect(ProductContract.Effect.PickImportSource)
+            }
+
+            is ProductContract.Intent.ImportDismissed -> {
+                Timber.d("[BipSale][Import] Import cancelled at the overwrite warning")
+                _uiState.update { it.copy(isImportConfirmVisible = false) }
+            }
 
             is ProductContract.Intent.ImportSourceChosen -> runImport(intent.sourceUri)
         }
@@ -247,9 +281,17 @@ class ProductViewModel @Inject constructor(
         }
         Timber.d("[BipSale][Product][QR_EXPORT] Requesting print of %d labels", labels.size)
         viewModelScope.launch {
-            val columns = runCatching { settingsRepository.current().qrLabelColumns }
-                .getOrDefault(AppSettings.DEFAULT_QR_LABEL_COLUMNS)
-            _effect.send(ProductContract.Effect.PrintLabels(labels, columns))
+            // One read for both the grid and the type sizes — two reads could straddle a save and
+            // print a sheet whose columns and text sizes came from different settings.
+            val settings = runCatching { settingsRepository.current() }
+                .getOrDefault(AppSettings.EMPTY)
+            _effect.send(
+                ProductContract.Effect.PrintLabels(
+                    labels = labels,
+                    requestedColumns = settings.qrLabelColumns,
+                    typography = settings.toQrLabelTypography()
+                )
+            )
         }
     }
 

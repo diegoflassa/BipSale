@@ -1,5 +1,6 @@
 package dev.diegoflassa.bipsale.core.data.backup
 
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import kotlinx.serialization.Serializable
 
 /**
@@ -27,7 +28,13 @@ data class BackupDocument(
     val settings: BackupSettings? = null
 )
 
-/** The configurable half of the app, so a restore brings back a working terminal, not just data. */
+/**
+ * The configurable half of the app, so a restore brings back a working terminal, not just data.
+ *
+ * Every field is defaulted, so an archive written before a setting existed still restores and that
+ * setting simply comes back at its default. The PIX identity fields are write-only history: the key
+ * became a build constant, so they are still written for older readers but no longer restored.
+ */
 @Serializable
 data class BackupSettings(
     val pixKey: String = "",
@@ -35,7 +42,10 @@ data class BackupSettings(
     val pixMerchantCity: String = "",
     val pixDiscountType: String = "NONE",
     val pixDiscountValue: Double = 0.0,
-    val askCustomerInfo: Boolean = true
+    val askCustomerInfo: Boolean = true,
+    val qrLabelColumns: Int = AppSettings.DEFAULT_QR_LABEL_COLUMNS,
+    val qrLabelNameTextSizePt: Int = AppSettings.DEFAULT_QR_LABEL_NAME_TEXT_SIZE_PT,
+    val qrLabelPriceTextSizePt: Int = AppSettings.DEFAULT_QR_LABEL_PRICE_TEXT_SIZE_PT
 )
 
 @Serializable

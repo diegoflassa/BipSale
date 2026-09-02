@@ -6,6 +6,7 @@ import android.print.PrintManager
 import androidx.core.content.getSystemService
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
+import dev.diegoflassa.bipsale.core.qrcode.QrLabelTypography
 import timber.log.Timber
 
 /**
@@ -18,7 +19,8 @@ class QrLabelPrinter(
         context: Context,
         documentName: String,
         labels: List<LabelData>,
-        requestedColumns: Int? = null
+        requestedColumns: Int? = null,
+        typography: QrLabelTypography = QrLabelTypography.DEFAULT
     ): Boolean {
         if (labels.isEmpty()) {
             Timber.w("[BipSale][Product][QR_EXPORT] Print requested with no labels")
@@ -36,13 +38,17 @@ class QrLabelPrinter(
         // rotated. The dialog can still be changed by hand — the layout re-fits whatever it gets.
         val requested = PrintAttributes.MediaSize.ISO_A4.asPortrait()
         Timber.d(
-            "[BipSale][Product][QR_EXPORT] Print dialog opened for %d labels, requesting %s (%dx%d mils) columns=%s",
+            "[BipSale][Product][QR_EXPORT] Print dialog opened for %d labels, requesting %s " +
+                "(%dx%d mils) columns=%s namePt=%.1f pricePt=%.1f",
             labels.size, requested.id, requested.widthMils, requested.heightMils,
-            requestedColumns?.toString() ?: "auto"
+            requestedColumns?.toString() ?: "auto",
+            typography.nameTextSizePt, typography.priceTextSizePt
         )
         printManager.print(
             documentName,
-            QrLabelPrintAdapter(context, documentName, labels, renderer, requestedColumns),
+            QrLabelPrintAdapter(
+                context, documentName, labels, renderer, requestedColumns, typography
+            ),
             PrintAttributes.Builder()
                 .setMediaSize(requested)
                 .setResolution(PrintAttributes.Resolution("default", "default", DPI, DPI))

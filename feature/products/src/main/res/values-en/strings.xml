@@ -46,4 +46,8 @@
     <string name="products_name_hint">How the product appears on the label and in the cart</string>
     <string name="products_price_hint">Comma or dot accepted. E.g. 12.50</string>
     <string name="products_quantity_hint">Units in stock. Also sets how many labels get printed</string>
+    <string name="products_import_confirm_title">Import spreadsheet?</string>
+    <string name="products_import_confirm_message">The products in the spreadsheet will be written. Any existing product with the same code is overwritten — its name, price and quantity become the ones in the sheet, and this cannot be undone.</string>
+    <string name="products_import_confirm_accept">Import</string>
+    <string name="products_import_confirm_cancel">Cancel</string>
 </resources>

@@ -46,4 +46,8 @@
     <string name="products_name_hint">Como o produto aparece na etiqueta e no carrinho</string>
     <string name="products_price_hint">Use vírgula ou ponto. Ex.: 12,50</string>
     <string name="products_quantity_hint">Unidades em estoque. Também define quantas etiquetas são impressas</string>
+    <string name="products_import_confirm_title">Importar planilha?</string>
+    <string name="products_import_confirm_message">Os produtos da planilha serão gravados. Todo produto que já existir com o mesmo código será sobrescrito — nome, preço e quantidade passam a ser os da planilha, e não há como desfazer.</string>
+    <string name="products_import_confirm_accept">Importar</string>
+    <string name="products_import_confirm_cancel">Cancelar</string>
 </resources>

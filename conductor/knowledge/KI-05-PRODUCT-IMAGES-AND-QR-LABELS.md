@@ -1,7 +1,7 @@
 # KI-05: Product Images & QR Label Printing
 
 **Scope:** `:feature:products`, `:core:qrcode`, `core/data/image/`, `core/domain/image/`
-**Last verified:** 2026-08-23
+**Last verified:** 2026-09-02
 
 ## Problem
 
@@ -19,6 +19,8 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 | `core/domain/usecase/SaveProductImageUseCase.kt` | Import a new image and drop the one it replaces |
 | `core/domain/usecase/DeleteProductUseCase.kt` | Delete the row **and** its image file |
 | `core/qrcode/QrLabelSheetLayout.kt` | Pure grid maths in points; unit-tested |
+| `core/qrcode/QrLabelTypography.kt` | Configured name/price point sizes; derives line height and the price shrink floor |
+| `core/qrcode/AppSettingsExt.kt` | `AppSettings.toQrLabelTypography()` — the one place settings widen into renderer points |
 | `core/qrcode/QrLabelSheetRenderer.kt` | Draws labels onto a page canvas and the on-screen preview |
 | `core/qrcode/QrGenerator.kt` | ZXing encode to a `Bitmap` |
 | `feature/products/print/QrLabelPrintAdapter.kt` | `PrintDocumentAdapter` emitting a real multi-page PDF |
@@ -50,14 +52,15 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 13. **Print through `PrintDocumentAdapter` + `PdfDocument`, never a single composed bitmap.** A full-page ARGB_8888 bitmap at print resolution is ~33 MB, so allocating one per page and concatenating them exhausts the heap past a single page. A printed bitmap is also always *one* page, so that route squashes an entire batch onto a single sheet at unscannable size.
 14. **The grid is derived from `PrintAttributes.mediaSize`,** so any paper the operator picks re-fits. Portrait A4 is what `QrLabelPrinter` requests as the default.
 14a. **Media is pinned portrait with `asPortrait()`** at both the request and in `onLayout`. `ISO_A4` on its own inherits whatever orientation the print service last used, and a landscape page lays the grid out rotated.
-15. **A4 yields a 4x5 grid (by default), 20 labels per sheet,** ~47x55 mm per cell with a ~30 mm QR — dense enough to save paper, large enough to scan. The operator can override the number of columns (1 to 6) in the Settings screen, which scales the label size accordingly.
+15. **A4 defaults to a 5-column grid** — 25 labels per sheet, dense enough to save paper and still large enough to scan. Two different defaults are in play and they are not the same number: `QrLabelSheetLayout.forPage` **auto-fits** 4 columns on A4 when asked for none, while `AppSettings.DEFAULT_QR_LABEL_COLUMNS` is **5** and is what the app actually requests. The auto-fit is the fallback for paper nobody configured for; the setting is the shop's choice. The operator can pick 1 to 6 in Settings, which scales the label size accordingly.
 16. **`forPage` never returns a zero-cell grid.** Columns and rows are floored to at least 1; a zero would make the page loop spin without advancing.
 17. **Cut borders are dashed vectors** drawn at page resolution, not raster.
 18. **QR bitmaps are drawn unfiltered** (`isFilterBitmap = false`) — smoothing the modules costs scan reliability at label size.
-19. **The edit screen preview uses the same `drawLabel`** against the same A4 cell (`QrLabelSheetLayout.a4()`), so the preview is what prints.
-20. **Type is sized in points with a readable floor** — 9 pt name, 12 pt price. Points survive any paper size or printer DPI; pixels would not.
-21. **The name block is reserved at `MAX_NAME_LINES` height whether or not the name fills it,** so every QR on a sheet sits at the same offset and the cut lines stay a regular grid.
-22. **The name wraps and then ellipsises; the price never wraps.** A price too wide for the cell shrinks by half-points to a 9 pt floor — a wrapped or clipped price is a misread charge.
+19. **The edit screen preview uses the same `drawLabel`** against a cell built from **the configured column count and typography**, not `QrLabelSheetLayout.a4()`, so the preview is what prints. The column count sets the cell width, so a preview drawn at the auto-fit width is a different label from the one in the tray — and `RealSizeLabelDialog` quotes millimetres the operator holds a ruler against, so it takes the same layout. `ProductViewModel` keeps `State.labelTypography` in step with settings by collecting the settings flow, not by reading it once — a preview that only refreshed on the print path would show the defaults forever.
+20. **Type is sized in points, and the operator sets it** — the product name and the price are separate settings, 6–24 pt, defaulting to 10 pt and 13 pt. Points survive any paper size or printer DPI; pixels would not. `QrLabelTypography` is the only carrier: it takes the two configured sizes and **derives** the name line height (×1.2) and the price shrink floor (×0.7), so a size and its dependants can never drift apart. `QrLabelSheetRenderer` holds no type-size constants of its own.
+20a. **The two sizes are configured independently.** A name identifies the item on a shelf and a price is the number someone is charged; a shop that wants one bigger rarely wants both, and one shared size makes that impossible to express.
+21. **The name block is reserved at `MAX_NAME_LINES` height whether or not the name fills it,** so every QR on a sheet sits at the same offset and the cut lines stay a regular grid. The line count is derived from the cell and the configured type, not fixed.
+22. **The name wraps and then ellipsises; the price never wraps.** A price too wide for the cell shrinks by half-points to the derived floor — a wrapped or clipped price is a misread charge.
 23. **The real-size preview converts through `DisplayMetrics.xdpi`/`ydpi`, not the density bucket.** A bucket is rounded to the nearest standard density, so a ruler held to the screen would disagree with the printout.
 
 ## Log filters
@@ -70,16 +73,18 @@ Products carry a photo and print as cut-out QR labels. Both paths have failure m
 |---|---|
 | `core/domain/.../PriceInputTest` | Comma and dot separators, zero/negative rejection, multi-separator refusal |
 | `core/domain/.../SaveProductUseCaseTest` | Code/name/price validation, image name pass-through, QR payload shape |
-| `core/qrcode/.../QrLabelSheetLayoutTest` | A4 4x5 grid, pagination boundaries, cell geometry, tiny-paper guard |
+| `core/qrcode/.../QrLabelSheetLayoutTest` | A4 auto-fit grid, the requested-column override, pagination boundaries, cell geometry, tiny-paper guard |
+| `core/qrcode/.../QrLabelTypographyTest` | Line height clears the glyphs, the shrink floor sits below its starting size, both derive from the configured size, and the renderer default equals what `AppSettings.EMPTY` hands out |
+| `core/qrcode/androidTest/.../QrLabelSheetRendererTest` | Also pins that a larger configured size genuinely renders different ink, and that the QR still scans at the 24 pt maximum |
 | `core/data/androidTest/.../ProductImageStoreImplTest` | Import succeeds against a real `ContentResolver` (pins the bounds-decode bug), 1024 px downscale, code sanitising, unique name per pick, delete, unreadable-source failure |
 
-**Not yet covered:** `ProductViewModel` (price validation wiring, image lifecycle), EXIF rotation, `QrLabelSheetRenderer` (needs Android graphics). See [KI-TBD](KI-TBD.md) #3 and #5.
+**Not yet covered:** EXIF rotation in `ProductImageStoreImpl` — it needs a fixture photo carrying an orientation tag, and is the one part of the image path with no test. Everything else here is pinned: `ProductViewModel` by its own suite, and `QrLabelSheetRenderer` by the instrumented suite above.
 
 ## Backup
 
 `android:allowBackup` is a manifest placeholder set per build type in `android-application-convention.gradle.kts` — `false` on debug, `true` on release.
 
-Auto Backup restores a database written by an older build onto a newer one, and Room aborts on the identity-hash mismatch rather than opening it. On debug that resurrects local schema churn and survives even a full uninstall, which reads as an unkillable crash. Release keeps backup on so sales history survives a device migration; that is only safe once the migration set ships ([KI-TBD](KI-TBD.md) #4 and #11).
+Auto Backup restores a database written by an older build onto a newer one, and Room aborts on the identity-hash mismatch rather than opening it. On debug that resurrects local schema churn and survives even a full uninstall, which reads as an unkillable crash. Release keeps backup on so sales history survives a device migration; that is safe because `BipSaleDatabase.MIGRATIONS` is registered on the builder and `BipSaleDatabaseMigrationTest` fails in CI if a version is bumped without a migration or an exported schema (`CORE_RULES` §13).
 
 ## Failure visibility
 

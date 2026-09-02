@@ -15,7 +15,25 @@
       "Bash(git -C \"d:\\\\users\\\\diego\\\\Programming\\\\Workspaces\\\\Workspace.AndroidStudio\\\\BipSale\" log --oneline -8)",
       "Bash(git -C \"d:\\\\users\\\\diego\\\\Programming\\\\Workspaces\\\\Workspace.AndroidStudio\\\\BipSale\" diff -- .claude/settings.local.json)",
       "Bash(./gradlew assembleDebug)",
-      "Bash(./gradlew app:appDistributionUploadDebug)"
+      "Bash(./gradlew app:appDistributionUploadDebug)",
+      "Bash(ls -la \"C:/Users/diego/Downloads/pix-qr-code.pdf\" 2>&1; echo \"---refs---\"; ls -la \"d:/users/diego/Programming/Workspaces/Workspace.AndroidStudio/BipSale/conductor/references/\" 2>&1)",
+      "Read(//c/Users/diego/Downloads/**)",
+      "Bash(find \"C:/Users/diego\" -maxdepth 4 -iname \"*pix*qr*\" -o -maxdepth 4 -iname \"*qr*code*.pdf\" 2>/dev/null | head -20; echo \"---downloads sample---\"; ls \"C:/Users/diego/Downloads\" 2>/dev/null | head -40)",
+      "Read(//c/Users/diego/**)",
+      "Bash(./gradlew assembleDebug -q --console=plain)",
+      "Bash(./gradlew assembleDebug --console=plain)",
+      "Bash(./gradlew :core:qrcode:test :feature:products:test --console=plain)",
+      "Bash(python -c ' *)",
+      "Bash(./gradlew assembleDebugAndroidTest --console=plain)",
+      "Bash(./gradlew assembleDebugAndroidTest test --console=plain)",
+      "Bash(./gradlew detekt *)",
+      "Bash(python -)",
+      "Bash(./gradlew assembleDebugAndroidTest detekt --console=plain)",
+      "Bash(adb devices *)",
+      "Bash(adb install *)",
+      "Bash(adb shell *)",
+      "Bash(./gradlew appDistributionUploadDebug --console=plain)",
+      "Read(//c/Users/diego/.claude/projects/d--users-diego-Programming-Workspaces-Workspace-AndroidStudio-BipSale/memory/**)"
     ]
   }
 }

@@ -252,12 +252,23 @@ private fun AppSettings.toBackup() = BackupSettings(
     pixMerchantCity = PixDefaults.MERCHANT_CITY,
     pixDiscountType = pixDiscount.storedType(),
     pixDiscountValue = pixDiscount.storedValue(),
-    askCustomerInfo = askCustomerInfo
+    askCustomerInfo = askCustomerInfo,
+    qrLabelColumns = qrLabelColumns,
+    qrLabelNameTextSizePt = qrLabelNameTextSizePt,
+    qrLabelPriceTextSizePt = qrLabelPriceTextSizePt
 )
 
+// Ranges are re-clamped here rather than trusted: the archive is a file the operator can hand
+// around, so a hand-edited or truncated value must not reach the print path.
 private fun BackupSettings.toDomain() = AppSettings(
     pixDiscount = readDiscount(pixDiscountType, pixDiscountValue),
-    askCustomerInfo = askCustomerInfo
+    askCustomerInfo = askCustomerInfo,
+    qrLabelColumns = qrLabelColumns
+        .coerceIn(AppSettings.MIN_QR_LABEL_COLUMNS, AppSettings.MAX_QR_LABEL_COLUMNS),
+    qrLabelNameTextSizePt = qrLabelNameTextSizePt
+        .coerceIn(AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT, AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT),
+    qrLabelPriceTextSizePt = qrLabelPriceTextSizePt
+        .coerceIn(AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT, AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT)
 )
 
 private fun ProductEntity.toBackup() = BackupProduct(

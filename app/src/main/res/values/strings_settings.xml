@@ -21,4 +21,11 @@
     <string name="settings_qr_columns_section">Etiquetas QR Code</string>
     <string name="settings_qr_columns_explainer">Quantas colunas imprimir por página. Menos colunas = etiquetas maiores.</string>
     <string name="settings_qr_columns_label">Colunas na página</string>
+    <string name="settings_qr_text_size_section">Tamanho do texto da etiqueta</string>
+    <string name="settings_qr_text_size_explainer">Vale para as etiquetas impressas. Texto menor deixa mais espaço para o QR Code.</string>
+    <string name="settings_qr_name_text_size_label">Nome do produto</string>
+    <string name="settings_qr_price_text_size_label">Preço</string>
+    <string name="settings_qr_text_size_points">%1$d pt</string>
+    <string name="settings_qr_text_size_decrease">Diminuir o tamanho do texto</string>
+    <string name="settings_qr_text_size_increase">Aumentar o tamanho do texto</string>
 </resources>

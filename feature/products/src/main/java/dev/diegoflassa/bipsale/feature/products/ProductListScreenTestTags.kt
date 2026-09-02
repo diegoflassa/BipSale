@@ -13,6 +13,9 @@ object ProductListScreenTestTags {
     const val PRINT_ALL_BUTTON = "product_list_print_all_button"
     const val PRINT_SELECTED_BUTTON = "product_list_print_selected_button"
     const val CLEAR_SELECTION_BUTTON = "product_list_clear_selection_button"
+    const val IMPORT_CONFIRM_DIALOG = "product_list_import_confirm_dialog"
+    const val IMPORT_CONFIRM_ACCEPT = "product_list_import_confirm_accept"
+    const val IMPORT_CONFIRM_CANCEL = "product_list_import_confirm_cancel"
 
     fun productRow(code: String) = "product_list_row_$code"
     fun productCheckbox(code: String) = "product_list_checkbox_$code"

@@ -3,6 +3,7 @@ package dev.diegoflassa.bipsale.core.data.backup
 import android.content.Context
 import android.net.Uri
 import androidx.room.Room
+import dev.diegoflassa.bipsale.core.domain.model.ItemDiscount
 import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import dev.diegoflassa.bipsale.core.domain.settings.SettingsRepository
 import kotlinx.coroutines.flow.Flow
@@ -134,6 +135,56 @@ class BackupRepositoryImplTest {
         assertThat(database.saleDao().getAllSalesOnce()).hasSize(1)
         assertThat(database.saleDao().getAllSaleItemsOnce()).hasSize(2)
         assertThat(images.files["ct.jpg"]).isEqualTo(byteArrayOf(1, 2, 3, 4, 5))
+    }
+
+    @Test
+    fun roundTripsEveryConfiguredSetting(): Unit = runBlocking {
+        // A restore that brings back products but silently resets the label grid and type sizes
+        // sends the operator back to Settings to redo work the archive was supposed to hold.
+        seed()
+        settings.stored = AppSettings(
+            pixDiscount = ItemDiscount.Percentage(7.5),
+            askCustomerInfo = false,
+            qrLabelColumns = 2,
+            qrLabelNameTextSizePt = 15,
+            qrLabelPriceTextSizePt = 19
+        )
+        val file = archiveFile()
+        repository.createBackup(Uri.fromFile(file).toString())
+
+        settings.stored = AppSettings.EMPTY
+        repository.restoreBackup(Uri.fromFile(file).toString())
+
+        val restored = settings.saved
+        assertThat(restored).isNotNull()
+        assertThat(restored!!.pixDiscount).isEqualTo(ItemDiscount.Percentage(7.5))
+        assertThat(restored.askCustomerInfo).isFalse()
+        assertThat(restored.qrLabelColumns).isEqualTo(2)
+        assertThat(restored.qrLabelNameTextSizePt).isEqualTo(15)
+        assertThat(restored.qrLabelPriceTextSizePt).isEqualTo(19)
+    }
+
+    @Test
+    fun clampsSettingsThatTheArchiveCarriesOutOfRange(): Unit = runBlocking {
+        // The archive is a file the operator can hand around and edit. An absurd type size must
+        // not reach the print path.
+        seed()
+        settings.stored = AppSettings(
+            qrLabelColumns = AppSettings.MAX_QR_LABEL_COLUMNS,
+            qrLabelNameTextSizePt = AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT,
+            qrLabelPriceTextSizePt = AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT
+        )
+        val file = archiveFile()
+        repository.createBackup(Uri.fromFile(file).toString())
+
+        settings.stored = AppSettings.EMPTY
+        repository.restoreBackup(Uri.fromFile(file).toString())
+
+        val restored = settings.saved!!
+        val allowed =
+            AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT..AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT
+        assertThat(allowed).contains(restored.qrLabelNameTextSizePt)
+        assertThat(allowed).contains(restored.qrLabelPriceTextSizePt)
     }
 
     @Test

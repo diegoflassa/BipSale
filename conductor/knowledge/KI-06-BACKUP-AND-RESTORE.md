@@ -1,7 +1,7 @@
 # KI-06: Backup & Restore
 
 **Scope:** `core/domain/backup/`, `core/data/backup/`, `app/ui/backup/`
-**Last verified:** 2026-08-30
+**Last verified:** 2026-09-02
 
 ## Problem
 
@@ -28,7 +28,7 @@ backup.json          the manifest below
 images/<fileName>    one entry per product image, names matching Product.imageFileName
 ```
 
-`backup.json` carries `formatVersion`, `schemaVersion`, `appVersionName`, `createdAt`, then the full `products`, `sales`, `saleItems` and `images` lists.
+`backup.json` carries `formatVersion`, `schemaVersion`, `appVersionName`, `createdAt`, then the full `products`, `sales`, `saleItems` and `images` lists, and a `settings` block (rule 10a).
 
 ## Business rules
 
@@ -41,7 +41,10 @@ images/<fileName>    one entry per product image, names matching Product.imageFi
 7. **The image store is cleared before restored images are written,** so images the archive does not carry do not survive it.
 8. **Entry names are flattened with `File(name).name` before writing.** A crafted archive entry would otherwise escape the images folder.
 9. **Sharing stages into `cacheDir/backup_share`, wiped each time,** and hands out a `FileProvider` URI. One file per share keeps the cache bounded.
-10. **The archive carries an optional `settings` block** (including `askCustomerInfo` and `pixDiscount`) and `quantity` on every product, both defaulted so an archive written before either existed still restores. Settings are restored outside the database transaction — DataStore is not covered by it. PIX key/name/city fields in old archives are ignored on restore — those values now come from `PixDefaults` constants. See [KI-09](KI-09-STOCK-SETTINGS-AND-PIX.md).
+10. **The archive carries an optional `settings` block** and `quantity` on every product, both defaulted so an archive written before either existed still restores. Settings are restored outside the database transaction — DataStore is not covered by it. See [KI-09](KI-09-STOCK-SETTINGS-AND-PIX.md).
+10a. **The `settings` block holds every configurable value, not a subset.** `askCustomerInfo`, `pixDiscount`, `qrLabelColumns`, `qrLabelNameTextSizePt` and `qrLabelPriceTextSizePt`. A setting the archive skips comes back at its default after a restore, which reads to the operator as work silently undone — so a new setting is added to `BackupSettings` and to **both** mapping directions in the same turn it is added to `AppSettings`.
+10b. **Every field is defaulted in `BackupSettings`, and every range is re-clamped on restore.** Defaulting is what lets an older archive restore at all; clamping is because the archive is a file an operator can copy, edit and hand around, so a value from it is untrusted input, not something the app itself wrote.
+10c. **PIX key/name/city are write-only history.** They are still written for older readers, and ignored on restore — those values come from `PixDefaults` constants now.
 
 ## Storage and Drive
 
@@ -57,9 +60,11 @@ An archive that fails inspection reports that immediately, rather than after the
 
 | Suite | Pins |
 |---|---|
-| `core/data/androidTest/.../BackupRepositoryImplTest` | Round trip of products, sales, items and images; exact product field preservation; replace-not-merge; images absent from the archive dropped; a non-archive rejected; empty database backs up; suggested file name |
+| `core/data/androidTest/.../BackupRepositoryImplTest` | Round trip of products, sales, items and images; exact product field preservation; replace-not-merge; images absent from the archive dropped; a non-archive rejected; empty database backs up; suggested file name; **every configured setting round-trips**, and a setting carried out of range is clamped on restore |
+| `app/test/.../BackupViewModelTest` | Archive write, share staging, the inspect-before-restore gate, cancellation, the unreadable-archive path |
+| `app/androidTest/.../BackupScreenContentInstrumentedTest` | Summary card fills the content width, shows only after a run, spinner while busy |
 
-**Not yet covered:** `BackupViewModel` (confirmation flow, busy state), the share staging path, and `formatVersion` rejection. See [KI-TBD](KI-TBD.md) #3.
+**Not yet covered:** the share staging path end to end, and `formatVersion` rejection.
 
 ## Gotchas
 

@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -88,14 +89,16 @@ fun ExportScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ExportScreenContent(
+internal fun ExportScreenContent(
     saleCount: Int,
     isExporting: Boolean,
     onBack: () -> Unit,
     onExport: () -> Unit,
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
+    modifier: Modifier = Modifier,
 ) {
     Scaffold(
+        modifier = modifier.testTag(ExportScreenTestTags.ROOT),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             BipSaleTopAppBar(
@@ -139,7 +142,8 @@ private fun ExportScreenContent(
             Text(
                 stringResource(R.string.export_sale_count, saleCount),
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.testTag(ExportScreenTestTags.SALE_COUNT)
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -147,7 +151,9 @@ private fun ExportScreenContent(
             Button(
                 onClick = onExport,
                 enabled = !isExporting,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(ExportScreenTestTags.GENERATE_BUTTON)
             ) {
                 Text(stringResource(R.string.export_generate_excel))
             }

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.Print
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -27,6 +28,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
@@ -96,7 +98,8 @@ fun ProductListScreen(
                         context,
                         context.getString(R.string.products_qr_labels_title),
                         effect.labels,
-                        effect.requestedColumns
+                        effect.requestedColumns,
+                        effect.typography
                     )
 
                 is ProductContract.Effect.PickTemplateDestination ->
@@ -120,6 +123,39 @@ fun ProductListScreen(
     )
 }
 
+/**
+ * Warns before the file picker, not after: once a sheet is chosen the rows are written straight
+ * away, and there is no undo for a price column that was wrong.
+ */
+@Composable
+private fun ImportOverwriteDialog(
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.testTag(ProductListScreenTestTags.IMPORT_CONFIRM_DIALOG),
+        title = { Text(stringResource(R.string.products_import_confirm_title)) },
+        text = { Text(stringResource(R.string.products_import_confirm_message)) },
+        confirmButton = {
+            TextButton(
+                onClick = onConfirm,
+                modifier = Modifier.testTag(ProductListScreenTestTags.IMPORT_CONFIRM_ACCEPT)
+            ) {
+                Text(stringResource(R.string.products_import_confirm_accept))
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.testTag(ProductListScreenTestTags.IMPORT_CONFIRM_CANCEL)
+            ) {
+                Text(stringResource(R.string.products_import_confirm_cancel))
+            }
+        }
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ProductListContent(
@@ -132,6 +168,13 @@ internal fun ProductListContent(
     modifier: Modifier = Modifier
 ) {
     val hasSelection = state.selectedProductCodes.isNotEmpty()
+
+    if (state.isImportConfirmVisible) {
+        ImportOverwriteDialog(
+            onConfirm = { onIntent(ProductContract.Intent.ImportConfirmed) },
+            onDismiss = { onIntent(ProductContract.Intent.ImportDismissed) }
+        )
+    }
 
     Scaffold(
         modifier = modifier.testTag(ProductListScreenTestTags.ROOT),

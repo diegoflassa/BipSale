@@ -1,7 +1,7 @@
 # KI-09: Stock, App Settings & PIX Payment
 
 **Scope:** `products.quantity`, `core/domain/settings/`, `core/data/settings/`, `core/domain/pix/`, `app/ui/settings/`, the PIX half of `feature/sales/`, the import half of `feature/products/`
-**Last verified:** 2026-08-30
+**Last verified:** 2026-09-02
 
 ## Problem
 
@@ -16,7 +16,7 @@ The PIX identity (key, payee name and city) is hardcoded in `PixDefaults` — th
 | `core/domain/model/Product.kt` | `quantity` — units on hand |
 | `core/data/dao/SaleDao.kt` | `decrementProductStock` + the `@Transaction` that runs it with the sale |
 | `core/domain/pix/PixDefaults.kt` | Fixed PIX key, merchant name/city — build constants from the Nubank poster |
-| `core/domain/settings/AppSettings.kt` | Default PIX discount, customer-info toggle, QR label columns |
+| `core/domain/settings/AppSettings.kt` | Default PIX discount, customer-info toggle, QR label columns and the two label type sizes |
 | `core/domain/settings/SettingsRepository.kt` | Observe, snapshot, save |
 | `core/data/settings/SettingsRepositoryImpl.kt` | DataStore Preferences, plus the discount flattening shared with the backup |
 | `core/domain/pix/PixPayload.kt` | Builds the "PIX Copia e Cola" string |
@@ -42,7 +42,9 @@ The PIX identity (key, payee name and city) is hardcoded in `PixDefaults` — th
 4. **The customer screen is optional.** With `askCustomerInfo` off, a new sale navigates straight
    to the cart and is recorded as anonymous; the hop is removed from the back stack so Back returns
    to the dashboard rather than bouncing through a screen nobody saw.
-4a. **QR label printing is configurable.** The operator can choose how many columns to print per page (1 to 6) via the Settings screen. Less columns = larger labels.
+4a. **QR label printing is configurable.** The operator can choose how many columns to print per page (1 to 6) via the Settings screen; the default is **5**. Fewer columns = larger labels. This is not the same number as `QrLabelSheetLayout`'s A4 auto-fit (4), which only applies when no column count is requested at all — see [KI-05](KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md) rule 15.
+4b. **Label type size is configurable, name and price separately** — `qrLabelNameTextSizePt` and `qrLabelPriceTextSizePt`, 6 to 24 pt, defaulting to 10 and 13. Two settings rather than one scale because a shop that wants the price bigger rarely wants the name bigger too. The contract for how the renderer consumes them is [KI-05](KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md) rules 20–22; this KI owns only where the numbers are stored and edited.
+4c. **A value read back out of range is coerced into it, never thrown** — both on the DataStore read and on a backup restore. Settings feed the print path, and the print path must not be handed a type size that cannot render.
 5. **Settings live in DataStore, not Room.** They are per-install configuration, not transactional data, and they must survive a restore that replaces every table.
 6. **A corrupt preferences file falls back to defaults** rather than taking the sale screen down.
 7. **A stored discount out of range is coerced, never thrown** — same rule as the `sale_items` mapper in [KI-07](KI-07-SALES-CART-AND-DISCOUNTS.md).
@@ -77,10 +79,11 @@ A static EMV merchant-presented QR: `id + two-digit length + value`, closed by a
 20. **A numeric barcode is read as digits**, not `7.891E12` — a code typed into a spreadsheet arrives as a NUMERIC cell.
 21. **An import with nothing usable is refused**, never reported as a success.
 22. **An existing code is overwritten.** Re-importing a corrected sheet is how an operator fixes a typo.
+23. **The overwrite is confirmed before the file picker opens, not after.** Once a sheet is chosen the rows are written straight away and there is no undo, so `ImportRequested` only raises the warning; `ImportConfirmed` is what emits `PickImportSource`. The warning says what is actually at stake — products *sharing a code with a sheet row* are replaced — because an import is an upsert, not a wipe, and a message promising a wipe would scare an operator off a safe action.
 
 ## Backup
 
-The archive carries an optional `settings` block (including `askCustomerInfo`) and `quantity` on every product, both defaulted so an archive written before either existed still restores. Settings are restored outside the database transaction — DataStore is not covered by it. See [KI-06](KI-06-BACKUP-AND-RESTORE.md).
+The archive carries an optional `settings` block holding **every** configurable value — `askCustomerInfo`, `pixDiscount`, `qrLabelColumns` and both label type sizes — plus `quantity` on every product, all defaulted so an archive written before any of them existed still restores. A setting added here is added to the archive in the same turn, or a restore silently resets it. Settings are restored outside the database transaction — DataStore is not covered by it. See [KI-06](KI-06-BACKUP-AND-RESTORE.md).
 
 ## Logging
 
@@ -88,4 +91,4 @@ The archive carries an optional `settings` block (including `askCustomerInfo`) a
 
 ## Test targets
 
-`PixPayloadTest` (15) · `PixDefaultsTest` (1) · `ProductSheetTest` (11) · `SalesViewModelTest` PIX and payment-method cases (9) · `HistoryViewModelTest` recorded-sale PIX cases (3) · `ProductViewModelTest` import and stock cases (7) · `SaleRepositoryImplTest` stock transaction (1).
+`PixPayloadTest` (15) · `PixDefaultsTest` (1) · `ProductSheetTest` (11) · `QrLabelTypographyTest` (6) · `SalesViewModelTest` PIX and payment-method cases (9) · `HistoryViewModelTest` recorded-sale PIX cases (3) · `ProductViewModelTest` import, stock, import-confirmation and label-typography cases (12) · `SaleRepositoryImplTest` stock transaction (1) · `BackupRepositoryImplTest` settings round trip and clamping (2).

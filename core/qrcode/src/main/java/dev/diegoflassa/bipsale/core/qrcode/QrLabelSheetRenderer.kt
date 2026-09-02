@@ -25,9 +25,10 @@ class QrLabelSheetRenderer @Inject constructor(
         canvas: Canvas,
         layout: QrLabelSheetLayout,
         labels: List<LabelData>,
-        pageIndex: Int
+        pageIndex: Int,
+        typography: QrLabelTypography = QrLabelTypography.DEFAULT
     ) {
-        val paints = LabelPaints()
+        val paints = LabelPaints(typography)
 
         val first = pageIndex * layout.labelsPerPage
         val last = minOf(first + layout.labelsPerPage, labels.size)
@@ -55,7 +56,8 @@ class QrLabelSheetRenderer @Inject constructor(
     fun renderLabelPreview(
         label: LabelData,
         widthPx: Int,
-        layout: QrLabelSheetLayout = QrLabelSheetLayout.a4()
+        layout: QrLabelSheetLayout = QrLabelSheetLayout.a4(),
+        typography: QrLabelTypography = QrLabelTypography.DEFAULT
     ): Bitmap {
         val scale = widthPx / layout.cellWidthPt
         val heightPx = (layout.cellHeightPt * scale).toInt()
@@ -69,7 +71,7 @@ class QrLabelSheetRenderer @Inject constructor(
             canvas = canvas,
             cell = RectF(0f, 0f, layout.cellWidthPt, layout.cellHeightPt),
             label = label,
-            paints = LabelPaints()
+            paints = LabelPaints(typography)
         )
         return bitmap
     }
@@ -87,22 +89,23 @@ class QrLabelSheetRenderer @Inject constructor(
 
         // The name takes as many lines as it needs, bounded only by leaving the QR enough room to
         // still scan — an unscannable code makes the whole label useless, however readable its name.
-        val maxNameLines = maxNameLines(cell)
+        val typography = paints.typography
+        val maxNameLines = maxNameLines(cell, typography)
         val nameLines = wrapText(label.productName, paints.name, innerWidth).take(maxNameLines)
-        val nameBlockHeight = nameLines.size * NAME_LINE_HEIGHT_PT
+        val nameBlockHeight = nameLines.size * typography.nameLineHeightPt
 
-        var baseline = cell.top + CELL_PADDING_PT + NAME_TEXT_SIZE_PT
+        var baseline = cell.top + CELL_PADDING_PT + typography.nameTextSizePt
         for (line in nameLines) {
             canvas.drawText(line, centerX, baseline, paints.name)
-            baseline += NAME_LINE_HEIGHT_PT
+            baseline += typography.nameLineHeightPt
         }
 
         // The price is one line, always. Shrink it to fit rather than wrap or clip it, and stop at
         // a size that still reads once the label is cut out.
-        paints.price.textSize = PRICE_TEXT_SIZE_PT
+        paints.price.textSize = typography.priceTextSizePt
         while (
             paints.price.measureText(label.priceFormatted) > innerWidth &&
-            paints.price.textSize > MIN_PRICE_TEXT_SIZE_PT
+            paints.price.textSize > typography.minPriceTextSizePt
         ) {
             paints.price.textSize -= PRICE_SHRINK_STEP_PT
         }
@@ -142,36 +145,37 @@ class QrLabelSheetRenderer @Inject constructor(
      * How many name lines fit above a QR that is still worth printing. Derived from the cell rather
      * than fixed, so a bigger paper size genuinely gives the name more room.
      */
-    private fun maxNameLines(cell: RectF): Int {
+    private fun maxNameLines(cell: RectF, typography: QrLabelTypography): Int {
         val usableHeight = cell.height() - 2 * CELL_PADDING_PT
-        val reserved = PRICE_TEXT_SIZE_PT + 2 * GAP_PT + MIN_QR_SIDE_PT
+        val reserved = typography.priceTextSizePt + 2 * GAP_PT + MIN_QR_SIDE_PT
         val forName = usableHeight - reserved
-        return maxOf(1, (forName / NAME_LINE_HEIGHT_PT).toInt())
+        return maxOf(1, (forName / typography.nameLineHeightPt).toInt())
     }
 
     /** Built once per sheet — a Paint per label would churn allocations across a full page. */
-    private data class LabelPaints(
+    private class LabelPaints(val typography: QrLabelTypography) {
         val cut: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.LTGRAY
             style = Paint.Style.STROKE
             strokeWidth = CUT_LINE_WIDTH_PT
             pathEffect = DashPathEffect(floatArrayOf(DASH_ON_PT, DASH_OFF_PT), 0f)
-        },
+        }
         val name: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
-            textSize = NAME_TEXT_SIZE_PT
+            textSize = typography.nameTextSizePt
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT
-        },
+        }
         val price: Paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.BLACK
-            textSize = PRICE_TEXT_SIZE_PT
+            textSize = typography.priceTextSizePt
             textAlign = Paint.Align.CENTER
             typeface = Typeface.DEFAULT_BOLD
-        },
+        }
+
         // QR modules must stay hard-edged; smoothing them costs scan reliability at label size.
         val qr: Paint = Paint().apply { isFilterBitmap = false }
-    )
+    }
 
     private fun wrapText(text: String, paint: Paint, maxWidth: Float): List<String> {
         if (maxWidth <= 0f) return listOf(text)
@@ -208,19 +212,11 @@ class QrLabelSheetRenderer @Inject constructor(
         return word.take(end) + "…"
     }
 
-    private companion object {
+    /** Internal rather than private so a test reads the real sizes instead of a copy that drifts. */
+    internal companion object {
         const val CELL_PADDING_PT = 6f
         /** Halved from the original 3 pt: the code is what the eye goes to, so it sits close. */
         const val GAP_PT = 1.5f
-        /**
-         * Type sizes are in points, so they survive any paper size or printer DPI. These are set to
-         * read across a counter rather than at arm's length, which is where a shelf label is
-         * actually read from; the price carries the number someone is charged, so it gets more.
-         */
-        const val NAME_TEXT_SIZE_PT = 13f
-        const val NAME_LINE_HEIGHT_PT = 15f
-        const val PRICE_TEXT_SIZE_PT = 17f
-        const val MIN_PRICE_TEXT_SIZE_PT = 12f
         const val PRICE_SHRINK_STEP_PT = 0.5f
 
         /**

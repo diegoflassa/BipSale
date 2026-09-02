@@ -9,6 +9,14 @@ plugins {
 
 android {
     namespace = "dev.diegoflassa.bipsale.core.data"
+
+    // MigrationTestHelper reads the exported schemas from the test APK's assets at runtime, so the
+    // schema directory has to ship inside it.
+    sourceSets {
+        getByName("androidTest") {
+            assets.srcDirs(files("$projectDir/schemas"))
+        }
+    }
 }
 
 // Exported schemas are what let a migration test catch a forgotten version bump in CI instead of
@@ -51,4 +59,5 @@ dependencies {
     androidTestImplementation(libs.ax.test.ext.junit.ktx)
     androidTestImplementation(libs.ax.test.runner)
     androidTestImplementation(libs.com.google.truth)
+    androidTestImplementation(libs.ax.room.testing)
 }

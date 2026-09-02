@@ -72,6 +72,7 @@ class SalesScreenContentInstrumentedTest {
         val discounted = mutableListOf<String>()
         val paymentMethods = mutableListOf<PaymentMethod>()
         val detailed = mutableListOf<String>()
+        val pixAmountToggles = mutableListOf<Boolean>()
     }
 
     private fun render(state: SalesContract.State): Recorder {
@@ -90,6 +91,7 @@ class SalesScreenContentInstrumentedTest {
                     onSaleDiscountClick = { recorder.saleDiscount++ },
                     onPaymentMethodChange = { recorder.paymentMethods += it },
                     onShowDetail = { recorder.detailed += it },
+                    onTogglePixAmount = { recorder.pixAmountToggles += it },
                     onFinalize = { recorder.finalize++ }
                 )
             }

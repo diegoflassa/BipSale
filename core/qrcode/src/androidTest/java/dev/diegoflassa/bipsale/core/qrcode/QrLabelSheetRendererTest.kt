@@ -148,8 +148,9 @@ class QrLabelSheetRendererTest {
         val layout = QrLabelSheetLayout.a4()
         val widthPx = 400
         val scale = widthPx / layout.cellWidthPt
-        val paddingPx = (CELL_PADDING_PT * scale).toInt()
-        val priceBandHeightPx = (PRICE_TEXT_SIZE_PT * scale).toInt()
+        val paddingPx = (QrLabelSheetRenderer.CELL_PADDING_PT * scale).toInt()
+        val priceBandHeightPx =
+            (QrLabelTypography.DEFAULT.priceTextSizePt * scale).toInt()
 
         val wide = renderer.renderLabelPreview(label(price = "R$ 1.234.567,89"), widthPx = widthPx)
 
@@ -168,10 +169,34 @@ class QrLabelSheetRendererTest {
         assertThat(gutter.all { it == Color.WHITE }).isTrue()
     }
 
-    private companion object {
-        const val CELL_PADDING_PT = 6f
-        const val PRICE_TEXT_SIZE_PT = 12f
+    @Test
+    fun biggerConfiguredTypeActuallyPutsMoreInkOnTheLabel() {
+        // The setting is only real if it reaches the paints. Passing it and ignoring it renders
+        // identically, and the operator changes the number to no effect.
+        val small = renderer.renderLabelPreview(
+            label(), widthPx = 400,
+            typography = QrLabelTypography(nameTextSizePt = 7f, priceTextSizePt = 8f)
+        )
+        val large = renderer.renderLabelPreview(
+            label(), widthPx = 400,
+            typography = QrLabelTypography(nameTextSizePt = 16f, priceTextSizePt = 18f)
+        )
 
+        assertThat(large.sameAs(small)).isFalse()
+    }
+
+    @Test
+    fun theQrStillScansAtTheLargestConfigurableType() {
+        // Type is allowed to crowd the code, but never to the point of an unreadable label.
+        val bitmap = renderer.renderLabelPreview(
+            label(), widthPx = 600,
+            typography = QrLabelTypography(nameTextSizePt = 24f, priceTextSizePt = 24f)
+        )
+
+        assertThat(bitmap.decodeQr()).isEqualTo("bipsale://product?code=CT-A-RoS&price=130.0")
+    }
+
+    private companion object {
         /** The dashed cut rectangle is stroked on the cell edge; skip past it before sampling. */
         const val CUT_BORDER_PX = 3
     }

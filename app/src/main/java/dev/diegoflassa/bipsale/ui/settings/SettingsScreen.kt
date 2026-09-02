@@ -11,8 +11,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -144,6 +149,12 @@ internal fun SettingsScreenContent(
                 onChange = { onIntent(SettingsContract.Intent.QrColumnsChanged(it)) }
             )
 
+            QrLabelTextSizeSection(
+                nameSizePt = state.qrLabelNameTextSizePt,
+                priceSizePt = state.qrLabelPriceTextSizePt,
+                onIntent = onIntent
+            )
+
             Button(
                 onClick = { onIntent(SettingsContract.Intent.Save) },
                 enabled = state.canSave,
@@ -251,6 +262,88 @@ private fun QrColumnsSelector(
                     Text(option.toString())
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun QrLabelTextSizeSection(
+    nameSizePt: Int,
+    priceSizePt: Int,
+    onIntent: (SettingsContract.Intent) -> Unit
+) {
+    SectionHeader(
+        title = stringResource(R.string.settings_qr_text_size_section),
+        explainer = stringResource(R.string.settings_qr_text_size_explainer)
+    )
+
+    TextSizeStepper(
+        label = stringResource(R.string.settings_qr_name_text_size_label),
+        sizePt = nameSizePt,
+        onChange = { onIntent(SettingsContract.Intent.QrLabelNameTextSizeChanged(it)) },
+        valueTag = SettingsScreenTestTags.NAME_TEXT_SIZE_VALUE,
+        decreaseTag = SettingsScreenTestTags.NAME_TEXT_SIZE_DECREASE,
+        increaseTag = SettingsScreenTestTags.NAME_TEXT_SIZE_INCREASE
+    )
+
+    TextSizeStepper(
+        label = stringResource(R.string.settings_qr_price_text_size_label),
+        sizePt = priceSizePt,
+        onChange = { onIntent(SettingsContract.Intent.QrLabelPriceTextSizeChanged(it)) },
+        valueTag = SettingsScreenTestTags.PRICE_TEXT_SIZE_VALUE,
+        decreaseTag = SettingsScreenTestTags.PRICE_TEXT_SIZE_DECREASE,
+        increaseTag = SettingsScreenTestTags.PRICE_TEXT_SIZE_INCREASE
+    )
+}
+
+/**
+ * A stepper rather than a segmented row: the point range is far too wide to lay out as buttons, and
+ * a slider makes it fiddly to land on an exact point size.
+ */
+@Composable
+private fun TextSizeStepper(
+    label: String,
+    sizePt: Int,
+    onChange: (Int) -> Unit,
+    valueTag: String,
+    decreaseTag: String,
+    increaseTag: String
+) {
+    val range = AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT..AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.weight(1f)
+        )
+        IconButton(
+            onClick = { onChange(sizePt - 1) },
+            enabled = sizePt > range.first,
+            modifier = Modifier.testTag(decreaseTag)
+        ) {
+            Icon(
+                Icons.Default.Remove,
+                contentDescription = stringResource(R.string.settings_qr_text_size_decrease)
+            )
+        }
+        Text(
+            text = stringResource(R.string.settings_qr_text_size_points, sizePt),
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = Modifier.testTag(valueTag)
+        )
+        IconButton(
+            onClick = { onChange(sizePt + 1) },
+            enabled = sizePt < range.last,
+            modifier = Modifier.testTag(increaseTag)
+        ) {
+            Icon(
+                Icons.Default.Add,
+                contentDescription = stringResource(R.string.settings_qr_text_size_increase)
+            )
         }
     }
 }

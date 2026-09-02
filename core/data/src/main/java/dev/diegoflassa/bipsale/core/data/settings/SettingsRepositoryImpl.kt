@@ -45,16 +45,21 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun save(settings: AppSettings) {
         Timber.d(
-            "[BipSale][Settings] Saving discount=%s askCustomer=%b qrColumns=%d",
+            "[BipSale][Settings] Saving discount=%s askCustomer=%b qrColumns=%d " +
+                "qrNamePt=%d qrPricePt=%d",
             settings.pixDiscount.storedType(),
             settings.askCustomerInfo,
-            settings.qrLabelColumns
+            settings.qrLabelColumns,
+            settings.qrLabelNameTextSizePt,
+            settings.qrLabelPriceTextSizePt
         )
         context.settingsDataStore.edit { prefs ->
             prefs[KEY_DISCOUNT_TYPE] = settings.pixDiscount.storedType()
             prefs[KEY_DISCOUNT_VALUE] = settings.pixDiscount.storedValue()
             prefs[KEY_ASK_CUSTOMER] = settings.askCustomerInfo
             prefs[KEY_QR_LABEL_COLUMNS] = settings.qrLabelColumns
+            prefs[KEY_QR_LABEL_NAME_TEXT_SIZE] = settings.qrLabelNameTextSizePt
+            prefs[KEY_QR_LABEL_PRICE_TEXT_SIZE] = settings.qrLabelPriceTextSizePt
         }
         Timber.i("[BipSale][Settings] Settings saved")
     }
@@ -66,7 +71,13 @@ class SettingsRepositoryImpl @Inject constructor(
         ),
         askCustomerInfo = this[KEY_ASK_CUSTOMER] ?: true,
         qrLabelColumns = (this[KEY_QR_LABEL_COLUMNS] ?: AppSettings.DEFAULT_QR_LABEL_COLUMNS)
-            .coerceIn(AppSettings.MIN_QR_LABEL_COLUMNS, AppSettings.MAX_QR_LABEL_COLUMNS)
+            .coerceIn(AppSettings.MIN_QR_LABEL_COLUMNS, AppSettings.MAX_QR_LABEL_COLUMNS),
+        qrLabelNameTextSizePt = (
+            this[KEY_QR_LABEL_NAME_TEXT_SIZE] ?: AppSettings.DEFAULT_QR_LABEL_NAME_TEXT_SIZE_PT
+            ).coerceIn(AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT, AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT),
+        qrLabelPriceTextSizePt = (
+            this[KEY_QR_LABEL_PRICE_TEXT_SIZE] ?: AppSettings.DEFAULT_QR_LABEL_PRICE_TEXT_SIZE_PT
+            ).coerceIn(AppSettings.MIN_QR_LABEL_TEXT_SIZE_PT, AppSettings.MAX_QR_LABEL_TEXT_SIZE_PT)
     )
 
     private companion object {
@@ -74,6 +85,8 @@ class SettingsRepositoryImpl @Inject constructor(
         val KEY_DISCOUNT_VALUE = doublePreferencesKey("pix_discount_value")
         val KEY_ASK_CUSTOMER = booleanPreferencesKey("ask_customer_info")
         val KEY_QR_LABEL_COLUMNS = intPreferencesKey("qr_label_columns")
+        val KEY_QR_LABEL_NAME_TEXT_SIZE = intPreferencesKey("qr_label_name_text_size_pt")
+        val KEY_QR_LABEL_PRICE_TEXT_SIZE = intPreferencesKey("qr_label_price_text_size_pt")
     }
 }
 

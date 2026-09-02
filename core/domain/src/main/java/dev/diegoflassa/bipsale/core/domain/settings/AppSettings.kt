@@ -21,12 +21,31 @@ data class AppSettings(
      */
     val askCustomerInfo: Boolean = true,
     /** Number of columns in the QR label print grid. Minimum 1, maximum 6. */
-    val qrLabelColumns: Int = DEFAULT_QR_LABEL_COLUMNS
+    val qrLabelColumns: Int = DEFAULT_QR_LABEL_COLUMNS,
+    /**
+     * Product-name type size on a printed label, in points. Separate from the price because the two
+     * are read for different reasons — the name identifies the item on a shelf, the price is the
+     * number someone is charged — and a shop that wants one bigger rarely wants both.
+     */
+    val qrLabelNameTextSizePt: Int = DEFAULT_QR_LABEL_NAME_TEXT_SIZE_PT,
+    /** Price type size on a printed label, in points. */
+    val qrLabelPriceTextSizePt: Int = DEFAULT_QR_LABEL_PRICE_TEXT_SIZE_PT
 ) {
     companion object {
-        const val DEFAULT_QR_LABEL_COLUMNS = 4
+        const val DEFAULT_QR_LABEL_COLUMNS = 5
         const val MIN_QR_LABEL_COLUMNS = 1
         const val MAX_QR_LABEL_COLUMNS = 6
+
+        const val DEFAULT_QR_LABEL_NAME_TEXT_SIZE_PT = 10
+        const val DEFAULT_QR_LABEL_PRICE_TEXT_SIZE_PT = 13
+
+        /**
+         * Below 6 pt the text stops reading off a cut-out label; above 24 pt it crowds the QR down
+         * to a size that stops scanning. The renderer still shrinks a price that will not fit.
+         */
+        const val MIN_QR_LABEL_TEXT_SIZE_PT = 6
+        const val MAX_QR_LABEL_TEXT_SIZE_PT = 24
+
         val EMPTY = AppSettings()
     }
 }

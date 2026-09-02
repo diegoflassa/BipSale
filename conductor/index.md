@@ -77,7 +77,7 @@ silently, and **omitting `trigger` defaults to `always_on`**.
 2. No build / no commit without user authorization.
 3. `conductor/` = primary docs. Load KIs lazily via [knowledge/INDEX.md](knowledge/INDEX.md).
 4. **Never `fallbackToDestructiveMigration()`** — this database holds sales records ([CORE_RULES §13](rules/CORE_RULES.md)).
-5. **Every module carries a JVM test suite** (182+ JVM tests, 3 Compose UI test suites) — see [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md). A green `./gradlew test` covers the domain, data, and ViewModel layers.
+5. **Every module carries a JVM test suite** (287 JVM tests, 125 instrumented across 13 suites) — see [TEST_COVERAGE.md](knowledge/TEST_COVERAGE.md). A green `./gradlew test` covers the domain, data, and ViewModel layers; `./gradlew assembleDebugAndroidTest` compiles the instrumented suites without needing a device.
 6. Architecture questions → [rules/architecture.md](rules/architecture.md), never re-derived from source.
 
 ---

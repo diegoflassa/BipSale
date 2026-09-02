@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -37,7 +38,6 @@ import dev.diegoflassa.bipsale.R
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DashboardScreen(
     onNewSale: () -> Unit,
@@ -47,7 +47,29 @@ fun DashboardScreen(
     onBackup: () -> Unit,
     onSettings: () -> Unit
 ) {
+    DashboardScreenContent(
+        onNewSale = onNewSale,
+        onManageProducts = onManageProducts,
+        onHistory = onHistory,
+        onExport = onExport,
+        onBackup = onBackup,
+        onSettings = onSettings
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+internal fun DashboardScreenContent(
+    onNewSale: () -> Unit,
+    onManageProducts: () -> Unit,
+    onHistory: () -> Unit,
+    onExport: () -> Unit,
+    onBackup: () -> Unit,
+    onSettings: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Scaffold(
+        modifier = modifier.testTag(DashboardScreenTestTags.ROOT),
         topBar = {
             // The dashboard is the start destination, so there is nowhere to go back to.
             BipSaleTopAppBar(title = stringResource(R.string.dashboard_title))
@@ -68,37 +90,43 @@ fun DashboardScreen(
                 stringResource(R.string.dashboard_new_sale_title),
                 stringResource(R.string.dashboard_new_sale_description),
                 Icons.Default.ShoppingCart,
-                onNewSale
+                onNewSale,
+                Modifier.testTag(DashboardScreenTestTags.NEW_SALE_CARD)
             )
             DashboardCard(
                 stringResource(R.string.dashboard_products_title),
                 stringResource(R.string.dashboard_products_description),
                 Icons.Default.Inventory,
-                onManageProducts
+                onManageProducts,
+                Modifier.testTag(DashboardScreenTestTags.PRODUCTS_CARD)
             )
             DashboardCard(
                 stringResource(R.string.dashboard_history_title),
                 stringResource(R.string.dashboard_history_description),
                 Icons.Default.History,
-                onHistory
+                onHistory,
+                Modifier.testTag(DashboardScreenTestTags.HISTORY_CARD)
             )
             DashboardCard(
                 stringResource(R.string.dashboard_reports_title),
                 stringResource(R.string.dashboard_reports_description),
                 Icons.Default.Description,
-                onExport
+                onExport,
+                Modifier.testTag(DashboardScreenTestTags.REPORTS_CARD)
             )
             DashboardCard(
                 stringResource(R.string.dashboard_backup_title),
                 stringResource(R.string.dashboard_backup_description),
                 Icons.Default.Backup,
-                onBackup
+                onBackup,
+                Modifier.testTag(DashboardScreenTestTags.BACKUP_CARD)
             )
             DashboardCard(
                 stringResource(R.string.dashboard_settings),
                 stringResource(R.string.dashboard_settings_description),
                 Icons.Default.Settings,
-                onSettings
+                onSettings,
+                Modifier.testTag(DashboardScreenTestTags.SETTINGS_CARD)
             )
         }
     }
@@ -109,11 +137,12 @@ fun DashboardCard(
     title: String,
     description: String,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth().height(100.dp)
+        modifier = modifier.fillMaxWidth().height(100.dp)
     ) {
         Row(
             modifier = Modifier.padding(16.dp).fillMaxSize(),
@@ -131,12 +160,12 @@ fun DashboardCard(
 
 // region Previews
 
-@Preview(name = "DashboardScreen · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
-@Preview(name = "DashboardScreen · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
+@Preview(name = "DashboardScreenContent · Default · Phone", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420")
+@Preview(name = "DashboardScreenContent · Default · Tablet", showBackground = true, locale = "pt", device = "spec:width=1200px,height=2000px,dpi=240")
 @Composable
-private fun DashboardScreenPreview() {
+private fun DashboardScreenContentPreview() {
     BipSaleTheme {
-        DashboardScreen(
+        DashboardScreenContent(
             onNewSale = {},
             onManageProducts = {},
             onHistory = {},
@@ -147,11 +176,11 @@ private fun DashboardScreenPreview() {
     }
 }
 
-@Preview(name = "DashboardScreen · Default · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Preview(name = "DashboardScreenContent · Default · Phone · Dark", showBackground = true, locale = "pt", device = "spec:width=1080px,height=2520px,dpi=420", uiMode = Configuration.UI_MODE_NIGHT_YES)
 @Composable
-private fun DashboardScreenDarkPreview() {
+private fun DashboardScreenContentDarkPreview() {
     BipSaleTheme {
-        DashboardScreen(
+        DashboardScreenContent(
             onNewSale = {},
             onManageProducts = {},
             onHistory = {},

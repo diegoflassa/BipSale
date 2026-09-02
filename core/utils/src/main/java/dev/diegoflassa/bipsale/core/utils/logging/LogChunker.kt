@@ -90,10 +90,20 @@ object LogChunker {
         return pieces
     }
 
+    /** UTF-8 encodes a code point in one to four bytes, split at these boundaries. */
     private fun utf8ByteCount(codePoint: Int): Int = when {
-        codePoint < 0x80 -> 1
-        codePoint < 0x800 -> 2
-        codePoint < 0x10000 -> 3
-        else -> 4
+        codePoint < ONE_BYTE_LIMIT -> ONE_BYTE
+        codePoint < TWO_BYTE_LIMIT -> TWO_BYTES
+        codePoint < THREE_BYTE_LIMIT -> THREE_BYTES
+        else -> FOUR_BYTES
     }
+
+    private const val ONE_BYTE_LIMIT = 0x80
+    private const val TWO_BYTE_LIMIT = 0x800
+    private const val THREE_BYTE_LIMIT = 0x10000
+
+    private const val ONE_BYTE = 1
+    private const val TWO_BYTES = 2
+    private const val THREE_BYTES = 3
+    private const val FOUR_BYTES = 4
 }

@@ -1,7 +1,9 @@
 package dev.diegoflassa.bipsale.feature.products
 
 import androidx.compose.runtime.Immutable
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
+import dev.diegoflassa.bipsale.core.qrcode.QrLabelTypography
 import dev.diegoflassa.bipsale.core.ui.util.UiText
 
 class ProductContract {
@@ -27,7 +29,13 @@ class ProductContract {
         val selectedProductCodes: Set<String> = emptySet(),
         val isLoading: Boolean = true,
         val errorMessage: UiText? = null,
-        val editor: Editor = Editor()
+        val editor: Editor = Editor(),
+        /** Drives the edit-screen preview, so what it shows is what the printer is asked for. */
+        val labelTypography: QrLabelTypography = QrLabelTypography.DEFAULT,
+        /** Same reason: the column count decides the cell width the preview has to match. */
+        val labelColumns: Int = AppSettings.DEFAULT_QR_LABEL_COLUMNS,
+        /** An import rewrites priced rows, so the file picker opens only after a confirmation. */
+        val isImportConfirmVisible: Boolean = false
     ) {
         val selectedLabels: List<LabelData>
             get() = products.filter { it.code in selectedProductCodes }.flatMap { it.printRun() }
@@ -82,13 +90,21 @@ class ProductContract {
         data object DownloadTemplateRequested : Intent
         data class TemplateDestinationChosen(val destinationUri: String) : Intent
         data object ImportRequested : Intent
+
+        /** Confirmed the overwrite warning; this is what actually opens the file picker. */
+        data object ImportConfirmed : Intent
+        data object ImportDismissed : Intent
         data class ImportSourceChosen(val sourceUri: String) : Intent
     }
 
     sealed interface Effect {
         data object NavigationBack : Effect
         data class ShowSnackbar(val message: UiText) : Effect
-        data class PrintLabels(val labels: List<LabelData>, val requestedColumns: Int) : Effect
+        data class PrintLabels(
+            val labels: List<LabelData>,
+            val requestedColumns: Int,
+            val typography: QrLabelTypography
+        ) : Effect
         data class PickTemplateDestination(val suggestedFileName: String) : Effect
         data object PickImportSource : Effect
     }

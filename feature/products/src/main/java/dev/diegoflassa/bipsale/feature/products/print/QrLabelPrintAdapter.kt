@@ -12,6 +12,7 @@ import android.print.PrintDocumentInfo
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetLayout
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
+import dev.diegoflassa.bipsale.core.qrcode.QrLabelTypography
 import dev.diegoflassa.bipsale.feature.products.R
 import timber.log.Timber
 import java.io.FileOutputStream
@@ -29,7 +30,8 @@ class QrLabelPrintAdapter(
     private val documentName: String,
     private val labels: List<LabelData>,
     private val renderer: QrLabelSheetRenderer,
-    private val requestedColumns: Int? = null
+    private val requestedColumns: Int? = null,
+    private val typography: QrLabelTypography = QrLabelTypography.DEFAULT
 ) : PrintDocumentAdapter() {
 
     private var pdfDocument: PdfDocument? = null
@@ -105,7 +107,7 @@ class QrLabelPrintAdapter(
                     .Builder(pageWidthPt, pageHeightPt, pageIndex)
                     .create()
                 val page = document.startPage(pageInfo)
-                renderer.drawPage(page.canvas, layout, labels, pageIndex)
+                renderer.drawPage(page.canvas, layout, labels, pageIndex, typography)
                 document.finishPage(page)
             }
 

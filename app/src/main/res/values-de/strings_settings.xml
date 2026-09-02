@@ -21,4 +21,11 @@
     <string name="settings_qr_columns_section">QR-Code-Etiketten</string>
     <string name="settings_qr_columns_explainer">Wie viele Spalten pro Seite gedruckt werden sollen. Weniger Spalten = größere Etiketten.</string>
     <string name="settings_qr_columns_label">Spalten pro Seite</string>
+    <string name="settings_qr_text_size_section">Textgröße des Etiketts</string>
+    <string name="settings_qr_text_size_explainer">Gilt für gedruckte Etiketten. Kleinerer Text lässt mehr Platz für den QR-Code.</string>
+    <string name="settings_qr_name_text_size_label">Produktname</string>
+    <string name="settings_qr_price_text_size_label">Preis</string>
+    <string name="settings_qr_text_size_points">%1$d pt</string>
+    <string name="settings_qr_text_size_decrease">Textgröße verkleinern</string>
+    <string name="settings_qr_text_size_increase">Textgröße vergrößern</string>
 </resources>

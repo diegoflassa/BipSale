@@ -21,4 +21,11 @@
     <string name="settings_qr_columns_section">QR Code labels</string>
     <string name="settings_qr_columns_explainer">How many columns to print per page. Fewer columns = larger labels.</string>
     <string name="settings_qr_columns_label">Columns per page</string>
+    <string name="settings_qr_text_size_section">Label text size</string>
+    <string name="settings_qr_text_size_explainer">Applies to printed labels. Smaller text leaves more room for the QR code.</string>
+    <string name="settings_qr_name_text_size_label">Product name</string>
+    <string name="settings_qr_price_text_size_label">Price</string>
+    <string name="settings_qr_text_size_points">%1$d pt</string>
+    <string name="settings_qr_text_size_decrease">Decrease the text size</string>
+    <string name="settings_qr_text_size_increase">Increase the text size</string>
 </resources>

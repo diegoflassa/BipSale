@@ -46,4 +46,8 @@
     <string name="products_name_hint">Cómo aparece el producto en la etiqueta y en el carrito</string>
     <string name="products_price_hint">Se acepta coma o punto. Ej.: 12,50</string>
     <string name="products_quantity_hint">Unidades en stock. También define cuántas etiquetas se imprimen</string>
+    <string name="products_import_confirm_title">¿Importar la hoja de cálculo?</string>
+    <string name="products_import_confirm_message">Se escribirán los productos de la hoja. Todo producto existente con el mismo código se sobrescribirá: su nombre, precio y cantidad pasan a ser los de la hoja, y no se puede deshacer.</string>
+    <string name="products_import_confirm_accept">Importar</string>
+    <string name="products_import_confirm_cancel">Cancelar</string>
 </resources>

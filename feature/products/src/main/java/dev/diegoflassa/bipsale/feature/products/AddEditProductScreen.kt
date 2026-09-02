@@ -49,8 +49,10 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import dev.diegoflassa.bipsale.core.qrcode.LabelData
 import dev.diegoflassa.bipsale.core.qrcode.QrGenerator
+import dev.diegoflassa.bipsale.core.domain.settings.AppSettings
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetLayout
 import dev.diegoflassa.bipsale.core.qrcode.QrLabelSheetRenderer
+import dev.diegoflassa.bipsale.core.qrcode.QrLabelTypography
 import dev.diegoflassa.bipsale.core.ui.components.BipSaleTopAppBar
 import dev.diegoflassa.bipsale.core.ui.theme.BipSaleTheme
 import dev.diegoflassa.bipsale.feature.products.components.ProductImagePicker
@@ -81,7 +83,8 @@ fun AddEditProductScreen(
                         context,
                         context.getString(R.string.products_qr_labels_title),
                         effect.labels,
-                        effect.requestedColumns
+                        effect.requestedColumns,
+                        effect.typography
                     )
 
                 // Both belong to the list screen's import flow; this screen never raises them.
@@ -102,7 +105,9 @@ fun AddEditProductScreen(
         isEdit = productCode != null,
         snackbarHostState = snackbarHostState,
         onBack = onBack,
-        onIntent = viewModel::onIntent
+        onIntent = viewModel::onIntent,
+        typography = uiState.labelTypography,
+        columns = uiState.labelColumns
     )
 }
 
@@ -114,11 +119,26 @@ internal fun AddEditProductContent(
     snackbarHostState: SnackbarHostState,
     onBack: () -> Unit,
     onIntent: (ProductContract.Intent) -> Unit,
+    typography: QrLabelTypography = QrLabelTypography.DEFAULT,
+    columns: Int = AppSettings.DEFAULT_QR_LABEL_COLUMNS,
     modifier: Modifier = Modifier
 ) {
     val renderer = remember { QrLabelSheetRenderer(QrGenerator()) }
-    val labelBitmap = remember(editor.label) {
-        editor.label?.let { renderer.renderLabelPreview(it, LABEL_PREVIEW_PX) }
+    // The cell the printer will actually use, not A4's auto-fit: the column count changes the cell
+    // width, and a preview drawn at a different width is not the label that comes out of the tray.
+    val labelBitmap = remember(editor.label, typography, columns) {
+        editor.label?.let {
+            renderer.renderLabelPreview(
+                label = it,
+                widthPx = LABEL_PREVIEW_PX,
+                layout = QrLabelSheetLayout.forPage(
+                    QrLabelSheetLayout.A4_WIDTH_PT,
+                    QrLabelSheetLayout.A4_HEIGHT_PT,
+                    requestedColumns = columns
+                ),
+                typography = typography
+            )
+        }
     }
 
     Scaffold(
@@ -185,6 +205,7 @@ internal fun AddEditProductContent(
         if (editor.isLabelPreviewVisible && labelBitmap != null) {
             RealSizeLabelDialog(
                 labelBitmap = labelBitmap,
+                columns = columns,
                 onDismiss = { onIntent(ProductContract.Intent.HideLabelPreview) }
             )
         }
@@ -296,8 +317,20 @@ private fun LabelPrintPreview(
  * disagree with the printout by a few millimetres.
  */
 @Composable
-private fun RealSizeLabelDialog(labelBitmap: Bitmap, onDismiss: () -> Unit) {
-    val layout = remember { QrLabelSheetLayout.a4() }
+private fun RealSizeLabelDialog(
+    labelBitmap: Bitmap,
+    onDismiss: () -> Unit,
+    columns: Int = AppSettings.DEFAULT_QR_LABEL_COLUMNS
+) {
+    // The millimetres quoted here are what the operator holds a ruler against, so they have to come
+    // from the configured grid rather than A4's auto-fit.
+    val layout = remember(columns) {
+        QrLabelSheetLayout.forPage(
+            QrLabelSheetLayout.A4_WIDTH_PT,
+            QrLabelSheetLayout.A4_HEIGHT_PT,
+            requestedColumns = columns
+        )
+    }
     val metrics = LocalContext.current.resources.displayMetrics
     val density = LocalDensity.current
 

@@ -82,9 +82,11 @@ class ProductViewModelTest {
         override fun suggestedTemplateName(): String = "modelo.xlsx"
     }
 
-    private class FakeSettingsRepository : SettingsRepository {
-        override val settings: Flow<AppSettings> = flow { emit(AppSettings.EMPTY) }
-        override suspend fun current(): AppSettings = AppSettings.EMPTY
+    private class FakeSettingsRepository(
+        private val stored: AppSettings = AppSettings.EMPTY
+    ) : SettingsRepository {
+        override val settings: Flow<AppSettings> = flow { emit(stored) }
+        override suspend fun current(): AppSettings = stored
         override suspend fun save(settings: AppSettings) = Unit
     }
 
@@ -351,8 +353,104 @@ class ProductViewModelTest {
             val effect = awaitItem()
             assertThat(effect).isInstanceOf(ProductContract.Effect.PrintLabels::class.java)
             assertThat((effect as ProductContract.Effect.PrintLabels).labels).hasSize(2)
-            assertThat(effect.requestedColumns).isEqualTo(4)
+            assertThat(effect.requestedColumns)
+                .isEqualTo(AppSettings.DEFAULT_QR_LABEL_COLUMNS)
         }
+    }
+
+    @Test
+    fun `a print run carries the configured label type sizes`() = runTest {
+        val vm = viewModel(
+            FakeProductRepository(listOf(coturno)),
+            settingsRepository = FakeSettingsRepository(
+                AppSettings(qrLabelNameTextSizePt = 16, qrLabelPriceTextSizePt = 20)
+            )
+        )
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.PrintAllQrCodes)
+            advanceUntilIdle()
+
+            val effect = awaitItem() as ProductContract.Effect.PrintLabels
+            assertThat(effect.typography.nameTextSizePt).isEqualTo(16f)
+            assertThat(effect.typography.priceTextSizePt).isEqualTo(20f)
+        }
+    }
+
+    @Test
+    fun `the edit-screen preview follows the configured column count`() = runTest {
+        // The column count sets the cell width, so the preview and the real-size dialog both need
+        // it — a preview drawn at A4's auto-fit width is not the label that prints.
+        val vm = viewModel(
+            settingsRepository = FakeSettingsRepository(AppSettings(qrLabelColumns = 2))
+        )
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.labelColumns).isEqualTo(2)
+    }
+
+    @Test
+    fun `the edit-screen preview uses the configured type sizes`() = runTest {
+        // Rule 19: the preview has to be what prints. Reading the sizes only on the print path
+        // would leave the preview drawing the defaults forever.
+        val vm = viewModel(
+            settingsRepository = FakeSettingsRepository(
+                AppSettings(qrLabelNameTextSizePt = 7, qrLabelPriceTextSizePt = 9)
+            )
+        )
+        advanceUntilIdle()
+
+        assertThat(vm.uiState.value.labelTypography.nameTextSizePt).isEqualTo(7f)
+        assertThat(vm.uiState.value.labelTypography.priceTextSizePt).isEqualTo(9f)
+    }
+
+    @Test
+    fun `asking to import warns before it opens the file picker`() = runTest {
+        // An import overwrites every product whose code is in the sheet and cannot be undone, so
+        // the picker must not open straight off the menu item.
+        val vm = viewModel()
+        advanceUntilIdle()
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.ImportRequested)
+            advanceUntilIdle()
+
+            expectNoEvents()
+        }
+        assertThat(vm.uiState.value.isImportConfirmVisible).isTrue()
+    }
+
+    @Test
+    fun `confirming the warning is what opens the file picker`() = runTest {
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.onIntent(ProductContract.Intent.ImportRequested)
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.ImportConfirmed)
+            advanceUntilIdle()
+
+            assertThat(awaitItem()).isEqualTo(ProductContract.Effect.PickImportSource)
+            cancelAndIgnoreRemainingEvents()
+        }
+        assertThat(vm.uiState.value.isImportConfirmVisible).isFalse()
+    }
+
+    @Test
+    fun `dismissing the warning imports nothing`() = runTest {
+        val importRepository = FakeProductImportRepository()
+        val vm = viewModel(importRepository = importRepository)
+        advanceUntilIdle()
+        vm.onIntent(ProductContract.Intent.ImportRequested)
+
+        vm.effect.test {
+            vm.onIntent(ProductContract.Intent.ImportDismissed)
+            advanceUntilIdle()
+
+            expectNoEvents()
+        }
+        assertThat(vm.uiState.value.isImportConfirmVisible).isFalse()
     }
 
     @Test

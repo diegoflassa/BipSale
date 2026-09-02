@@ -51,6 +51,12 @@ class SettingsViewModel @Inject constructor(
             is SettingsContract.Intent.QrColumnsChanged ->
                 _uiState.update { it.copy(qrLabelColumns = intent.columns) }
 
+            is SettingsContract.Intent.QrLabelNameTextSizeChanged ->
+                _uiState.update { it.copy(qrLabelNameTextSizePt = intent.sizePt) }
+
+            is SettingsContract.Intent.QrLabelPriceTextSizeChanged ->
+                _uiState.update { it.copy(qrLabelPriceTextSizePt = intent.sizePt) }
+
             is SettingsContract.Intent.Save -> save()
         }
     }
@@ -72,6 +78,8 @@ class SettingsViewModel @Inject constructor(
                     discountInput = settings.pixDiscount.toInput(),
                     askCustomerInfo = settings.askCustomerInfo,
                     qrLabelColumns = settings.qrLabelColumns,
+                    qrLabelNameTextSizePt = settings.qrLabelNameTextSizePt,
+                    qrLabelPriceTextSizePt = settings.qrLabelPriceTextSizePt,
                     isLoading = false
                 )
             }
@@ -94,7 +102,9 @@ class SettingsViewModel @Inject constructor(
                     AppSettings(
                         pixDiscount = discount,
                         askCustomerInfo = state.askCustomerInfo,
-                        qrLabelColumns = state.qrLabelColumns
+                        qrLabelColumns = state.qrLabelColumns,
+                        qrLabelNameTextSizePt = state.qrLabelNameTextSizePt,
+                        qrLabelPriceTextSizePt = state.qrLabelPriceTextSizePt
                     )
                 )
             }.onSuccess {

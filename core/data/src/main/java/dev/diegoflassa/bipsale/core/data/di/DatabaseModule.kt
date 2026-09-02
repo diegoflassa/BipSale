@@ -17,11 +17,17 @@ object DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): BipSaleDatabase {
+        // No destructive fallback, deliberately: this database holds the sales record, and wiping
+        // it on a schema-hash mismatch loses money the shop cannot reconcile (CORE_RULES §13).
         return Room.databaseBuilder(
             context,
             BipSaleDatabase::class.java,
-            "bipsale_database"
-        ).build()
+            BipSaleDatabase.NAME
+        )
+            .apply {
+                BipSaleDatabase.MIGRATIONS.forEach { migration -> addMigrations(migration) }
+            }
+            .build()
     }
 
     @Provides
