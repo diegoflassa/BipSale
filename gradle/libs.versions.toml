@@ -2,7 +2,7 @@
 
 #Common
 gradle = "9.2.1"
-kotlin = "2.4.10"
+kotlin = "2.4.20"
 javax-inject = "1"
 org-jetbrains-kotlinx-coroutines-core = "1.11.0"
 
@@ -138,7 +138,7 @@ ax-startup-runtime = "1.2.0"
 org-apache-commons-compress = "1.28.0"
 
 #Rar files
-org-github-junrar = "8.1.0"
+org-github-junrar = "8.1.1"
 
 #App Update
 com-google-android-play-app-update = "2.1.0"
@@ -149,7 +149,7 @@ com-google-android-play-app-update = "2.1.0"
 com-google-android-ump-messaging-platform = "4.0.0"
 
 #Other
-clarity-compose = "3.9.0"
+clarity-compose = "3.10.0"
 com-google-auto-value = "1.11.1"
 io-coil-kt-coil-compose = "2.7.0"
 
