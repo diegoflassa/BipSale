@@ -18,7 +18,7 @@
 - Primitive state APIs are mandatory: `mutableIntStateOf` / `mutableFloatStateOf` / `mutableLongStateOf` / `mutableDoubleStateOf`. Never `mutableStateOf(0)`.
 - Hoist state. A `@Composable` that takes a `XxxUiState` and `(Event) -> Unit` callbacks is the correct shape. See `INSTRUMENTED_TEST_STANDARD.md` § Two-layer composition.
 - `collectAsStateWithLifecycle()` always. Never `collectAsState()`.
-- `rememberSaveable` **per field, never for a whole `XxxUiState` object** — and only for state the user would otherwise have to re-enter by hand. Save what the user paid for with their own time and what is still true after the process died: typed text (`customerName`, `customerCpf`, a manual item's name and price), the id of the entity being edited, navigation arguments. **Never save** transient or externally-owned state — loading/submitting flags, dialog visibility, `isSaleFinished`, camera-permission or scanner-connected booleans, or an operation's result. Those describe what the dead process was *doing*, so restoring them shows a spinner nothing will dismiss, or a "sale finished" flag whose real subject died with the process. Anything not explicitly saved must re-derive to its default. Recovering an interrupted sale is a persistence concern, not a saved-state one — see [`architecture.md` § Persistence](architecture.md).
+- `rememberSaveable` **per field, never for a whole `XxxUiState` object** — and only for state the user would otherwise have to re-enter by hand. Save what the user paid for with their own time and what is still true after the process died: typed text (`customerName`, `customerCpf`, a manual item's name and price), the id of the entity being edited, navigation arguments. **Never save** transient or externally-owned state — loading/submitting flags, dialog visibility, `isSaleFinished`, camera-permission or scanner-connected booleans, or an operation's result. Those describe what the dead process was *doing*, so restoring them shows a spinner nothing will dismiss, or a "sale finished" flag whose real subject died with the process. Anything not explicitly saved must re-derive to its default. Recovering an interrupted sale is a persistence concern, not a saved-state one — see [`ARCHITECTURE.md` § Persistence](ARCHITECTURE.md).
 - `derivedStateOf { ... }` for any computed value whose inputs change less often than the reads.
 - **State derivation belongs in the ViewModel.** Mapping, filtering, sorting, grouping, currency formatting, and any `if` / `when` chain that turns domain data into what the screen renders is computed in the ViewModel and arrives as a ready field on `XxxUiState` — cart totals and discounts included. Wrapping it in `remember { }` fixes the recomposition cost but leaves it in the wrong layer: the arithmetic that decides what a customer pays is then reachable only through an instrumented test when it is plain unit-test material. `XxxScreenContent` reads its state and decides how to *look*, nothing more. (§12 already requires this for list data; it holds for every derived field.)
 
@@ -129,7 +129,7 @@
 ## 16. AI Output Style (when generating Compose for this repo)
 
 - One composable per file. Shared/reusable composables go in the core UI module's `components/`; feature-local components stay in their feature module.
-- No comments unless behaviour is non-obvious (see `ai_behavior.md` §6 Human-Voice Comments).
+- No comments unless behaviour is non-obvious (see `AI_BEHAVIOR.md` §6 Human-Voice Comments).
 - Functions ≤ 80 lines. Split if larger.
 - No deprecated APIs.
 

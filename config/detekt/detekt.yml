@@ -5,7 +5,7 @@ complexity:
   CyclomaticComplexMethod:
     active: true
     # An MVI onIntent is one `when` over the intent hierarchy. Its complexity tracks the number of
-    # intents a screen has, not how tangled the code is, and architecture.md mandates that shape.
+    # intents a screen has, not how tangled the code is, and ARCHITECTURE.md mandates that shape.
     ignoreSingleWhenExpression: true
   LongMethod:
     active: true

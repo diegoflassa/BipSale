@@ -1,6 +1,6 @@
 # CORE RULES — BipSale
 
-**Self-contained operational + project rules.** Load alongside `ai_behavior.md` (behavioral) for any non-trivial change. Architecture (module graph, layers, MVI, DI, persistence, build) lives in [`architecture.md`](architecture.md) — not restated here.
+**Self-contained operational + project rules.** Load alongside `AI_BEHAVIOR.md` (behavioral) for any non-trivial change. Architecture (module graph, layers, MVI, DI, persistence, build) lives in [`ARCHITECTURE.md`](ARCHITECTURE.md) — not restated here.
 
 ---
 
@@ -22,6 +22,7 @@ single lookup for all of them. Load only the file the row points at.
 |     **5.1** |     [Readability & Simplicity](#51-readability--simplicity-mandatory) *(M)* | — |
 |     **5.2** |     [No Inline Fully-Qualified Names](#52-no-inline-fully-qualified-names-mandatory) *(M)* | — |
 |     **5.3** |     [Enum When Every Case Is Stateless](#53-enum-when-every-case-is-stateless-mandatory) *(M)* | — |
+|     **5.4** |     [Interfaces Only When More Than One Implementation Exists](#54-interfaces-only-when-more-than-one-implementation-exists-mandatory) *(M)* | — |
 | **6** | [KI Sync Rule](#6-ki-sync-rule-global--mandatory) *(M)* | — |
 |     **6.1** |     [Write KIs as if every change was always the original intent](#61-write-kis-as-if-every-change-was-always-the-original-intent) | — |
 |     **6.2** |     [KIs must be self-sufficient](#62-kis-must-be-self-sufficient) | — |
@@ -58,6 +59,7 @@ single lookup for all of them. Load only the file the row points at.
 |     **17.2** |     [A rules file has a token budget](DOC_GOVERNANCE.md#172-a-rules-file-has-a-token-budget-mandatory) *(M)* | [DOC_GOVERNANCE](DOC_GOVERNANCE.md) |
 | **18** | [Agent Surface Parity](DOC_GOVERNANCE.md#18-agent-surface-parity-global---mandatory) *(M)* | [DOC_GOVERNANCE](DOC_GOVERNANCE.md) |
 |     **18.1** |     [Frontmatter fails silently, so verify it](DOC_GOVERNANCE.md#181-frontmatter-fails-silently-so-verify-it-mandatory) *(M)* | [DOC_GOVERNANCE](DOC_GOVERNANCE.md) |
+|     **18.2** |     [File names are identifiers](DOC_GOVERNANCE.md#182-file-names-are-identifiers-mandatory) *(M)* | [DOC_GOVERNANCE](DOC_GOVERNANCE.md) |
 | **19** | [Single Activation Per Control](UI_RULES.md#19-single-activation-per-control-global---mandatory) *(M)* | [UI_RULES](UI_RULES.md) |
 | **20** | [Monetary Values](#20-monetary-values-global---mandatory) *(M)* | — |
 | **21** | [Text Encoding and Shell Output](AGENT_IO_RULES.md#21-text-encoding-and-shell-output-global---mandatory) *(M)* | [AGENT_IO_RULES](AGENT_IO_RULES.md) |
@@ -65,6 +67,7 @@ single lookup for all of them. Load only the file the row points at.
 | **23** | [Token Economy Discipline](AGENT_IO_RULES.md#23-token-economy-discipline-global---mandatory) *(M)* | [AGENT_IO_RULES](AGENT_IO_RULES.md) |
 | **24** | [Credentials Never Enter the Repository](SECURITY_RULES.md#24-credentials-never-enter-the-repository-global---mandatory) *(M)* | [SECURITY_RULES](SECURITY_RULES.md) |
 | **25** | [Model Assignment for Deferred Tasks](PLANNING_RULES.md#25-model-assignment-for-deferred-tasks-global---mandatory) *(M)* | [PLANNING_RULES](PLANNING_RULES.md) |
+|     **25.6** |     [One file, one pool](PLANNING_RULES.md#256-one-file-one-pool-mandatory) *(M)* | [PLANNING_RULES](PLANNING_RULES.md) |
 
 *(M) = MANDATORY. "—" in the last column means this file.*
 
@@ -120,9 +123,19 @@ What the enum buys that an all-objects sealed hierarchy does not:
 - `valueOf` / `name` — free round-trip for Room columns and Retrofit payloads in both directions; a sealed hierarchy needs a hand-written `TypeConverter` or adapter for the same thing.
 - `when` exhaustiveness with none of the per-case declaration noise.
 
-**Promote to sealed the moment one case needs a payload.** That is the signal, and it is a mechanical change. Do not model as sealed pre-emptively "in case a case grows a field later" (`ai_behavior.md` §2).
+**Promote to sealed the moment one case needs a payload.** That is the signal, and it is a mechanical change. Do not model as sealed pre-emptively "in case a case grows a field later" (`AI_BEHAVIOR.md` §2).
 
-**Carve-out — the presentation state machine stays sealed.** The per-screen `Intent` / `Effect` hierarchies inside `XxxContract.kt` stay sealed even while every case is a `data object`: [`architecture.md` § MVI Contract](architecture.md) mandates that shape per screen, those hierarchies reliably grow payload-carrying cases as a screen gains fields (`SalesContract.Effect` already mixes `NavigateBack` with `ShowError(message)`), and the ViewModel and route composable do `is`-checks against them. This subsection scopes to **domain and data outcome types** in `core:domain` / `core:data` — not to the MVI contract.
+**Carve-out — the presentation state machine stays sealed.** The per-screen `Intent` / `Effect` hierarchies inside `XxxContract.kt` stay sealed even while every case is a `data object`: [`ARCHITECTURE.md` § MVI Contract](ARCHITECTURE.md) mandates that shape per screen, those hierarchies reliably grow payload-carrying cases as a screen gains fields (`SalesContract.Effect` already mixes `NavigateBack` with `ShowError(message)`), and the ViewModel and route composable do `is`-checks against them. This subsection scopes to **domain and data outcome types** in `core:domain` / `core:data` — not to the MVI contract.
+
+### 5.4 Interfaces Only When More Than One Implementation Exists (MANDATORY)
+
+**Avoid unneeded interfaces.** An interface is used **only when more than one implementation is already used, or
+when another implementation is highly likely to be used in the future.** Otherwise the type is the concrete class.
+
+- An interface with a single implementation and no realistic second one is indirection without payoff: one more
+  file to read and one more hop to navigate, for a flexibility nobody exercises.
+- The existing interfaces are reviewed against this rule under [KI-TBD.md](../knowledge/KI-TBD.md) #15. Until that
+  review decides each one, an existing interface is not removed as a side effect of unrelated work (§0).
 
 ## 6. KI Sync Rule (GLOBAL — MANDATORY)
 
@@ -133,7 +146,7 @@ structure, or contracts of a feature:
 2. **Update the KI immediately** — before the turn ends. Do not defer.
 3. **What to sync:** file tables, business rules, layer boundaries, public contracts, and test targets affected by the change.
 4. **Scope:** only update what changed. Do not rewrite unrelated sections.
-5. **If the change affects `architecture.md` or `CORE_RULES.md`** (global rules), those files ARE the source of truth — reflect their content in the relevant KI's Business Rules section.
+5. **If the change affects `ARCHITECTURE.md` or `CORE_RULES.md`** (global rules), those files ARE the source of truth — reflect their content in the relevant KI's Business Rules section.
 
 ### 6.1 Write KIs as if every change was always the original intent
 
@@ -235,9 +248,9 @@ Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Un
 
 BipSale, Slotify, and Comiqueta share one AI-workflow rule set and one developer. Whenever a **shared** rule is added, updated, or deleted in any of the three, apply the equivalent change to the other two **in the same turn**.
 
-**What counts as shared:** §0 Stability · §2 Git Safety · §3 Token Economy · §4 Large File Protocol · §5 Code Style & Readability (5.1 Readability, 5.2 No Inline FQN, 5.3 Enum-vs-sealed) · §6 KI Sync (all sub-sections) · §7 Planning + META_PLANNING + Lifecycle · §8.1–8.5 log filter format, coverage, redaction-by-variant, protection, rename · byte-budget log chunking and call-site redaction helpers (the *mechanism* is shared; the helper set is per-project, because what counts as sensitive differs) · §9 Composable Extraction · §10 String Ownership (the ownership model, not the key namespaces) · §12 Regression Test · §13 DB Migration Safety (BipSale ↔ Comiqueta only — Slotify has no Room) · §14 Changelog · this section · everything in `ai_behavior.md` · everything in [`GRADLE_RULES.md`](GRADLE_RULES.md).
+**What counts as shared:** §0 Stability · §2 Git Safety · §3 Token Economy · §4 Large File Protocol · §5 Code Style & Readability (5.1 Readability, 5.2 No Inline FQN, 5.3 Enum-vs-sealed) · §6 KI Sync (all sub-sections) · §7 Planning + META_PLANNING + Lifecycle · §8.1–8.5 log filter format, coverage, redaction-by-variant, protection, rename · byte-budget log chunking and call-site redaction helpers (the *mechanism* is shared; the helper set is per-project, because what counts as sensitive differs) · §9 Composable Extraction · §10 String Ownership (the ownership model, not the key namespaces) · §12 Regression Test · §13 DB Migration Safety (BipSale ↔ Comiqueta only — Slotify has no Room) · §14 Changelog · this section · everything in `AI_BEHAVIOR.md` · everything in [`GRADLE_RULES.md`](GRADLE_RULES.md).
 
-**What is NOT shared** — adapt or omit, never copy verbatim: module graphs, DI framework (Hilt vs Koin), logging API (`Timber` vs `TimberLogger` vs `Logger`/Kermit), persistence (Room/Retrofit vs Room/SAF vs Supabase), build config, locale sets, and everything in `architecture.md`.
+**What is NOT shared** — adapt or omit, never copy verbatim: module graphs, DI framework (Hilt vs Koin), logging API (`Timber` vs `TimberLogger` vs `Logger`/Kermit), persistence (Room/Retrofit vs Room/SAF vs Supabase), build config, locale sets, and everything in `ARCHITECTURE.md`.
 
 **Counterpart mapping:** the trees are structurally identical - the same relative path in each repo is the
 counterpart (`conductor/rules/CORE_RULES.md` ↔ `conductor/rules/CORE_RULES.md`, and so on).

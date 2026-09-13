@@ -88,6 +88,12 @@ BipSale utiliza **Clean Architecture** com padrão **MVVM** em estrutura modular
 2. **Sincronize o Gradle:**
    Abra o projeto no Android Studio e deixe o Gradle sincronizar automaticamente.
 
+3. **Hooks de git (uma vez por clone):**
+   ```bash
+   pip install pre-commit
+   pre-commit install
+   ```
+
 3. **Build Debug APK:**
    ```bash
    ./gradlew assembleDebug
@@ -137,6 +143,8 @@ BipSale utiliza **Clean Architecture** com padrão **MVVM** em estrutura modular
 ```bash
 ./gradlew lint
 ```
+
+CI (`.github/workflows/ci.yml`) on push and pull request runs `test`, `detekt`, `ktlintCheck` and `lint`. It decodes `app/google-services.json` from the `GOOGLE_SERVICES_JSON_BASE64` secret. Wrapper validation stays in its own workflow. Scanner exclusions for Gradle-blind checks live in `.harness-score.json`.
 
 **Code Coverage (Kover):**
 ```bash
@@ -296,9 +304,9 @@ A documentação viva do projeto está em `conductor/`, e ela é **index-first p
 
 1. [`AGENTS.md`](AGENTS.md) — identidade do projeto, stack, restrições inegociáveis
 2. [`conductor/index.md`](conductor/index.md) — o mapa da documentação
-3. [`conductor/rules/ai_behavior.md`](conductor/rules/ai_behavior.md) +
+3. [`conductor/rules/AI_BEHAVIOR.md`](conductor/rules/AI_BEHAVIOR.md) +
    [`CORE_RULES.md`](conductor/rules/CORE_RULES.md) — carregue os dois para qualquer mudança não trivial
-4. [`conductor/rules/architecture.md`](conductor/rules/architecture.md) — só quando a tarefa mexe em estrutura
+4. [`conductor/rules/ARCHITECTURE.md`](conductor/rules/ARCHITECTURE.md) — só quando a tarefa mexe em estrutura
 5. [`conductor/knowledge/INDEX.md`](conductor/knowledge/INDEX.md) — case a tarefa e carregue **apenas** os
    KIs indicados
 
@@ -339,10 +347,10 @@ relativo é o equivalente em cada uma.
 **Compartilhado** — muda em um, muda nos três: estabilidade, segurança no git, economia de tokens,
 estilo de código, disciplina de sync de KI, protocolo de planejamento, formato dos filtros de log,
 extração de composables, propriedade das strings, a regra de teste de regressão, a regra do changelog, e
-tudo em `ai_behavior.md` e `GRADLE_RULES.md`.
+tudo em `AI_BEHAVIOR.md` e `GRADLE_RULES.md`.
 
 **Não compartilhado** — adapte ou omita, nunca copie: grafo de módulos, framework de DI, API de log,
-persistência, build types, conjuntos de locale, e tudo em `architecture.md`. O Slotify é Kotlin
+persistência, build types, conjuntos de locale, e tudo em `ARCHITECTURE.md`. O Slotify é Kotlin
 Multiplatform com Koin; Comiqueta e BipSale são Android puro com Hilt.
 
 ## 📄 Licença

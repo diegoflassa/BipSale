@@ -5,12 +5,13 @@ One-line summaries. Fetch an individual KI file **only** if the current task mat
 | ID | File | Topic | When to read | Key files |
 |----|------|-------|--------------|-----------|
 | KI-03 | KI-03-TOKEN-AUDIT-AND-PRUNING.md | Token budget audit + index pruning rules | Editing `conductor/index.md` / running `token_audit` | `conductor/index.md`, `CLAUDE.md`, `conductor/rules/CORE_RULES.md` |
-| KI-04 | KI-04-LOG-FILTERS.md | Log filter catalogue (SOT for every `[BipSale][X]` tag) | Adding/renaming/removing a log filter, running `/remove_filter` | `core/data/repository/*.kt`, `feature/history/HistoryViewModel.kt` |
+| KI-04 | KI-04-LOG-FILTERS.md | Log filter catalogue (SOT for every `[BipSale][X]` tag) | Adding/renaming/removing a log filter, running `/remove-filter` | `core/data/repository/*.kt`, `feature/history/HistoryViewModel.kt` |
 | KI-05 | KI-05-PRODUCT-IMAGES-AND-QR-LABELS.md | Product image storage + QR label printing contract | Touching product images, the price input, or QR label/print code | `core/domain/image/`, `core/data/image/`, `core/qrcode/`, `feature/products/` |
 | KI-06 | KI-06-BACKUP-AND-RESTORE.md | Backup archive format + restore contract | Touching backup, restore, sharing, or the archive format | `core/domain/backup/`, `core/data/backup/`, `app/ui/backup/` |
 | KI-07 | KI-07-SALES-CART-AND-DISCOUNTS.md | Cart totals, sale-level and per-line discounts, cart entry paths | Touching the cart, any total, any discount, or `sale_items` | `core/domain/model/SaleTotals.kt`, `core/domain/model/ItemDiscount.kt`, `feature/sales/` |
 | KI-08 | KI-08-SALES-EXPORT-REPORT.md | Excel sales report: columns, totals row, Resumo sheet, export flow | Touching the Excel export, any report column or total, or the export flow | `core/utils/ExcelExporter.kt`, `core/domain/model/SalesSummary.kt`, `core/domain/usecase/ExportSalesUseCase.kt`, `feature/history/` |
 | KI-09 | KI-09-STOCK-SETTINGS-AND-PIX.md | Stock control, app settings, PIX payload, product import | Touching product stock, the settings screen, PIX payment, or the spreadsheet import | `core/domain/settings/`, `core/domain/pix/`, `core/utils/ProductSheet.kt`, `app/ui/settings/` |
+| KI-10 | KI-10-MODEL-SELECTION.md | Choosing the model for a deferred task: three tiers over the seven-model pool, the recommended model picked by the task's hardest step, a fallback only from a different provider at the same tier or higher, fallback notes, and an evidence log that corrects the tiers | Writing a plan task, a backlog row or a handoff; judging whether a fallback matches | `conductor/rules/PLANNING_RULES.md` §25 |
 | KI-TBD | KI-TBD.md | **Master index of all deferred / not-yet-implemented items** | Planning next work, checking what is outstanding before starting a task | (index only — see linked KIs) |
 | KI-AUTHORING | KI-AUTHORING.md | KI authoring rules: index maintenance, present-tense spec, self-sufficiency, size limits | Creating, renaming, revising, or deleting any KI | (this directory) |
 
@@ -28,14 +29,14 @@ Per-module test inventory, known gaps, and verification commands live in [`TEST_
 
 | Skill | Exclusive purpose |
 |---|---|
-| [testing-setup](../skills/testing-setup/SKILL.md) | Test infrastructure (unit / UI / screenshot / E2E) |
-| [r8-analyzer](../skills/r8-analyzer/SKILL.md) | R8/ProGuard keep-rule audit + APK size |
-| [perfetto-trace-analysis](../skills/perfetto-trace-analysis/SKILL.md) | Runtime jank / latency / memory root-cause via traces |
-| [android-cli](../skills/android-cli/SKILL.md) | ADB / device orchestration (deploy, logcat, screenshots) |
-| [edge-to-edge](../skills/edge-to-edge/SKILL.md) | Compose system-bar / IME inset handling |
-| [adaptive](../skills/adaptive/SKILL.md) | Adaptive Compose layouts for window-size classes, foldables, large screens |
-| [android-intent-security](../skills/android-intent-security/SKILL.md) | Intent-surface security — exported components, `PendingIntent`, deep links, redirection |
-| [android-profiler](../skills/android-profiler/SKILL.md) | Record + analyse Android Studio Profiler / Perfetto traces — CPU, memory, jank, power |
-| [navigation-event](../skills/navigation-event/SKILL.md) | Intercept back gestures, run Predictive Back animations via `NavigationEventDispatcher` |
-| [play-billing-library-version-upgrade](../skills/play-billing-library-version-upgrade/SKILL.md) | Upgrade / migrate Google Play Billing Library across major versions |
-| [play-policy-insights](../skills/play-policy-insights/SKILL.md) | Audit the app against Google Play policy — data safety, permissions, account deletion |
+| [testing-setup](../../.agents/skills/testing-setup/SKILL.md) | Test infrastructure (unit / UI / screenshot / E2E) |
+| [r8-analyzer](../../.agents/skills/r8-analyzer/SKILL.md) | R8/ProGuard keep-rule audit + APK size |
+| [perfetto-trace-analysis](../../.agents/skills/perfetto-trace-analysis/SKILL.md) | Runtime jank / latency / memory root-cause via traces |
+| [android-cli](../../.agents/skills/android-cli/SKILL.md) | ADB / device orchestration (deploy, logcat, screenshots) |
+| [edge-to-edge](../../.agents/skills/edge-to-edge/SKILL.md) | Compose system-bar / IME inset handling |
+| [adaptive](../../.agents/skills/adaptive/SKILL.md) | Adaptive Compose layouts for window-size classes, foldables, large screens |
+| [android-intent-security](../../.agents/skills/android-intent-security/SKILL.md) | Intent-surface security — exported components, `PendingIntent`, deep links, redirection |
+| [android-profiler](../../.agents/skills/android-profiler/SKILL.md) | Record + analyse Android Studio Profiler / Perfetto traces — CPU, memory, jank, power |
+| [navigation-event](../../.agents/skills/navigation-event/SKILL.md) | Intercept back gestures, run Predictive Back animations via `NavigationEventDispatcher` |
+| [play-billing-library-version-upgrade](../../.agents/skills/play-billing-library-version-upgrade/SKILL.md) | Upgrade / migrate Google Play Billing Library across major versions |
+| [play-policy-insights](../../.agents/skills/play-policy-insights/SKILL.md) | Audit the app against Google Play policy — data safety, permissions, account deletion |

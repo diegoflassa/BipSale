@@ -58,7 +58,7 @@ Checkout moves money. Every number the operator sees and every number Room store
 
 ## Storage
 
-`sale_items` carries `discountType` (`NONE` / `PERCENTAGE` / `AMOUNT`) + `discountValue`. The sealed `ItemDiscount` is flattened at the mapper seam — entities stay Room-only, per [`architecture.md`](../rules/architecture.md). `BackupSaleItem` carries both fields with defaults, so an archive written before per-line discounts still restores.
+`sale_items` carries `discountType` (`NONE` / `PERCENTAGE` / `AMOUNT`) + `discountValue`. The sealed `ItemDiscount` is flattened at the mapper seam — entities stay Room-only, per [`ARCHITECTURE.md`](../rules/ARCHITECTURE.md). `BackupSaleItem` carries both fields with defaults, so an archive written before per-line discounts still restores.
 
 > **No migration ships for the column addition.** The app is unreleased, so dev-time schema churn is reset by clearing app data ([`CORE_RULES §13`](../rules/CORE_RULES.md) item 4) — which is why the debug install is a clean one. `fallbackToDestructiveMigration()` stays forbidden. The migration harness is KI-TBD #4, required before the first release.
 
