@@ -69,6 +69,8 @@ single lookup for all of them. Load only the file the row points at.
 | **25** | [Model Assignment for Deferred Tasks](PLANNING_RULES.md#25-model-assignment-for-deferred-tasks-global---mandatory) *(M)* | [PLANNING_RULES](PLANNING_RULES.md) |
 |     **25.6** |     [One file, one pool](PLANNING_RULES.md#256-one-file-one-pool-mandatory) *(M)* | [PLANNING_RULES](PLANNING_RULES.md) |
 
+| **26** | [Root-Cause Bug Fixes](#26-root-cause-bug-fixes-global--mandatory) *(M)* | — |
+
 *(M) = MANDATORY. "—" in the last column means this file.*
 
 ---
@@ -236,19 +238,27 @@ Room is the single source of truth for sales and products. A lost row is a lost 
 
 ## 14. Changelog Rule (GLOBAL — MANDATORY)
 
-**Update `CHANGELOG.md` → `## Unreleased` with each planning or fix**, one line per work unit (not per commit):
+**Update `CHANGELOG.md` → `## Unreleased` with each planning or fix**, one line per work unit (not per commit).
+
+**Entry shape:**
 
 ```
-- TEXT_OF_THE_FIX (CODE_OF_THE_FIX)
+- Categoria: descrição completa (CÓDIGO)
 ```
 
-Omit the `(CODE)` suffix when no ticket exists. On a release cut, retitle `## Unreleased` to `## [X.Y.Z] YYYY-MM-DD` and add a fresh empty `## Unreleased` above it.
+1. Every work item is exactly **one physical Markdown line** — no continuation lines.
+2. The category is a concise Portuguese label followed by a colon (e.g. `Testado:`, `Corrigido:`, `Planejado:`, `Adicionado:`). Choose the label that truthfully describes the item; there is no closed enum.
+3. Omit the parenthesised code only when no ticket, plan or work-item code exists.
+4. Entries in the same section are consecutive — **no blank line between entries**.
+5. A blank line is permitted between the final entry and the next release heading, and between a release heading and its first entry.
+6. Release headings use `## [X.Y.Z] YYYY-MM-DD`. On a release cut, retitle `## Unreleased` to the versioned heading and add a fresh empty `## Unreleased` above it.
+7. The rule applies prospectively. Historical violations are reported rather than bulk-reformatted.
 
 ## 15. Cross-Project Rule Sync (GLOBAL — MANDATORY)
 
 BipSale, Slotify, and Comiqueta share one AI-workflow rule set and one developer. Whenever a **shared** rule is added, updated, or deleted in any of the three, apply the equivalent change to the other two **in the same turn**.
 
-**What counts as shared:** §0 Stability · §2 Git Safety · §3 Token Economy · §4 Large File Protocol · §5 Code Style & Readability (5.1 Readability, 5.2 No Inline FQN, 5.3 Enum-vs-sealed) · §6 KI Sync (all sub-sections) · §7 Planning + META_PLANNING + Lifecycle · §8.1–8.5 log filter format, coverage, redaction-by-variant, protection, rename · byte-budget log chunking and call-site redaction helpers (the *mechanism* is shared; the helper set is per-project, because what counts as sensitive differs) · §9 Composable Extraction · §10 String Ownership (the ownership model, not the key namespaces) · §12 Regression Test · §13 DB Migration Safety (BipSale ↔ Comiqueta only — Slotify has no Room) · §14 Changelog · this section · everything in `AI_BEHAVIOR.md` · everything in [`GRADLE_RULES.md`](GRADLE_RULES.md).
+**What counts as shared:** §0 Stability · §2 Git Safety · §3 Token Economy · §4 Large File Protocol · §5 Code Style & Readability (5.1 Readability, 5.2 No Inline FQN, 5.3 Enum-vs-sealed) · §6 KI Sync (all sub-sections) · §7 Planning + META_PLANNING + Lifecycle · §8.1–8.5 log filter format, coverage, redaction-by-variant, protection, rename · byte-budget log chunking and call-site redaction helpers (the *mechanism* is shared; the helper set is per-project, because what counts as sensitive differs) · §9 Composable Extraction · §10 String Ownership (the ownership model, not the key namespaces) · §12 Regression Test · §13 DB Migration Safety (BipSale ↔ Comiqueta only — Slotify has no Room) · §14 Changelog · this section · §26 Root-Cause Bug Fixes · everything in `AI_BEHAVIOR.md` · everything in [`GRADLE_RULES.md`](GRADLE_RULES.md).
 
 **What is NOT shared** — adapt or omit, never copy verbatim: module graphs, DI framework (Hilt vs Koin), logging API (`Timber` vs `TimberLogger` vs `Logger`/Kermit), persistence (Room/Retrofit vs Room/SAF vs Supabase), build config, locale sets, and everything in `ARCHITECTURE.md`.
 
@@ -300,3 +310,20 @@ Money is never a `Float` or a `Double`, and never a formatted string once it lea
   covers the disagreement. Route every monetary rounding through a single named utility in the shared
   module, with the mode as its documented default, and let that utility be the only place the
   primitive appears.
+
+## 26. Root-Cause Bug Fixes (GLOBAL — MANDATORY)
+
+**A bug report names a symptom, not the defect.** Before changing a function implicated in a fix, grep every
+call site of that function. Where more than one caller reaches the same broken behaviour, the fix goes in the
+shared function they all route through — never only in the path the report described.
+
+- One guard placed where every caller converges is a smaller diff than the same guard repeated per caller,
+  and it is the diff that actually removes the defect.
+- Patching only the reported call site leaves every sibling caller carrying the identical bug, undiscovered
+  until its own report arrives.
+- This does not license widening the fix beyond what the callers actually share — §0 and §3 still bound the
+  change to the real defect, not to speculative hardening nobody hit.
+
+> **Rationale:** the shortest correct diff and the most complete one are the same diff exactly when the fix
+> lands where the callers converge; picking the symptom's call site over the shared root cause trades a
+> smaller-looking patch for a bug that only looks fixed.
