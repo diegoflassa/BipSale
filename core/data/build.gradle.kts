@@ -14,7 +14,7 @@ android {
     // schema directory has to ship inside it.
     sourceSets {
         getByName("androidTest") {
-            assets.srcDirs(files("$projectDir/schemas"))
+            assets.srcDir(file("$projectDir/schemas"))
         }
     }
 }
