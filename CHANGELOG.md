@@ -135,6 +135,8 @@ The category is a concise Portuguese label (e.g. `Testado:`, `Corrigido:`, `Plan
 - Fixed Auto Backup restoring a pre-rename `bipsale_database` onto a fresh install, which made Room abort on the identity-hash mismatch and crash every screen that opened the database, surviving even a full uninstall
 - Room now exports its schema (`exportSchema = true` + `room.schemaLocation`), unblocking the migration harness `CORE_RULES` §13 requires
 - Fixed detekt failing on `:app` (wildcard imports, missing trailing newlines, over-long nav host) and taught it that `@Preview` functions are not dead code
+- Documentado: o pool de modelos passou a 23 e ganhou o tier T0 (`GPT-6 Astra`, só para problema muito difícil e sempre com fallback T1 de outro provider), com GPT-6, Claude 5.5/5.1/4.x e Haiku 4.5 atribuídos a tiers e a tabela de fallback regerada
+- Adicionado: skill `log-analysis` para análise somente leitura de logs grandes, com dicas de leitura (recomendação): nome do arquivo, filtro do app de baixo para cima ou a partir do último `PROCESS STARTED`, leitura sem filtro quando necessário
 
 ## Reconstructed history (before 2026-07-21)
 
